@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.8 2004/10/12 18:34:27 grisha Exp $
+# $Id: vsutil.py,v 1.9 2004/10/15 21:35:38 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -247,7 +247,7 @@ def set_file_immutable_unlink(path):
     # unfortunately this can only be done via command-line
     # XXX unless we make a python binding for vserver, that is.
 
-    cmd = "setattr --iunlink '%s'" % path
+    cmd = "%s --iunlink '%s'" % (os.path.join(cfg.VSERVER_PREFIX, 'sbin/setattr'), path)
     s, o = commands.getstatusoutput(cmd)
     if s:
         print s
@@ -256,7 +256,7 @@ def set_file_immutable_unlink(path):
 def is_file_immutable_unlink(path):
     """ Check wither the iunlink flag is set """
 
-    cmd = "showattr '%s'" % path
+    cmd = "%s '%s'" % (os.path.join(cfg.VSERVER_PREFIX, 'sbin/showattr'), path)
     s, o = commands.getstatusoutput(cmd)
     if s:
         print s

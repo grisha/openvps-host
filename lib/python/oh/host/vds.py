@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.25 2004/10/14 19:48:50 grisha Exp $
+# $Id: vds.py,v 1.26 2004/10/15 21:35:38 grisha Exp $
 
 """ VDS related functions """
 
@@ -336,11 +336,10 @@ def ref_make_libexec_oh(refroot):
     print 'Making %s' % libexec_dir
     os.mkdir(libexec_dir)
 
-    print 'Copying ping, traceroute, mount and umount there'
+    print 'Copying traceroute, mount and umount there'
 
 
-    for path, short_name in [('bin/ping', 'ping'),
-                             ('bin/traceroute', 'traceroute'),
+    for path, short_name in [('bin/traceroute', 'traceroute'),
                              ('bin/mount', 'mount'),
                              ('bin/umount', 'umount'),]:
 
@@ -508,27 +507,32 @@ def vserver_config_sendmail(root, hostname):
     for n in range(len(lines)):
 
         if lines[n].startswith('#O RefuseLA'):
-            lines[n] = 'O RefuseLA 100\n'
+            lines[n] = 'O RefuseLA=100\n'
         
     open(fname, 'w').writelines(lines)
 
-def vserver_enable_imaps(root):
+def vserver_enable_pops(root):
 
-    print 'Enabling IMAPS and POP3S'
+    # tell dovecot to listen to imaps and pops only
 
-    print 'FIXME!!!!'
-    return
+    print 'Configuring etc/dovecot.conf to only allow SSL imap and pop'
 
+    protos = 'protocols = imaps pop3s\n'
 
-    imaps_path = os.path.join(root, 'etc', 'xinetd.d', 'imaps')
-    s = open(imaps_path).read()
-    s = s.replace('= yes', '= no')
-    open(imaps_path, 'w').write(s)
+    file = os.path.join(root, 'etc/dovecot.conf')
 
-    imaps_path = os.path.join(root, 'etc', 'xinetd.d', 'pop3s')
-    s = open(imaps_path).read()
-    s = s.replace('= yes', '= no')
-    open(imaps_path, 'w').write(s)
+    set = 0
+    lines = open(file).readlines()
+    for n in range(len(lines)):
+        stripped = line[n].strip()
+        if stripped.find('protocols') != -1:
+            line[n] = protos
+            set = 1
+
+    if not set:
+        lines.append(protos)
+
+    open(file, 'w').writelines(lines)
 
 def vserver_stub_www_index_page(root):
     """ Create a stub default www page """
@@ -729,7 +733,8 @@ def vserver_ohd_key(root, name):
     print 'Adding it to', ohdkeys
 
     key = open(keyfile+'.pub').read()
-    s = 'from="127.0.0.1",command="/usr/bin/sudo /usr/local/oh/misc/ohdexec %s" %s' % (name, key)
+    s = 'from="127.0.0.1,::ffff:127.0.0.1",command="/usr/bin/sudo %s %s" %s' % \
+        (os.path.join(cfg.MISC_DIR, 'ohdexec'), name, key)
 
     open(ohdkeys, 'a+').write(s)
 
@@ -740,11 +745,10 @@ def vserver_fixup_libexec_oh(root):
 
     print 'Setting flags in usr/libexec/oh'
 
-    png = os.path.join(root, 'usr/libexec/oh/ping')
-    tr = os.path.join(root, 'usr/libexec/oh/traceroute')
+    for file in ['traceroute', 'mount', 'umount']:
 
-    vsutil.set_file_immutable_unlink(png)
-    vsutil.set_file_immutable_unlink(tr)
+        path = os.path.join(root, 'usr/libexec/oh/', file)
+        vsutil.set_file_immutable_unlink(file)
 
 def vserver_immutable_modules(root):
 
@@ -831,12 +835,9 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns=cfg.PRIMARY_
     vserver_make_symlink(root, xid)
     vserver_vroot_perms()
 
-    # ZZZ test ping/traceroute
     # ZZZ fix pops imaps (FIXME)
+    # ZZZ mount --bind/umount (still broken, pending SYS_ADMIN research)
     # ZZZ vsched
-    
-    # rm -f /var/lib/rpm/__db*
-    # (this is because we install from FC1)
     
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""

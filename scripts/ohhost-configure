@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.16 2004/10/13 22:47:08 grisha Exp $
+# $Id: ohhost-configure,v 1.17 2004/10/15 21:35:38 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -122,7 +122,7 @@ def get_util_vserver_prefix():
     prompt = 'Please enter the prefix for util-vserver [%s]:' % dft
     s = raw_input(prompt)
     if not s:
-        return dft
+        s = dft
 
     cfg.VSERVER_PREFIX = s
     return s
@@ -222,6 +222,26 @@ def fix_sems():
         commands.getoutput('sysctl -w kernel.sem="250 256000 32 1024"')
         commands.getoutput('echo "kernel.sem = 250 256000 32 1024" >> /etc/sysctl.conf')
 
+def disable_ipv6():
+    # XXX Is this really necessary?
+
+    mp = '/etc/modprobe.conf'
+    alias = 'alias net-pf-10 off'
+
+    found = 0
+    lines = open(mp).readlines()
+    for line in lines:
+        if line.startswith('alias net-pf-10 off'):
+            return
+
+    # if we got this far it's not there
+    print 'Adding %s to %s to disable IPv6...' % (alias, mp)
+    open(mp, 'a').write('\n%s\n'% alias)
+
+    print 'Done.\nNOTE: This will onle take effect after a REBOOT!\n'
+    time.sleep(2)
+    
+
 def vserver_service():
 
     print 'Enabling vservers service.'
@@ -241,7 +261,7 @@ def vserver_config():
         print '\n       !!! *** !!!\n'
         print 'WARNING: Your vserver prefix is %s, yet there exists /etc/vservers ' \
               'which is not a symlink - perhaps you have two versions of util-vserver? ' \
-              'Please fix this! /etc/vservers should be a symlink to the real config dir.' % cfg.VSERVER_PREFIX
+              'Please fix this! /etc/vservers should be a symlink to the real config dir.' % `cfg.VSERVER_PREFIX`
         print '\n       !!! *** !!!\n'
 
 def fix_services():
@@ -276,11 +296,12 @@ def fix_sshd():
     lines = open('/etc/ssh/sshd_config').readlines()
     set = 0
     for n in range(len(lines)):
-        if lines[n].strip().lower().find('listenaddress') > -1:
+        stripped = lines[n].strip().lower()
+        if stripped.find('listenaddress') > -1:
             if not set:
                 lines[n] = 'ListenAddress %s\nListenAddress 127.0.0.1\n' % ip
                 set = 1
-            else:
+            elif stripped[0] != '#':
                 lines[n] = '#'+lines[n]
 
     open('/etc/ssh/sshd_config', 'w').writelines(lines)
@@ -383,11 +404,11 @@ def add_ohd_user():
         sshdir = os.path.join('/home', cfg.OHD_USER, '.ssh')
         if not os.path.exists(sshdir):
             os.mkdir(sshdir, 0700)
-            commands.getoutput('chown %s %s' % (sshdir, cfg.OHD_USER))
+        commands.getoutput('chown %s %s' % (cfg.OHD_USER, sshdir))
         if not os.path.exists(sshdir+'/authorized_keys'):
             os.mknod(sshdir+'/authorized_keys')
-            commands.getoutput('chown %s %s' % (sshdir+'/authorized_keys', cfg.OHD_USER))
-            os.chmod(sshdir+'/authorized_keys', 0600)
+        commands.getoutput('chown %s %s' % (cfg.OHD_USER, sshdir+'/authorized_keys'))
+        os.chmod(sshdir+'/authorized_keys', 0600)
 
         # add to sudoers
         s = commands.getoutput('grep ohd /etc/sudoers')
@@ -414,6 +435,7 @@ def main():
     save_config(params)
     vserver_config()
     fix_sems()
+    disable_ipv6()
     vserver_service()
     fix_services()
     fix_sshd()
@@ -429,14 +451,19 @@ def main():
     print "We are *almost* done now. The last remaining step is to"
     print "build a reference server. To do this we first need a"
     print "directory that contains all the rpms from the distribution"
-    print "CDs (i.e. everything in the RPMS directory on all 3 Fedora CD's)."
-    print "You can do this by either copying them to a local directory, "
-    print "or perhaps making them available via an NFS mount. You will also"
+    print "CDs (i.e. everything in the RPMS directory on all 3 Fedora CD's),"
+    print "or a URL to an ftp/http server with a distribution on it."
+    print 
+    print "Even if you decide to use the local filesyste, you will still"
     print "need to make sure the server can get out to the Internet via HTTP"
     print "at this point, because the next step will attempt to download a"
-    print "few files from openvps.org. Once you have that setup, do"
+    print "few RPMs from openvps.org (look in dft.py for specifics)."
     print
-    print "ohhost buildref /vservers/REF /location/of/rpms"
+    print "Once you have that setup, do (as root)"
+    print
+    print "# ohhost buildref /vservers/REF /location/of/rpms"
+    print "     OR"
+    print "# ohhost buildref /vservers/REF http://favorite.mirror.tld/fedora/core/2/i386/os"
     print
 
 main()

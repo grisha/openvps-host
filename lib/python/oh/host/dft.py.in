@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.19 2004/10/14 19:48:50 grisha Exp $
+# $Id: dft.py.in,v 1.20 2004/10/15 21:35:38 grisha Exp $
 
 """ Configuration Defaults
 
@@ -143,10 +143,10 @@ DFT_DEVICE = 'eth0'
 # Capability names can be found in /usr/include/linux/capability.h
 
 COMMAND_CAPS = {
-    'PING' : ['/usr/libexec/oh/ping', ['CAP_NET_RAW']],
-    'TRACEROUTE' : ['/usr/libexec/oh/traceroute', ['CAP_NET_RAW']],
-    'MOUNT_BIND': ['/usr/libexec/oh/mount', ['CAP_SYS_ADMIN']],
-    'UMOUNT': ['/usr/libexec/oh/umount', ['CAP_SYS_ADMIN']],
+    # ping already works in 1.9.3 without special tricks
+    'TRACEROUTE' : ['/usr/libexec/oh/traceroute', ['NET_RAW']],
+    'MOUNT_BIND': ['/usr/libexec/oh/mount', ['SYS_ADMIN']],
+    'UMOUNT': ['/usr/libexec/oh/umount', ['SYS_ADMIN']],
     }
 
 # The username used for the commands above
@@ -157,7 +157,7 @@ OHD_PORT = '@OHD_PORT@'
 
 # services we want enabled (everything else is disabled)
 FEDORA_C2_SRVCS =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
-                   'syslog', 'xinetd', 'webmin']
+                   'syslog', 'webmin', 'dovecot']
 # these aren't really services, but are in /etc/init.d
 FEDORA_C2_NOT_SRVCS = ['functions', 'killall', 'halt', 'single']
 
@@ -411,7 +411,10 @@ FEDORA_C2_PKGS_BASE_I = [
 FEDORA_C2_PKGS_BASE_II = [
     'pkgconfig',
     'perl-HTML-Parser',
-    'perl-Cyrus',
+#    'perl-Cyrus',
+#    'cyrus-imapd-utils',
+    'cyrus-sasl-devel',
+    'dovecot',
     'php',
     'mysql-devel',
     'apr-util-devel',
@@ -428,7 +431,6 @@ FEDORA_C2_PKGS_BASE_II = [
     'httpd-devel',
     'php-domxml',
     'openssl-devel',
-    'cyrus-imapd-utils',
     'gdbm-devel',
     'spamassassin',
     'mysql-server',
@@ -444,7 +446,6 @@ FEDORA_C2_PKGS_BASE_II = [
     'perl-Time-HiRes',
     'postgresql-libs',
     'php-pgsql',
-    'cyrus-sasl-devel',
     'libc-client',
     'libstdc++-devel',
     'vim-enhanced',
@@ -486,7 +487,7 @@ FEDORA_C2_PKGS_BASE_II = [
     'perl-URI',
     'php-ldap',
     'telnet-server',
-    'cyrus-imapd',
+#    'cyrus-imapd',
     'libpng',
     'squid',
     'php-xmlrpc',
