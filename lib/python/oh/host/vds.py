@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.19 2004/10/05 20:50:54 grisha Exp $
+# $Id: vds.py,v 1.20 2004/10/06 22:00:36 grisha Exp $
 
 """ VDS related functions """
 
@@ -400,6 +400,33 @@ def vserver_set_user_passwd(root, userid, passwd):
     s = commands.getoutput(cmd)
     
 def make_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
+
+    """
+    Looking at the new config, we need at least:
+
+    bcapabilities  (not sure that it is needed)
+    context
+    flags - lock hide_netif (virt_uptime, sched_?)
+    uts
+      nodename - hostname
+    nice - 9
+    run -> /var/run/vservers/zzz
+    run.rev ???
+    vdir -> /vservers/zzz
+    interfaces
+      iface
+        bcast 172.20.20.255
+        ip 172.20.20.20
+        mask 255.255.255.0
+        name ???
+    fstab
+     none                    /dev/pts                devpts  gid=5,mode=620  0 0
+     none                    /proc                   proc    defaults        0 0
+     
+
+    """
+
+
 
     fname = os.path.join(cfg.ETC_VSERVERS, '%s.conf' % name)
     print 'Making config file %s' % fname
@@ -879,7 +906,7 @@ def copy(src, dst, link=1, touch=0):
 
             devs += 1
 
-def clone(source, dest, pace=1000):
+def clone(source, dest, pace=cfg.PACE[0]):
 
     # pace counter
     p = 0
@@ -903,7 +930,7 @@ def clone(source, dest, pace=1000):
 
             if pace and p >= pace:
                 sys.stdout.write('.'); sys.stdout.flush()
-                time.sleep(2)
+                time.sleep(cfg.PACE[1])
                 p = 0
             else:
                 p += 1
@@ -934,7 +961,7 @@ def clone(source, dest, pace=1000):
     print 'Devices:'.ljust(20), devs
 
 
-def fixflags(refroot, pace=1000):
+def fixflags(refroot, pace=cfg.PACE[0]):
 
     # This routine sets immutable-unlink flags on all files,
     # except those that are marked as config (or mentioned at all)
@@ -960,7 +987,7 @@ def fixflags(refroot, pace=1000):
             # do we need a pacing sleep?
             if pace and p >= pace:
                 sys.stdout.write('.'); sys.stdout.flush()
-                time.sleep(1)
+                time.sleep(cfg.PACE[1])
                 p = 0
             else:
                 p += 1

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.12 2004/10/05 20:50:54 grisha Exp $
+# $Id: dft.py.in,v 1.13 2004/10/06 22:00:36 grisha Exp $
 
 """ Configuration Defaults
 
@@ -154,6 +154,11 @@ FEDORA_C1_SRVCS =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
                    'syslog', 'xinetd', 'webmin']
 # these aren't really services, but are in /etc/init.d
 FEDORA_C1_NOT_SRVCS = ['functions', 'killall', 'halt', 'single']
+
+# How many IO intensive operations (e.g. during cloning) we do before
+# sleeping. (ops, seconds)
+
+PACE = (1000, 1)
 
 # temporary location on the host server to store remote RPM's
 RPM_CACHE = '/var/tmp/openvps-rpmcache'
