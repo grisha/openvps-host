@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.35 2004/11/07 05:11:10 grisha Exp $
+# $Id: vds.py,v 1.36 2004/11/08 16:22:21 grisha Exp $
 
 """ VDS related functions """
 
@@ -1073,9 +1073,7 @@ def clone(source, dest, pace=cfg.PACE[0]):
     print 'Copied files:'.ljust(20), copys
     print 'Devices:'.ljust(20), devs
 
-
-
-def fixflags(refroot, pace=cfg.PACE[0]):
+def fixflags(refroot):
 
     # This routine sets immutable-unlink flags on all files,
     # except those that are marked as config (or mentioned at all)
@@ -1086,7 +1084,9 @@ def fixflags(refroot, pace=cfg.PACE[0]):
 
     print 'Fixing flags in %s ... (this will take a while)' % refroot
 
-    # pace counter
+    # progress indicator
+    prog_size = 60
+    sys.stdout.write('[%s]' % (' '*prog_size)); sys.stdout.flush()
     p = 0
 
     # list all rpms
@@ -1095,6 +1095,10 @@ def fixflags(refroot, pace=cfg.PACE[0]):
 
     ts = rpm.TransactionSet(refroot)
     rpms  = [item[1][rpm.RPMTAG_NAME] for item in ts.IDTXload()]
+
+    # a stupid trick. makes the progress indicator move slow at first
+    # then faster (probably because small rpms are towards the end).
+    rpms.reverse()
 
     # this will prevent some warnings related to chroot
     os.chdir(cfg.VSERVERS_ROOT)
@@ -1128,9 +1132,12 @@ def fixflags(refroot, pace=cfg.PACE[0]):
         for idx in xrange(len(files)):
                                                                                                              
             # do we need a pacing sleep?
-            if pace and p >= pace:
-                sys.stdout.write('.'); sys.stdout.flush()
-                time.sleep(cfg.PACE[1])
+            if p >= 1000:
+                # instead of writing a dot, write something meaningful
+                prog = int(rpms.index(name)/float(len(rpms))*prog_size)
+                sys.stdout.write('\b'*(prog_size+2))
+                sys.stdout.write('[%s%s]' % ('='*prog, ' '*(prog_size-prog)))
+                sys.stdout.flush()
                 p = 0
             else:
                 p += 1
@@ -1163,58 +1170,8 @@ def fixflags(refroot, pace=cfg.PACE[0]):
                         # is not in an rpm.
                         # reldst is the way it would look relative to refroot
 
-    print 'Done.'
-
-
-
-def OLD_fixflags(refroot, pace=cfg.PACE[0]):
-
-    # This routine sets immutable-unlink flags on all files,
-    # except those that are marked as config (or mentioned at all)
-    # in rpms
-
-    # this will strip trailing slashes
-    refroot = os.path.normpath(refroot)
-
-    print 'Fixing flags in %s ... (this will take a while)' % refroot
-
-    # pace counter
-    p = 0
-
-    # this will prevent some warnings related to chroot
-    os.chdir(cfg.VSERVERS_ROOT)
-    
-    for root, dirs, files in os.walk(refroot):
-
-#        print root, dirs, files
-
-        for file in files + dirs:
-
-            # do we need a pacing sleep?
-            if pace and p >= pace:
-                sys.stdout.write('.'); sys.stdout.flush()
-                time.sleep(cfg.PACE[1])
-                p = 0
-            else:
-                p += 1
-
-            abspath = os.path.join(root, file)
-
-            # reldst is the way it would look relative to refroot
-            reldst = os.path.join(max(root[len(refroot):], '/'), file)
-            
-            c, t, s = match_path(reldst)
-
-            if is_config(refroot, reldst) or c or t or s:
-                pass
-            else:
-                if (not os.path.islink(abspath)) and (not os.path.isdir(abspath)):
-                    # (do not make symlinks and dirs immutable)
-                    vsutil.set_file_immutable_unlink(abspath)
-            # NOTE that under no circumstances we *unset* the flag. This
-            # is because e.g. usr/libexec/oh stuff must be iunlink, but
-            # is not in an rpm.
-
+    sys.stdout.write('\b'*(prog_size+2))
+    sys.stdout.write('[%s]' % ('='*prog_size)); sys.stdout.flush()
     print 'Done.'
 
 def addip(vserver, ip):
