@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.3 2004/04/01 21:41:03 grisha Exp $
+# $Id: vds.py,v 1.4 2004/04/03 02:00:08 grisha Exp $
 
 """ VDS related functions """
 
@@ -522,6 +522,8 @@ def vserver_disable_pam_limits(root):
     # startup problems with sshd and other daemons:
     # http://www.paul.sladen.org/vserver/archives/200403/0277.html
 
+    print 'Disabling pam limits'
+
     for pam in ['sshd', 'system-auth']:
 
         fname = os.path.join(root, 'etc/pam.d', pam)
@@ -580,7 +582,8 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
     vserver_add_http_proxy(root)
     vserver_random_crontab(root)
     vserver_webmin_passwd(root)
-
+    vserver_disable_pam_limits(root)
+    
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""
 
