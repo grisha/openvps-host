@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.2 2004/03/28 22:57:37 grisha Exp $
+# $Id: vds.py,v 1.3 2004/04/01 21:41:03 grisha Exp $
 
 """ VDS related functions """
 
@@ -110,6 +110,9 @@ def ref_install_pkgs(root, distroot):
             s = pipe.read(1)
         pipe.close()
 
+        # another mising dir
+        os.mkdir(os.path.join(root, 'usr', 'src', 'redhat'))
+
         print "Installing additional packages..."
         #cmd = 'rpm --root %s -Uvh --nodeps %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS['ADDL']))
         cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_ADDL))
@@ -120,6 +123,7 @@ def ref_install_pkgs(root, distroot):
             s = pipe.read(1)
         pipe.close()
 
+        
     finally:
 
         cmd = 'umount %s' % os.path.join(root, 'proc')
@@ -305,29 +309,6 @@ def make_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
 
     open(fname, 'w').write(s)
 
-    # XXX This is a pretty bad hack - for whatever
-    # reason ssh won't start correctly within a vserver and
-    # won't allow logins until restarted. When this is figured
-    # out, this can go away.
-    s = """\
-#!/bin/sh
-
-case $1 in
-    pre-start)
-        ;;
-    post-start)
-        %s %s exec service sshd restart
-        ;;
-    post-stop)
-        ;;
-    *)
-        ;;
-esac
-""" % (cfg.VSERVER, name)
-    fname = os.path.join(cfg.ETC_VSERVERS, '%s.sh' % name)
-    open(fname, 'w').write(s)
-    os.chmod(fname, 0755)
-
 def vserver_make_hosts(root, hostname, ip):
 
     fname = os.path.join(root, 'etc', 'hosts')
@@ -499,6 +480,8 @@ def vserver_make_ssl_cert(root, hostname):
                                            os.path.join(root, 'usr/share/ssl/certs/imapd.pem')))
     commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
                                            os.path.join(root, 'usr/share/ssl/certs/ipop3d.pem')))
+    commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
+                                           os.path.join(root, 'etc/webmin/miniserv.pem')))
     s = commands.getoutput('rm -rf %s' % d)
     print s
     open(os.path.join(root, 'etc/httpd/conf/ssl.crt/.ohcert'), 'w').write('')
@@ -519,6 +502,58 @@ def vserver_random_crontab(root):
     os.chmod(fname, 0755)
 
     open(os.path.join(root, 'etc/crontab'), 'w').write(cfg.CRONTAB)
+
+def vserver_make_cvsroot(root):
+
+    print 'Making a cvsroot'
+
+    # normally we wouldn't care, but it makes webmin happy
+
+    fname = os.path.join(root, 'usr/local/cvsroot')
+    os.mkdir(fname)
+    cmd = '%s %s cvs -d /usr/local/cvsroot init' % (cfg.CHROOT, root)
+    s = commands.getoutput(cmd)
+
+def vserver_disable_pam_limits(root):
+
+    # pam_limits.so, which is enabled by default on fedora, will not
+    # work in a vserver whose priority has been lowered using the
+    # S_NICE configure option, which we do. pam_limits will cause
+    # startup problems with sshd and other daemons:
+    # http://www.paul.sladen.org/vserver/archives/200403/0277.html
+
+    for pam in ['sshd', 'system-auth']:
+
+        fname = os.path.join(root, 'etc/pam.d', pam)
+
+        s = []
+        for line in open(fname):
+            if 'pam_limits' in line and line[0] != '#':
+                s.append('#' + line)
+            else:
+                s.append(line)
+        open(fname, 'w').write(''.join(s))
+
+def vserver_webmin_passwd(root):
+
+    # copy root password to webmin
+
+    if not os.path.exists(os.path.join(root, 'etc/webmin')):
+        print 'webmin not installed, skipping'
+        return
+    else:
+        print 'Setting webmin password'
+        
+    shadow = os.path.join(root, 'etc/shadow')
+    root_hash = ''
+    for line in open(shadow):
+        if line.startswith('root:'):
+            root_hash = line.split(':')[1]
+            break
+
+    musers = os.path.join(root, 'etc/webmin/miniserv.users')
+    open(musers, 'w').write('root:%s:0' % root_hash)
+    os.chmod(musers, 0600)
 
 def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
 
@@ -544,6 +579,7 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
     vserver_make_ssl_cert(root, hostname)
     vserver_add_http_proxy(root)
     vserver_random_crontab(root)
+    vserver_webmin_passwd(root)
 
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""

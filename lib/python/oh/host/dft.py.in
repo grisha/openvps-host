@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.1 2004/03/28 22:57:37 grisha Exp $
+# $Id: dft.py.in,v 1.2 2004/04/01 21:41:03 grisha Exp $
 
 """ Configuration Defaults
 
@@ -83,7 +83,7 @@ INODES_LIM = 50000
 CLONE_RULES = {
     'copy' : ['/etc'], #['/etc', '/var', '/root'],
     'touch' : ['/var/log', '/var/run', '\.bash_history'],
-    'skip' : ['ssh_host_', '.pem$'] # ['/dev']
+    'skip' : ['ssh_host_', '.pem$', '/proc/'] # ['/dev']
     }
 
 # location of chroot command
@@ -122,7 +122,7 @@ DFT_NICE = '9' # not as nice as default (10), but nice
 
 # services we want enabled (everything else is disabled)
 FEDORA_C1_SRVCS =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
-                   'syslog', 'xinetd']
+                   'syslog', 'xinetd', 'webmin']
 # these aren't really services, but are in /etc/init.d
 FEDORA_C1_NOT_SRVCS = ['functions', 'killall', 'halt', 'single']
 
