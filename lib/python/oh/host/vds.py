@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.41 2004/12/03 19:18:25 grisha Exp $
+# $Id: vds.py,v 1.42 2004/12/09 05:26:40 grisha Exp $
 
 """ VDS related functions """
 
@@ -187,7 +187,7 @@ def ref_install_pkgs(root, distroot):
         #os.chdir(distroot)
         
         print "Installing base packages STEP I..."
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C2_PKGS_BASE_I, distroot)))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_PKGS_BASE_I, distroot)))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -203,7 +203,7 @@ def ref_install_pkgs(root, distroot):
         os.mkdir(os.path.join(root, 'usr', 'src', 'redhat'))
 
         print "Installing packages STEP II..."
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C2_PKGS_BASE_II, distroot)))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_PKGS_BASE_II, distroot)))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -212,10 +212,10 @@ def ref_install_pkgs(root, distroot):
         pipe.close()
 
 
-        if cfg.FEDORA_C2_PKGS_ADDL:
+        if cfg.FEDORA_PKGS_ADDL:
         
             print "Installing additional packages..."
-            cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C2_PKGS_ADDL, distroot)))
+            cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_PKGS_ADDL, distroot)))
             pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
             s = pipe.read(1)
             while s:
@@ -411,6 +411,19 @@ def ref_fix_vncserver(refroot):
 
     open(file, 'w').writelines(lines)
 
+def ref_import_rpm_key(refroot):
+
+    path = os.path.join(refroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY')
+    print 'Importing RPM GPG key: %s' % path
+    cmd = 'rpm -r %s --import %s' % (refroot, path)
+    commands.getoutput(cmd)
+
+    path = os.path.join(refroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY-fedora')
+    print 'Importing RPM GPG key: %s' % path
+    cmd = 'rpm -r %s --import %s' % (refroot, path)
+    commands.getoutput(cmd)
+
+
 def buildref(refroot, distroot):
 
     refroot = os.path.abspath(refroot)
@@ -430,6 +443,7 @@ def buildref(refroot, distroot):
     ref_make_i18n(refroot)
     ref_fix_inittab(refroot)
     ref_fix_vncserver(refroot)
+    ref_import_rpm_key(refroot)
 
     # enable shadow (I wonder why it isn't by default)
     cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, refroot)

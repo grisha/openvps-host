@@ -103,7 +103,7 @@ DEFAULT_DOMAIN = 'domain.tld'
 # important, since you will only build a reference server once per
 # physical machine, if that.
 
-# FEDORA_C2_PKGS_ADDL = [ ]
+# FEDORA_PKGS_ADDL = [ ]
 
 ###
 # do not edit this if you like using emacs
