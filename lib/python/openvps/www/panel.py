@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.9 2005/02/07 22:52:40 grisha Exp $
+# $Id: panel.py,v 1.10 2005/02/08 17:17:30 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -46,10 +46,10 @@ def error(req, msg):
     req.content_type = 'text/html'
     req.write('\n<h1>Error: %s</h1>\n' % msg)
     return apache.OK
-              
-def handler(req):
 
-    # are we authenticated?
+def check_authen(req):
+    """ If authenticated, return userid """
+
     try:
         cookies = Cookie.get_cookies(req, Class=RSASignedCookie.RSASignedCookie,
                                      secret=_get_pub_key())
@@ -57,11 +57,16 @@ def handler(req):
         cookies = None
         
     if not cookies or not cookies.has_key('openvps-user'):
-        return login(req, message='please log in')
+        login(req, message='please log in')
     else:
         login_time, userid = cookies['openvps-user'].value.split(':', 1)
         if (time.time() - int(login_time)) > TIMEOUT:
-            return login(req, message='session time-out, please log in again')
+            login(req, message='session time-out, please log in again')
+
+        return userid
+
+              
+def handler(req):
 
     # the URL format is as follows:
     # /vserver_name/command/params...
@@ -78,7 +83,10 @@ def handler(req):
 
     if parts[1] == 'admin':
         
-        # new style
+        # requires authentication
+        userid = check_authen(req)
+        if not userid:
+            return apache.OK
 
         vserver_name = parts[2]
         vservers = vsutil.list_vservers()
@@ -100,26 +108,16 @@ def handler(req):
         return pubkey(req)
 
     elif parts[1] == 'login':
-
         return login(req)
 
+    elif parts[1] == 'logout':
+        return logout(req)
+
+    elif parts[1] == 'stats':
+        return stats(req)
+
     else:
-
-        # old style XXX needs to go away eventually
-
-        vserver_name = parts[1]
-        vservers = vsutil.list_vservers()
-        if not vservers.has_key(vserver_name):
-            return error(req, 'request not understood')
-
-        if userid != vserver_name:
-            return error(req, 'request not understood')
-
-        if len(parts) > 2:
-            command = parts[2]
-
-        if len(parts) > 3:
-            params = '/'.join(parts[3:])
+        return error(req, 'request not understood')
 
     if command not in ALLOWED_COMMANDS:
         return error(req, 'request not understood')
@@ -259,9 +257,11 @@ def login(req, message=''):
             cookie.path = '/'
             Cookie.add_cookie(req, cookie)
 
-            if uri:
+            if uri and uri != '/login':
                 req.log_error('redirecting to '+uri)
                 util.redirect(req, str(uri))
+            else:
+                util.redirect(req, '/admin/%s/' % vserver_name)
 
         else:
              message = 'invalid login or password'   
@@ -277,6 +277,13 @@ def login(req, message=''):
                 vars=vars)
 
     p.run()
+
+    return apache.OK
+
+def logout(req):
+
+    Cookie.add_cookie(req, Cookie.Cookie('openvps-user', ''))
+    util.redirect(req, '/login')
 
     return apache.OK
 
@@ -401,3 +408,9 @@ def start(req, name, params):
     # note - this redirect is relative because absolute won't work with
     # our proxypass proxy
     util.redirect(req, 'status')
+
+def stats(req):
+
+    req.write('stats here')
+
+    return apache.OK
