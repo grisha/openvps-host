@@ -87,6 +87,23 @@ def list_objects(root, path):
 
     return libs
 
+def follow_link(path, root):
+
+    # if this is a symlink, follow it
+    n = 0
+    while os.path.islink(path):
+        link = os.readlink(path)
+        n += 1
+        if n > 10:
+            log('Too many links: %s, terminating.' % `path`)
+            return
+        if os.path.isabs(link):
+            path = os.path.join(root, link[1:])
+        else:
+            path = os.path.join(os.path.split(path)[0], link)
+
+    return path
+            
 def is_binary_safe(root, cmd):
     """ Is a binary safe to run? path is absolute within
         a vserver """
@@ -102,14 +119,11 @@ def is_binary_safe(root, cmd):
         for obj in objs:
             long_path = os.path.join(root, obj[1:])
 
-            # if this is a symlink, follow it
-            # XXX we only bother to follow it once
-            if os.path.islink(long_path):
-                link = os.readlink(long_path)
-                if os.path.isabs(link):
-                    long_path = os.path.join(root, link[1:])
-                else:
-                    long_path = os.path.join(os.path.split(long_path)[0], link)
+            long_path = follow_link(long_path, root)
+
+            if not long_path:
+                safe = 0
+                break
             
             if not vsutil.is_file_immutable_unlink(long_path):
                 safe = 0
@@ -153,7 +167,6 @@ def run_command(vserver, path, args, caps):
 ##              vserver['context'], cap_opts,
 ##              path, args)
 
-    print `cmd` # ZZZ
     return os.execv(os.path.join(cfg.VSERVER_PREFIX, 'sbin/chbind'), cmd.split())
 
 def main():
