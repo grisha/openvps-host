@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohbwidth,v 1.7 2004/12/03 19:18:25 grisha Exp $
+# $Id: ohbwidth,v 1.8 2005/01/12 21:24:43 grisha Exp $
 
 """
 This script periodically collects data about vserver
@@ -29,8 +29,8 @@ import os
 import sys
 from syslog import syslog, openlog
 
-from oh.host import cfg
-from oh.host import vsutil
+from openvps.host import cfg
+from openvps.host import vsutil
 
 openlog('ohbwidth')
 

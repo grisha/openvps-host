@@ -5,8 +5,8 @@ import commands
 from syslog import syslog, openlog
 import sys
 
-from oh.host import vsutil
-from oh.host import cfg
+from openvps.host import vsutil
+from openvps.host import cfg
 
 def get_client_ip():
     """ get the ip from the environment """

@@ -16,12 +16,12 @@
 # limitations under the License.
 #
 
-# $Id: ohbackup,v 1.7 2004/10/22 17:35:30 grisha Exp $
+# $Id: ohbackup,v 1.8 2005/01/12 21:24:43 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
 
-from oh.host import cfg
+from openvps.host import cfg
 
 import time
 import os

@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohdisk,v 1.8 2005/01/05 23:02:24 grisha Exp $
+# $Id: ohdisk,v 1.9 2005/01/12 21:24:43 grisha Exp $
 
 """
 This script periodically collects data about vservers disk
@@ -26,14 +26,12 @@ bootup before any vservers are started.
 
 """
 
-# XXX this should probably by in dft.py 
-
 import commands
 import os
 import sys
 from syslog import syslog, openlog
 
-from oh.host import vsutil, cfg
+from openvps.host import vsutil, cfg
 
 openlog('ohdisk')
 

@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.9 2005/01/12 16:42:36 grisha Exp $
+# $Id: Makefile.in,v 1.10 2005/01/12 21:24:43 grisha Exp $
 
 INSTALL=@INSTALL@
 PREFIX=@prefix@
-MISC=@prefix@/oh/misc
+MISC=@prefix@/openvps/misc
 SUDOERS=/etc/sudoers  # XXX conf
 OHD_USER=ohd
 

@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.15 2004/12/22 15:54:50 grisha Exp $
+# $Id: Makefile.in,v 1.16 2005/01/12 21:24:43 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
-MISC=@prefix@/oh/misc
+MISC=@prefix@/openvps/misc
 VARDB=/var/db/oh
 BACKUP=/backup
 CONFIG=/etc/openvps.conf

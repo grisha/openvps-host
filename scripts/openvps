@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.5 2005/01/06 21:54:39 grisha Exp $
+# $Id: openvps,v 1.6 2005/01/12 21:24:43 grisha Exp $
 
 
 """
@@ -24,12 +24,9 @@ This is the script to manipulate virtual servers.
 
 """
 
-CFG_FILE="/usr/local/oh/etc/oh.conf"
-#cfg = None
-
 import sys, os, commands, re, struct, socket
-from oh.host import vds
-from oh.host import cfg
+from openvps.host import vds
+from openvps.host import cfg
 
 # To add a command, simply define a cmd_* function here
 
@@ -61,11 +58,10 @@ def cmd_unify():
     vds.unify(source, dest)
 
 def cmd_version():
-    from oh.host import VERSION
+    from openvps.host import VERSION
     print 'OpenHosting Host Tools version %s' % VERSION
-    from oh.common import VERSION
+    from openvps.common import VERSION
     print 'OpenHosting Common Lib version %s' % VERSION
-
     
 def cmd_buildref():
 
@@ -232,8 +228,6 @@ def main():
                           "  Where <command> is one of: %s\n" 
                           "  For help on a specific command, use: %%prog <command> --help\n"
                           % " ".join(commands))
-
-    #parser.add_option("-c", dest="config", help="Config file name", default=CFG_FILE)
 
     # anything after a command is not our argument
     try:

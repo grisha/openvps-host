@@ -20,7 +20,7 @@
 # limitations under the License.
 #
 
-# $Id: ohresources,v 1.3 2004/12/03 19:18:25 grisha Exp $
+# $Id: ohresources,v 1.4 2005/01/12 21:24:43 grisha Exp $
 
 DISKLIMITS=/var/db/oh/disklimits
 
@@ -31,7 +31,7 @@ case "$1" in
 	/bin/sh $DISKLIMITS
 
 	echo "Creating iptables entries for vservers"
-	for devip in `python -c 'from oh.host import vsutil; vsutil.print_vserver_ips()'`; do
+	for devip in `python -c 'from openvps.host import vsutil; vsutil.print_vserver_ips()'`; do
 
 	    # replace dummy with eth below because the packets from dummy0 really travel on
 	    # eth0 in a DSR load-balancing scenario.

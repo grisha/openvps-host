@@ -14,5 +14,6 @@
 # limitations under the License.
 #
 
-# $Id: __init__.py,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: __init__.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
 
+VERSION = "0.1a"

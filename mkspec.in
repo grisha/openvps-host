@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.12 2005/01/11 21:42:32 grisha Exp $
+# $Id: mkspec.in,v 1.13 2005/01/12 21:24:43 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -30,7 +30,7 @@ echo "License: ASL 2.0"
 echo "Group: OpenVPS"
 echo "URL: http://www.openvps.org/"
 echo "Vendor: OpenHosting, Inc."
-echo "Requires: openvps-common >= 0.8"
+echo "Requires: openvps-common >= 0.9"
 echo "Requires: python httpd mod_python mod_ssl bind bind-chroot rrdtool util-vserver rpm-python openssl"
 echo "Source0: %{name}-%{version}.tgz"
 echo "BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot"
@@ -55,7 +55,7 @@ echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/init.d"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/cron.d"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/httpd/conf.d"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/ssh"
-echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/usr/oh/misc"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/usr/openvps/misc"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/oh"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/%{_libdir}/@PYTHON@/site-packages/oh"
 echo 'make install DESTDIR=$RPM_BUILD_ROOT'
@@ -76,7 +76,7 @@ echo "/etc/init.d/ohfixproc"
 echo "/etc/init.d/ohresources"
 echo "/etc/init.d/openvps-mon"
 echo "/etc/oh-release"
-echo "/usr/oh"
+echo "/usr/openvps"
 echo "/usr/sbin/ohbackup"
 echo "/usr/sbin/ohbwidth"
 echo "/usr/sbin/ohchkpwd"

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.2 2005/01/12 16:42:36 grisha Exp $
+# $Id: panel.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -27,9 +27,9 @@ import sys
 
 from mod_python import apache
 
-from oh.common import rrdutil
-from oh.host import cfg
-from oh.host import vsutil
+from openvps.common import rrdutil
+from openvps.host import cfg
+from openvps.host import vsutil
 
 GB = 1073741824.0  # bytes in gigabyte
 

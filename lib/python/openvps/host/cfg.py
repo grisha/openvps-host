@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: cfg.py,v 1.5 2005/01/11 22:27:40 grisha Exp $
+# $Id: cfg.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
 
 """ This module contains our configuration """
 
@@ -95,7 +95,7 @@ def compile_clone_rules(rules):
 
 # First read a common config, if any:
 try:
-    from oh.common.cfg import *
+    from openvps.common.cfg import *
 except:
     pass
 

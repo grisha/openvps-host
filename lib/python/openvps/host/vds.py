@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.50 2005/01/10 20:16:26 grisha Exp $
+# $Id: vds.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
 
 """ VDS related functions """
 
@@ -36,7 +36,7 @@ import rpm
 # openvps modules
 import cfg
 import vsutil
-from oh.common import util
+from openvps.common import util
 
 DRYRUN = 0
 
@@ -608,7 +608,7 @@ def vserver_disk_limit(root, xid, limit, d_used=0, i_used=0):
 
     dldb = os.path.join(cfg.VAR_DB_OH, 'disklimits')
     for line in open(dldb):
-        if '-x %s' % xid in line:
+        if '-x %s ' % xid in line:
             print 'NOT setting disk limits, they exist already for xid %s' % xid
             return
 

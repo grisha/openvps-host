@@ -16,10 +16,10 @@
 # limitations under the License.
 #
 
-# $Id: openvps-mon,v 1.1 2004/12/22 21:12:48 grisha Exp $
+# $Id: openvps-mon,v 1.2 2005/01/12 21:24:43 grisha Exp $
 
 # This is a daemon script that runs in the background, collects
-# datapoints (using oh.host.mon) and sends them out to a central
+# datapoints (using openvps.host.mon) and sends them out to a central
 # server in a hmac signed udp packet at constant intervals
 
 # the daemonization stuff is from recipe 66012 on ASPN with some
@@ -35,7 +35,7 @@ from signal import SIGTERM, SIGKILL
 from syslog import syslog, openlog
 
 # openvps modules
-from oh.host import mon, cfg
+from openvps.host import mon, cfg
 
 openlog('openvps-mon')
 

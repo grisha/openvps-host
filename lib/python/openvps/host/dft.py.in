@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.40 2005/01/11 22:27:40 grisha Exp $
+# $Id: dft.py.in,v 1.1 2005/01/12 21:24:43 grisha Exp $
 
 """ Configuration Defaults
 
@@ -38,7 +38,7 @@ CONFIG_DIR = '/etc'
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'openvps.conf')
 
 # Miscellaneous dir
-MISC_DIR = os.path.join(PREFIX, 'oh/misc')
+MISC_DIR = os.path.join(PREFIX, 'openvps/misc')
 
 # used below for values that must come from the config file
 NOVAL = 'NO VALUE SET - edit %s' % CONFIG_FILE

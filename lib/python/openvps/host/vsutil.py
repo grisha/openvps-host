@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.20 2005/01/11 22:27:40 grisha Exp $
+# $Id: vsutil.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -26,7 +26,7 @@ import sys
 import tempfile
 
 import cfg
-from oh.common import util
+from openvps.common import util
 
 import vserver
 

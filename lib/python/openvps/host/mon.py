@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: mon.py,v 1.3 2004/12/30 20:34:00 grisha Exp $
+# $Id: mon.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
 
 # This file contains functions to retrieve various server statistics
 # (mostly) from the /proc filesystem. It also contains functions to

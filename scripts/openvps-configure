@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.6 2005/01/05 18:56:30 grisha Exp $
+# $Id: openvps-configure,v 1.7 2005/01/12 21:24:43 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -24,7 +24,7 @@
 
 # first we need to read the config, but this is rather easy:
 
-from oh.host import cfg
+from openvps.host import cfg
 import os
 import shutil
 import pwd
@@ -521,7 +521,7 @@ def add_ohd_user():
         os.chmod(sshdir+'/authorized_keys', 0600)
 
         # add to sudoers
-        s = commands.getoutput('grep ohd /etc/sudoers')
+        s = commands.getoutput('grep %s /etc/sudoers' % cfg.MISC_DIR)
         if s:
             print 'Not adding %s to sudoers because it appears to be there already' % cfg.OHD_USER
         else:
