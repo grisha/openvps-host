@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.47 2005/01/05 23:02:24 grisha Exp $
+# $Id: vds.py,v 1.48 2005/01/06 03:52:47 grisha Exp $
 
 """ VDS related functions """
 
@@ -604,7 +604,7 @@ def vserver_stub_www_index_page(root):
 def vserver_fix_services(root):
     ref_fix_services(root)
 
-def vserver_disk_limit(root, xid, limit):
+def vserver_disk_limit(root, xid, limit, d_used=0, i_used=0):
 
     dldb = os.path.join(cfg.VAR_DB_OH, 'disklimits')
     for line in open(dldb):
@@ -616,8 +616,8 @@ def vserver_disk_limit(root, xid, limit):
 
     dev = vsutil.guess_vserver_device()
 
-    cmd = '%s -a -x %s -S 0,%s,0,%s,5 %s' % \
-          (cfg.VDLIMIT, xid, limit, cfg.INODES_LIM, cfg.VSERVERS_ROOT)
+    cmd = '%s -a -x %s -S %s,%s,%s,%s,5 %s' % \
+          (cfg.VDLIMIT, xid, d_used, limit, i_used, cfg.INODES_LIM, cfg.VSERVERS_ROOT)
     print ' ', cmd
     print commands.getoutput(cmd)
 
@@ -939,6 +939,12 @@ def copyown(src, dst):
     else:
         os.lchown(dst, st.st_uid, st.st_gid)
 
+def copytime(src, dst):
+    """Copy timestamps (don't bother with symlinks,
+       those cannot be changed in unix) """
+    st = os.stat(src)
+    os.utime(dst, (st.st_atime, st.st_mtime))
+
 bytes, lins, drs, syms, touchs, copys, devs = 0, 0, 0, 0, 0, 0, 0
 
 def copy(src, dst, link=1, touch=0):
@@ -970,6 +976,7 @@ def copy(src, dst, link=1, touch=0):
             s = os.stat(src)
             print 'mkdir %s; chmod 4%s %s' % (dst, oct(stat.S_IMODE(s.st_mode)), dst)
             copyown(src, dst)
+            copytime(src, dst)
         else:
             os.mkdir(dst)
             copyown(src, dst)
@@ -1315,7 +1322,7 @@ def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
 
     pipe.close()
 
-def restore(dumpfile):
+def restore(dumpfile, refserver):
 
     # this is quite simply the reverse of dump
 
@@ -1379,28 +1386,41 @@ def restore(dumpfile):
                       % (vserver_name, ifc['ip'], vs)
                 abort = 1
 
+    # does the target exist?
+    path = os.path.join(cfg.VSERVERS_ROOT, vserver_name)
+    if os.path.exists(path):
+        print 'Path %s already exists, please fix this first.' % path
+        abort = 1
+
+    path = os.path.join(cfg.VSERVERS_ROOT, context)
+    if os.path.exists(path):
+        print 'Path %s already exists, please fix this first.' % path
+        abort = 1
+
     if abort:
         print 'Aborting.'
         return
 
     ## at this point it should be safe to restore
 
-    ##### ZZZ XXXX first it needs to be cloned, but we skip this step
+    ## first clone it
+    clone(refserver,  os.path.join(cfg.VSERVERS_ROOT, vserver_name))
 
+    ## now unarchive
     fd_r, fd_w = os.pipe()
 
     # write the password to the new file descriptor so openssl can read it
     os.write(fd_w, cfg.DUMP_SECRET)
     os.close(fd_w)
 
-    # cpio will be fed the list of files to archive. the output is compressed using
-    # bzip2, then encrypted with openssl using blowfish
-    cmd = 'tail -c +%d %s | /usr/bin/openssl bf -salt -pass fd:%d -d | /usr/bin/bzip2 -d | /bin/cpio -idvtHcrc' \
-          % (offset, dumpfile, fd_r)
-    cmd = 'dd if=%s bs=1 skip=%d obs=1024 | /usr/bin/openssl bf -d -salt -pass fd:%d | /usr/bin/bzip2 -d > /var/tmp/dog.cpio' \
+    # note that we specify 'u' in cpio here for unconditionl,
+    # i.e. don't worry about overwriting newer files with older
+    # ones. this is the only way it would work if the reference server
+    # has progressed and has a newer rpm database. a subsequent
+    # vserver update should cure any incompatibilities anyway.
+
+    cmd = 'dd if=%s bs=1 skip=%d obs=1024 | /usr/bin/openssl bf -d -salt -pass fd:%d | /usr/bin/bzip2 -d | /bin/cpio -idvuHcrc' \
           % (dumpfile, offset, fd_r)
-    print cmd
-    #cmd = '/bin/cpio -oHcrc | /usr/bin/bzip2 | /usr/bin/openssl bf -salt -pass fd:%d >> %s' % (fd_r, outfile)
     pipe = os.popen(cmd, 'r', 0)
     s = pipe.read(1)
     while s:
@@ -1408,6 +1428,16 @@ def restore(dumpfile):
         s = pipe.read(1)
     pipe.close()
 
+    ## lastly fix xids
+    fixxids(os.path.join(cfg.VSERVERS_ROOT, vserver_name), context)
+
+    ## and finally, set the disk limits
+    dl = header[6]
+    d_used, d_lim, i_used, i_lim, r = dl.split(',')
+    vserver_disk_limit(os.path.join(cfg.VSERVERS_ROOT, vserver_name),
+                       context, d_lim, d_used=d_used, i_used=i_used)
+
+    print 'Done!'
 
 def fixflags(refroot):
 

@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.3 2005/01/05 18:56:30 grisha Exp $
+# $Id: openvps,v 1.4 2005/01/06 03:52:47 grisha Exp $
 
 
 """
@@ -176,6 +176,23 @@ def cmd_dump():
         parser.error("<ref-path> should be absolute path")
 
     vds.dump(vserver, refserver, outfile)
+
+def cmd_restore():
+
+    parser = OptionParser(usage="%prog restore <dumpfile> <ref-path>\n"
+                          "  Restore a vserver from a file previously created with dump.")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 2:
+        parser.error("Must specify all 2 args.")
+
+    dumpfile, refserver = args
+
+
+    if refserver[0] != '/':
+        parser.error("<ref-path> should be absolute path")
+
+    vds.restore(dumpfile, refserver)
 
 ########
 
