@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.7 2005/02/05 05:26:36 grisha Exp $
+# $Id: panel.py,v 1.8 2005/02/07 19:10:02 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -193,6 +193,16 @@ def _read_pub_key():
 
     return mtime, pubkey
 
+def _read_priv_key():
+
+    boottime = time.time() - float(open("/proc/uptime").read().split()[0])
+    boottime = time.strftime("%Y-%M-%d-%H",(time.localtime(boottime)))
+
+    keypath = os.path.join(cfg.VAR_DB_OPENVPS, cfg.KEYFILE)
+    key = crypto.load_key(keypath, boottime)
+
+    return key
+
 #
 # Callable from outside
 #
@@ -200,8 +210,7 @@ def _read_pub_key():
 _cached_key = None
 def pubkey(req):
 
-    #cookie = DSASignedCookie.DSASignedCookie('foo', 'barRRR', key)
-    #Cookie.add_cookie(req, cookie)
+    from openvps.common import RSASignedCookie
 
     global _cached_key
 
@@ -213,7 +222,15 @@ def pubkey(req):
             _cached_key = _read_pub_key()
     else:
             _cached_key = _read_pub_key()
-    
+
+    key = _read_priv_key()
+
+##     cookie = RSASignedCookie.RSASignedCookie('foo', 'bar', key)
+##     Cookie.add_cookie(req, cookie)
+
+##     cookies = Cookie.get_cookies(req, Class=RSASignedCookie,
+##                                  secret=_cached_key[1])
+
     req.context_type = 'text/plain'
     req.write(_cached_key[1])
 

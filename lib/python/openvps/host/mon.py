@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: mon.py,v 1.2 2005/01/31 18:15:08 grisha Exp $
+# $Id: mon.py,v 1.3 2005/02/07 19:10:02 grisha Exp $
 
 # This file contains functions to retrieve various server statistics
 # (mostly) from the /proc filesystem. It also contains functions to
@@ -58,6 +58,19 @@ def result(data):
     return sig+m_data
 
 
+def procopen(path):
+
+    # it seems that files in /proc sometimes "do not exist"
+    # for brief moments of time XXX why is this?
+
+    try:
+        f = open(path)
+    except IOError:
+        # try again
+        f = open(path)
+
+    return f
+
 def hostname():
 
     # get the hostname
@@ -68,7 +81,7 @@ def loadavg():
 
     # load average
 
-    s = open('/proc/loadavg').read()
+    s = procopen('/proc/loadavg').read()
 
     l1, l5, l15, proc, last_pid = s.split()
 
@@ -83,12 +96,7 @@ def meminfo():
 
     result = {}
 
-    try:
-        lines = open('/proc/meminfo').readlines()
-    except IOError:
-        # we've seen 'file does not exist' being raised here sometimes
-        # try again
-        lines = open('/proc/meminfo').readlines()
+    lines = procopen('/proc/meminfo').readlines()
     
     for line in lines:
         # only pick the ones we're interested in
@@ -103,7 +111,7 @@ def stat():
 
     # info in /proc/stat
 
-    lines = open('/proc/stat').readlines()
+    lines = procopen('/proc/stat').readlines()
 
     for line in lines:
         if re.match('^processes', line):
@@ -116,7 +124,7 @@ def net_dev():
 
     result = {}
 
-    lines = open('/proc/net/dev').readlines()
+    lines = procopen('/proc/net/dev').readlines()
 
     for line in lines:
         if ':' in line:
@@ -198,7 +206,7 @@ def diskstats():
 
     result = {}
 
-    lines = open('/proc/diskstats').readlines()
+    lines = procopen('/proc/diskstats').readlines()
 
     for line in lines:
         if re.search(disks, line):
@@ -244,7 +252,7 @@ def ipcs():
 
 def file_handlers():
 
-    s = open('/proc/sys/fs/file-nr').read()
+    s = procopen('/proc/sys/fs/file-nr').read()
     used, x, avail = s.split()
 
     return {'fs_handlers_used':long(used),
