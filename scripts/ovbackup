@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovbackup,v 1.3 2005/03/21 15:44:37 grisha Exp $
+# $Id: ovbackup,v 1.4 2005/03/21 15:47:02 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -80,6 +80,7 @@ def do_dump():
 
     # just in case
     os.chmod(cfg.BACKUP, 0700)
+
     
 def other_stuff():
 
@@ -92,13 +93,11 @@ def other_stuff():
     cmd = 'cd /; %s cjvf - %s %s' % \
           (TAR, cfg.VAR_DB_OH, get_target(fname))
     run_cmd(cmd)
-    os.chmod(fname, 0600)
 
     fname = os.path.join(cfg.BACKUP, HOST+'_etc_vservers-daily%d.tar.bz2' % n)
     cmd = 'cd /; %s cjvf - %s %s' % \
           (TAR, cfg.ETC_VSERVERS, get_target(fname))
     run_cmd(cmd)
-    os.chmod(fname, 0600)
 
     # 1st of every month
     if now[2] == 1:
@@ -107,13 +106,13 @@ def other_stuff():
         cmd = 'cd /; %s cjvf - %s %s' % \
               (TAR, cfg.VAR_DB_OH, get_target(fname))
         run_cmd(cmd)
-        os.chmod(fname, 0600)
+
         
         fname = os.path.join(cfg.BACKUP, HOST+'_etc_vservers-monthly.tar.bz2')
         cmd = 'cd /; %s cjvf - %s %s' % \
               (TAR, cfg.ETC_VSERVERS, get_target(fname))
         run_cmd(cmd)
-        os.chmod(fname, 0600)
+
 
 do_dump()
 other_stuff()
