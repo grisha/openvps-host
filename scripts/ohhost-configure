@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.23 2004/10/30 02:55:21 grisha Exp $
+# $Id: ohhost-configure,v 1.24 2004/11/29 21:34:23 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -237,6 +237,18 @@ def fix_sems():
         commands.getoutput('sysctl -w kernel.sem="250 256000 32 1024"')
         commands.getoutput('echo "kernel.sem = 250 256000 32 1024" >> /etc/sysctl.conf')
 
+def fix_arp_ignore():
+
+    # this is critical for direct-server-return load-balancing where you need
+    # an interface that does not respond to arps
+
+    s = commands.getoutput('grep net.ipv4.conf.default.arp_ignore /etc/sysctl.conf')
+    if not s:
+        print 'Setting net.ipv4.conf.default.arp_ignore to 1.'
+        commands.getoutput('sysctl -w net.ipv4.conf.default.arp_ignore=1')
+        commands.getoutput('echo 1 > /proc/sys/net/ipv4/conf/eth0/arp_ignore')
+        commands.getoutput('echo "net.ipv4.conf.default.arp_ignore = 1" >> /etc/sysctl.conf')
+
 def disable_ipv6():
     # XXX Is this really necessary?
 
@@ -448,6 +460,7 @@ def main():
     save_config(params)
     vserver_config()
     fix_sems()
+    fix_arp_ignore()
     disable_ipv6()
     fix_services()
     fix_sshd()
