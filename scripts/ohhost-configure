@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.27 2004/12/03 03:13:53 grisha Exp $
+# $Id: ohhost-configure,v 1.28 2004/12/09 18:36:33 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -245,8 +245,14 @@ def fix_sems():
     s = commands.getoutput('grep kernel.sem /etc/sysctl.conf')
     if not s:
         print 'Increasing the number of available semaphores.'
-        commands.getoutput('sysctl -w kernel.sem="250 256000 32 1024"')
-        commands.getoutput('echo "kernel.sem = 250 256000 32 1024" >> /etc/sysctl.conf')
+        # kernel.sem is semmsl semmns semopm semmni
+        # semmsl - Maximum number of sems per unique id
+        # semmns - Max number of semaphores in the system.
+        # semopm - Max number of semaphore operations that
+        #          can be performed per semop(2) call.
+        # semmni - Max number of semaphore sets, system wide.
+        commands.getoutput('sysctl -w kernel.sem="250 524000 32 4096"')
+        commands.getoutput('echo "kernel.sem = 250 524000 32 4096" >> /etc/sysctl.conf')
 
 def fix_arp_ignore():
 
