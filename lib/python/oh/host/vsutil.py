@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.6 2004/10/07 21:58:15 grisha Exp $
+# $Id: vsutil.py,v 1.7 2004/10/08 02:07:43 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -148,6 +148,11 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
     open(os.path.join(dirname, 'fstab'), 'w').writelines([
         'none                    /dev/pts                devpts  gid=5,mode=620  0 0\n'
         'none                    /proc                   proc    defaults        0 0\n'])
+
+    # apps/init/mark (this makes the vserver start at startup by vservers-default)
+    os.mkdir(os.path.join(dirname, 'apps'))
+    os.mkdir(os.path.join(dirname, 'apps', 'init'))
+    open(os.path.join(dirname, 'apps', 'init', 'mark'), 'w').write('default\n')
 
     print 'Done'
 

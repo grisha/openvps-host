@@ -14,20 +14,20 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.2 2004/10/08 02:07:43 grisha Exp $
+# $Id: Makefile.in,v 1.1 2004/10/08 02:07:43 grisha Exp $
 
-all:
-	@cd ohchkpwd && $(MAKE)
+INSTALL=@INSTALL@
+PREFIX=@prefix@
 
-install:
-	@cd ohchkpwd && $(MAKE) install
-	@cd pace && $(MAKE) install
+pace: pace.c
+	$(CC) -o pace pace.c
+
+install: pace
+	$(INSTALL) -m 4755 -o root pace $(DESTDIR)$(PREFIX)/sbin/pace
 
 clean:
-	rm -rf $(OBJS) core *~ .libs *.o *.slo *.lo *.la
-	@cd ohchkpwd && $(MAKE) clean
+	rm -rf pace *~ .libs *.o *.slo *.lo *.la
 
 distclean: clean
 	rm -f Makefile
-	@cd ohchkpwd && $(MAKE) distclean
 

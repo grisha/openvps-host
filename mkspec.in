@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.3 2004/10/04 17:33:00 grisha Exp $
+# $Id: mkspec.in,v 1.4 2004/10/08 02:07:43 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -81,4 +81,5 @@ echo "/usr/sbin/ohchkpwd"
 echo "/usr/sbin/ohdisk"
 echo "/usr/sbin/ohhost"
 echo "/usr/sbin/ohhost-configure"
+echo "/usr/sbin/pace"
 echo "%dir /var/db/oh"

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.12 2004/10/05 20:50:54 grisha Exp $
+# $Id: configure.in,v 1.13 2004/10/08 02:07:43 grisha Exp $
 
 AC_INIT
 
@@ -130,4 +130,4 @@ AC_OUTPUT(Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec \
 		   rhinit/ohd crontab/Makefile crontab/openhosting \
 		   src/ohchkpwd/Makefile www/Makefile www/conf/Makefile \
 		   lib/python/oh/host/dft.py ohhost.conf ohd/Makefile \
-		   ohd/common.h ohd/sshd_config)
+		   ohd/common.h ohd/sshd_config src/pace/Makefile)

@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.13 2004/10/07 21:58:16 grisha Exp $
+# $Id: ohhost-configure,v 1.14 2004/10/08 02:07:43 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -203,14 +203,7 @@ def plant_peer_key():
             run_cmd(cmd)
     else:
         # we are the peer
-            cmd = 'cat %s.pub >> %s/.ssh/authorized_keys' \
-                  % (cfg.OHB_DSA_KEY, cfg.BACKUP)
-            run_cmd(cmd)
-            # add host key to known_hosts
-            if not os.path.exists('/root/.ssh'):
-                os.mkdir('/root/.ssh', 0700)
-            key = open('/etc/ssh/ssh_host_rsa_key.pub').read()
-            open('/root/.ssh/known_hosts', 'a').write('\n127.0.0.1 %s' % key)
+        pass
 
 def fix_sems():
 
@@ -222,9 +215,8 @@ def fix_sems():
 
 def vserver_service():
 
-    if not os.path.exists('/etc/init.d/vservers'):
-        print 'Installing vservers service'
-        shutil.copy('/usr/local/etc/init.d/vservers', '/etc/init.d/vservers')
+    print 'Enabling vservers service.'
+    print commands.getoutput('chkconfig vservers-default on')
 
 def vserver_config():
 

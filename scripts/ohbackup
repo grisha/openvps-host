@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohbackup,v 1.5 2004/10/04 15:28:54 grisha Exp $
+# $Id: ohbackup,v 1.6 2004/10/08 02:07:43 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -26,11 +26,14 @@ from oh.host import cfg
 import time
 import os
 import sys
+import commands
 
 DUMP = '/sbin/dump'
 SSH = '/usr/bin/ssh -c blowfish -i %s' % cfg.OHB_DSA_KEY
 TAR = '/bin/tar'
 LEVEL0_FILE = os.path.join(cfg.BACKUP, 'level0')
+
+HOST = commands.getoutput('hostname -s')
 
 def which_level():
 
@@ -50,7 +53,10 @@ def which_level():
 
 def get_target(fname):
 
-    return '| %s %s@%s "cat > %s"' % (SSH, cfg.BACKUP_USER, cfg.PEERIP, fname)
+    if cfg.PEERIP != '127.0.0.1':
+        return '| %s %s@%s "cat > %s"' % (SSH, cfg.BACKUP_USER, cfg.PEERIP, fname)
+    else:
+        return '| %s > %s' % (os.path.join(cfg.PREFIX, 'sbin/pace'), fname)
 
 def run_cmd(cmd):
 
@@ -66,7 +72,7 @@ def run_cmd(cmd):
 def do_dump():
 
     level = which_level()
-    fname = os.path.join(cfg.BACKUP, 'vservers-level%d.dump' % level)
+    fname = os.path.join(cfg.BACKUP, HOST+'_vservers-level%d.dump' % level)
 
     cmd = '%s %duzf - %s %s' % \
           (DUMP, level, cfg.VSERVERS_ROOT, get_target(fname))
@@ -80,13 +86,13 @@ def other_stuff():
     # 10 days daily
     n = now[2] % 10
 
-    fname = os.path.join(cfg.BACKUP, 'var_db_oh-daily%d.tgz' % n)
+    fname = os.path.join(cfg.BACKUP, HOST+'_var_db_oh-daily%d.tgz' % n)
     cmd = 'cd /; %s czvf - %s %s' % \
           (TAR, cfg.VAR_DB_OH, get_target(fname))
     run_cmd(cmd)
     os.chmod(fname, 0600)
 
-    fname = os.path.join(cfg.BACKUP, 'etc_vservers-daily%d.tgz' % n)
+    fname = os.path.join(cfg.BACKUP, HOST+'_etc_vservers-daily%d.tgz' % n)
     cmd = 'cd /; %s czvf - %s %s' % \
           (TAR, cfg.VAR_DB_OH, get_target(fname))
     run_cmd(cmd)
@@ -95,13 +101,13 @@ def other_stuff():
     # 1st of every month
     if now[2] == 1:
         
-        fname = os.path.join(cfg.BACKUP, 'var_db_oh-monthly.tgz')
+        fname = os.path.join(cfg.BACKUP, HOST+'_var_db_oh-monthly.tgz')
         cmd = 'cd /; %s czvf - %s %s' % \
               (TAR, cfg.VAR_DB_OH, get_target(fname))
         run_cmd(cmd)
         os.chmod(fname, 0600)
         
-        fname = os.path.join(cfg.BACKUP, 'etc_vservers-monthly.tgz')
+        fname = os.path.join(cfg.BACKUP, HOST+'_etc_vservers-monthly.tgz')
         cmd = 'cd /; %s czvf - %s %s' % \
               (TAR, cfg.VAR_DB_OH, get_target(fname))
         run_cmd(cmd)

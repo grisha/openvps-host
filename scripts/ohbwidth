@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohbwidth,v 1.5 2004/10/07 21:58:16 grisha Exp $
+# $Id: ohbwidth,v 1.6 2004/10/08 02:07:43 grisha Exp $
 
 """
 This script periodically collects data about vserver
@@ -93,13 +93,11 @@ for server in vservers:
                 i += int(input[ip])
             else:
                 syslog('WARNING: No iptables INPUT rule exist for ip %s of %s' % (ip, server))
-                continue
             
             if output.has_key(ip):
                 o += int(output[ip])
             else:
                 syslog('WARNING: No iptables OUTPUT rule exist for ip %s of %s' % (ip, server))
-                continue
 
         # now update rrd
 
