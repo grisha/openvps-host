@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.14 2004/10/08 02:07:43 grisha Exp $
+# $Id: ohhost-configure,v 1.15 2004/10/12 19:28:53 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -228,7 +228,7 @@ def vserver_config():
         dest = os.path.join(cfg.VSERVER_PREFIX, 'etc/vservers')
         print 'Symlinking /etc/vservers -> %s' % dest
         os.symlink(dest, '/etc/vservers')
-    elif not os.path.islink('/etc/vservers') and cfg.VSERVER_PREFIX != '/usr':
+    elif (not os.path.islink('/etc/vservers')) and (cfg.VSERVER_PREFIX != '/usr'):
         print '\n       !!! *** !!!\n'
         print 'WARNING: Your vserver prefix is %s, yet there exists /etc/vservers ' \
               'which is not a symlink - perhaps you have two versions of util-vserver? ' \
