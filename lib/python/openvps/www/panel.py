@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.30 2005/04/02 02:12:30 grisha Exp $
+# $Id: panel.py,v 1.31 2005/04/05 20:07:35 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -115,7 +115,7 @@ def handler(req):
         if not userid:
             return apache.OK
 
-        if (userid != SUPER) and (userid != vserver_name):
+        if (userid != SUPER) and (userid != cfg.PANEL_SUPERUSER) and (userid != vserver_name):
             return error(req, 'request not understood')
 
         if len(parts) > 4:
@@ -282,9 +282,12 @@ def login(req, vserver_name, message=''):
         if ((vserver_name == userid and
              vservers.has_key(vserver_name) and
              vsutil.check_passwd(vserver_name, userid, passwd)) or
-             # superuser
+            # root
             (userid == SUPER and
-             vsutil.check_passwd('/', userid, passwd))):
+             vsutil.check_passwd('/', userid, passwd)) or
+            # superuser
+            (userid == cfg.PANEL_SUPERUSER and
+             crypto.check_passwd_md5(passwd, cfg.PANEL_SUPERUSER_PW))):
 
             # plant the cookie
             key = _read_priv_key()

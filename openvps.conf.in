@@ -58,6 +58,11 @@ VSERVER_PREFIX = '/usr/local'
 # vservername + this domain
 DEFAULT_DOMAIN = 'domain.tld'
 
+# OpenVPS panel superuser - can log in to anyone's panel
+# PANEL_SUPERUSER = 'openvps'
+# superuser password (this needs to be a crypt(3) MD5 hash)
+PANEL_SUPERUSER_PW = '*' # by default disabled
+
 # Location of the directory that stores data about vservers such as
 # disk and bandwidth utilization
 

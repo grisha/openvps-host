@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.11 2005/02/17 04:22:15 grisha Exp $
+# $Id: openvps-configure,v 1.12 2005/04/05 20:07:35 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -25,12 +25,14 @@
 # first we need to read the config, but this is rather easy:
 
 from openvps.host import cfg
+from openvps.common import crypto
 import os
 import shutil
 import pwd
 import commands
 import sys
 import time
+import getpass
 
 # then we need to ask our questions:
 
@@ -192,6 +194,26 @@ def get_domain_name():
     cfg.DEFAULT_DOMAIN = s
     return s
 
+def get_panel_superuser():
+
+    prompt = 'Please enter a superuser name for OpenVPS control panel [%s]:' % cfg.PANEL_SUPERUSER
+    s = raw_input(prompt)
+    if not s:
+        return cfg.PANEL_SUPERUSER
+
+    cfg.PANEL_SUPERUSER = s
+    return s
+
+def get_panel_superuser_pw():
+
+    prompt = 'Please enter a password for the OpenVPS control panel superuser [********]:'
+    s = getpass.getpass(prompt)
+    if not s:
+        return cfg.PANEL_SUPERUSER_PW
+
+    cfg.PANEL_SUPERUSER_PW = crypto.passwd_hash_md5(s)
+    return cfg.PANEL_SUPERUSER_PW
+
 def save_config(params):
 
     # first we need to read it
@@ -200,9 +222,13 @@ def save_config(params):
     for param in params.keys():
         saved = 0
         for n in range(len(lines)):
-            if lines[n].startswith(param):
+            
+            # split() is here to make sure that it's not just a beginning
+            # of a param that matches, but the whole word
+            if lines[n].startswith(param) and lines[n].split()[0] == param:
                 lines[n] = '%s = %s\n' % (param, `params[param]`)
                 saved = 1
+                
         if not saved:
             lines.append('%s = %s\n' % (param, `params[param]`))
 
@@ -556,6 +582,8 @@ def main():
     params['DEFAULT_DOMAIN'] = get_domain_name()
     params['PRIMARY_IP'] = get_primary_ip()
     params['BACKEND_IP'] = get_backend_ip()
+    params['PANEL_SUPERUSER'] = get_panel_superuser()
+    params['PANEL_SUPERUSER_PW'] = get_panel_superuser_pw()
 
     save_config(params)
     vserver_config()

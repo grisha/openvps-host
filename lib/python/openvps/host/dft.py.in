@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.13 2005/02/17 04:05:45 grisha Exp $
+# $Id: dft.py.in,v 1.14 2005/04/05 20:07:35 grisha Exp $
 
 """ Configuration Defaults
 
@@ -135,6 +135,10 @@ MON_PID_FILE = '/var/run/openvps-mon.pid'
 
 # secret for backup files (openvps dump)
 DUMP_SECRET = 'Please change me too!'
+
+# superuser userid for the OpenVPS panel
+PANEL_SUPERUSER = 'openvps'
+PANEL_SUPERUSER_PW = '*' # disable by default
 
 # When cloning a reference server, these rules dictate
 # what is done. Default action is to hardlink, unless
