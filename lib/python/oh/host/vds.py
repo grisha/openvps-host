@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.39 2004/11/19 20:32:03 grisha Exp $
+# $Id: vds.py,v 1.40 2004/12/03 03:38:58 grisha Exp $
 
 """ VDS related functions """
 
@@ -1219,11 +1219,11 @@ def fixxids(vsroot, xid, pace=cfg.PACE[0]):
 
 
 
-def addip(vserver, ip):
+def addip(vserver, ip, dev, mask):
 
     # add a second ip address to a vserver
     
-    vsutil.add_vserver_ip(vserver, ip)
+    vsutil.add_vserver_ip(vserver, ip, dev, mask)
     vserver_iptables_rule(ip)
 
 def rpm_which_package(ts, root, file):

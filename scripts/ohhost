@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost,v 1.11 2004/12/02 03:27:47 grisha Exp $
+# $Id: ohhost,v 1.12 2004/12/03 03:38:58 grisha Exp $
 
 
 """
@@ -132,6 +132,8 @@ def cmd_addip():
 
     if not i:
         parser.error("Invalid ip specification: '%s'" % ip)
+    else:
+        ip = i
 
     if d:
         dev = d
