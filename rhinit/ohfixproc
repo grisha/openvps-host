@@ -20,7 +20,7 @@
 # limitations under the License.
 #
 
-# $Id: ohfixproc,v 1.2 2004/10/06 16:02:46 grisha Exp $
+# $Id: ohfixproc,v 1.3 2004/11/22 19:00:28 grisha Exp $
 
 ETHIF=eth0
 
@@ -35,7 +35,7 @@ case "$1" in
 	done
 
 	# unhide only the bare minimum
-	 for file in /proc/{*info,stat,uptime,loadavg,version,net}; do
+	 for file in /proc/{*info,stat,uptime,loadavg,version,net,mounts}; do
 	     setattr --~hide $file
 	 done
 	;;
