@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.9 2005/01/28 22:38:26 grisha Exp $
+# $Id: dft.py.in,v 1.10 2005/01/29 03:31:12 grisha Exp $
 
 """ Configuration Defaults
 
@@ -518,6 +518,7 @@ FEDORA_PKGS_BASE_II = [
     'php-pear',
     'php-pgsql',
     'php-xmlrpc',
+    'php-gd',
     'pkgconfig',
     'postgresql',
     'postgresql-contrib',
