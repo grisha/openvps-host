@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.6 2005/01/21 20:52:56 grisha Exp $
+# $Id: dft.py.in,v 1.7 2005/01/26 21:49:00 grisha Exp $
 
 """ Configuration Defaults
 
@@ -663,6 +663,8 @@ VSMON_DATA_DEF = [('vs_procs', 'gauge', HB, 0, 'U'), # number of procs
                   ('vs_vm_lhits', 'gauge', HB, 0, 'U'), 
                   ('vs_vml', 'gauge', HB, 0, 'U'),   # locked memory
                   ('vs_vml_lim', 'gauge', HB, 0, 'U'), 
+                  ('vs_rss', 'gauge', HB, 0, 'U'),   # rss
+                  ('vs_rss_lim', 'gauge', HB, 0, 'U'), 
                   ('vs_uticks', 'counter', HB, 0, 0xFFFFFF00L), 
                   ('vs_sticks', 'counter', HB, 0, 0xFFFFFF00L), 
                   ('vs_hticks', 'counter', HB, 0, 0xFFFFFF00L),
