@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.15 2004/12/02 03:27:47 grisha Exp $
+# $Id: vsutil.py,v 1.16 2004/12/03 19:18:25 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -217,7 +217,7 @@ def print_vserver_ips():
     vl = list_vservers()
     for v in vl.keys():
         for i in vl[v]['interfaces']:
-            print i['ip']
+            print '%s:%s' % (i['dev'], i['ip'])
 
 def guess_vserver_device():
     """ Guess which device is the one mounting our vservers partition """

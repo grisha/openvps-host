@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohbwidth,v 1.6 2004/10/08 02:07:43 grisha Exp $
+# $Id: ohbwidth,v 1.7 2004/12/03 19:18:25 grisha Exp $
 
 """
 This script periodically collects data about vserver
@@ -58,24 +58,12 @@ def iptables_info():
 
     return input, output
 
-def list_vserver_ips():
-
-    vservers = vsutil.list_vservers()
-
-    ips = {}
-    for vserver in vservers:
-        if vservers[vserver].has_key('IPROOT'):
-            ips[vserver] = vservers[vserver]['IPROOT']
-
-    return ips
-
 # main starts here
 
 if not vsutil.is_vserver_kernel():
     sys.exit()
 
 input, output = iptables_info()
-ips = list_vserver_ips()
 
 vservers = vsutil.list_vservers()
 
@@ -86,6 +74,10 @@ for server in vservers:
         i, o = 0, 0
             
         for ifc in vservers[server]['interfaces']:
+
+            # ignore non eth0 or dummy0 traffic
+            if ifc['dev'] not in ['eth0', 'dummy0']:
+                continue
 
             ip = ifc['ip']
             

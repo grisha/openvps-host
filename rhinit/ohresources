@@ -20,22 +20,33 @@
 # limitations under the License.
 #
 
-# $Id: ohresources,v 1.2 2004/10/16 05:05:19 grisha Exp $
+# $Id: ohresources,v 1.3 2004/12/03 19:18:25 grisha Exp $
 
 DISKLIMITS=/var/db/oh/disklimits
-ETHIF=eth0
 
 # See how we were called.
 case "$1" in
   start)
 	echo "Restoring context disk limits"
 	/bin/sh $DISKLIMITS
+
 	echo "Creating iptables entries for vservers"
-	for ip in `python -c 'from oh.host import vsutil; vsutil.print_vserver_ips()'`; do
-	    iptables -D INPUT -i $ETHIF -d $ip > /dev/null 2>&1
-	    iptables -A INPUT -i $ETHIF -d $ip
-	    iptables -D OUTPUT -o $ETHIF -s $ip > /dev/null 2>&1
-	    iptables -A OUTPUT -o $ETHIF -s $ip
+	for devip in `python -c 'from oh.host import vsutil; vsutil.print_vserver_ips()'`; do
+
+	    # replace dummy with eth below because the packets from dummy0 really travel on
+	    # eth0 in a DSR load-balancing scenario.
+
+	    # "eth0:10.10.10.10" -> "-i eth0 -d 10.10.10.10"
+	    DEVIP="`echo $devip | (IFS=: read A B; echo -i $A -d $B | sed -e s/dummy/eth/ )`"
+
+	    iptables -D INPUT $DEVIP > /dev/null 2>&1
+	    iptables -A INPUT $DEVIP
+
+	    # "eth0:10.10.10.10" -> "-o eth0 -s 10.10.10.10"
+	    DEVIP="`echo $devip | (IFS=: read A B; echo -o $A -s $B | sed -e s/dummy/eth/ )`"
+
+	    iptables -D OUTPUT $DEVIP > /dev/null 2>&1
+	    iptables -A OUTPUT $DEVIP
 	done
 	;;
   stop)

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.40 2004/12/03 03:38:58 grisha Exp $
+# $Id: vds.py,v 1.41 2004/12/03 19:18:25 grisha Exp $
 
 """ VDS related functions """
 
@@ -640,17 +640,24 @@ def vserver_bwidth_acct(name):
 
     commands.getoutput(cmd)
 
-def vserver_iptables_rule(ip):
+def vserver_iptables_rule(dev, ip):
 
     print 'Adding iptables rules for bandwidth montoring'
 
-    cmd = 'iptables -D INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
+    # make sure dummy traffic is counted
+    dev = dev.replace('dummy', 'eth')
+
+    cmd = 'iptables -D INPUT -i %s -d %s' % (dev, ip)
+    print ' ', cmd
     commands.getoutput(cmd)
-    cmd = 'iptables -A INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
+    cmd = 'iptables -A INPUT -i %s -d %s' % (dev, ip)
+    print ' ', cmd
     commands.getoutput(cmd)
-    cmd = 'iptables -D OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
+    cmd = 'iptables -D OUTPUT -o %s -s %s' % (dev, ip)
+    print ' ', cmd
     commands.getoutput(cmd)
-    cmd = 'iptables -A OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
+    cmd = 'iptables -A OUTPUT -o %s -s %s' % (dev, ip)
+    print ' ', cmd
     commands.getoutput(cmd)    
 
 def vserver_make_ssl_cert(root, hostname):
@@ -882,7 +889,7 @@ def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
     vserver_fix_services(root)
     vserver_disk_limit(root, xid, disklim)
     vserver_bwidth_acct(name)
-    vserver_iptables_rule(ip)
+    vserver_iptables_rule(cfg.DFT_DEVICE, ip)
     vserver_make_ssl_cert(root, hostname)
     vserver_add_http_proxy(root)
     vserver_random_crontab(root)
@@ -1208,7 +1215,21 @@ def fixxids(vsroot, xid, pace=cfg.PACE[0]):
 
             t += 1  # total file count
 
-            if not vsutil.is_file_immutable_unlink(path):
+            if os.path.isdir(path) or path.endswith('dev/null') or \
+                   path.endswith('etc/protocols') or path.endswith('etc/resolv.conf'):
+                
+                # do not set xid on directories, as this breaks the ohd
+                # thing which would get permission denied trying to run
+                # stuff from another context. since space (not security) is
+                # the prime motivator for this, and dirs are tiny, this is ok
+                # XXX and of course the dev/null and etc/protocols is a total
+                # dirty hack to make traceroute work
+
+                # XXX or is it?
+
+                vsutil.set_file_xid(path, 0)
+
+            elif not vsutil.is_file_immutable_unlink(path):
 
                 vsutil.set_file_xid(path, xid)
 
@@ -1224,7 +1245,7 @@ def addip(vserver, ip, dev, mask):
     # add a second ip address to a vserver
     
     vsutil.add_vserver_ip(vserver, ip, dev, mask)
-    vserver_iptables_rule(ip)
+    vserver_iptables_rule(dev, ip)
 
 def rpm_which_package(ts, root, file):
 
