@@ -14,46 +14,85 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: panel.py,v 1.2 2005/01/12 16:42:36 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
     3.1 or later.
     """
 
-# XXX The code below is ugly and needs to be rewritten
-
 import os
 import time
+import sys
 
 from mod_python import apache
 
 from oh.common import rrdutil
 from oh.host import cfg
-
-MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-          'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+from oh.host import vsutil
 
 GB = 1073741824.0  # bytes in gigabyte
 
+ALLOWED_COMMANDS = ['index',
+                    'day_graph',
+                    'month_graph',
+                    'quarter_graph']
+
+def error(req, msg):
+    req.write('\n<h1>Error: %s</h1>\n' % msg)
+    return apache.OK
+              
 def handler(req):
 
-    # figure out the vserver name
-    path = os.path.normpath(req.uri)
-    name = path.split('/')[1]
+    # the URL format is as follows:
+    # /vserver_name/command/params...
+    
+    # figure out the vserver name and command
+    path = os.path.normpath(req.uri) # no trailing slash
+    parts = path.split('/', 3)
 
-    last = path.split('/')[-1]
-    if last == 'day_graph':
-        return day_graph(req, name)
-    if last == 'month_graph':
-        return month_graph(req, name)
-    if last == 'quarter_graph':
-        return quarter_graph(req, name)
+    # defaults
+    command, params = 'index', ''
+
+    if len(parts) < 2:
+        return error('request not understood')
+
+    if len(parts) >= 2:
+        vserver_name = parts[1]
+        
+    if len(parts) > 2:
+        command = parts[2]
+
+    if len(parts) > 3:
+        params = parts[3]
+
+    if command not in ALLOWED_COMMANDS:
+        return error('request not understood')
+
+    # now call the appropriate action
+    self = sys.modules[__name__]
+    func = getattr(self, command)
+
+    # call the command with params
+    func(req, vserver_name, params)
+
+#
+# Supporting functions
+#
+
+def _load_rrd_data(name):
+
+    # build a list of
+    # [[year, month, in, out]
+    #  [year, month, in, out]...]
+
+    MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+    data = []
 
     # location of the bandwidth rrd
     rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
-
-    data = []
 
     yyyy, mm = time.localtime()[0:2]
     i, o  = rrdutil.month_total(rrd, yyyy, mm)
@@ -67,11 +106,29 @@ def handler(req):
     i, o = rrdutil.month_total(rrd, yyyy, mm)
     data.append([yyyy, MONTHS[mm-1], i, o])
 
+    return data
+
+#
+# Callable from outside
+#
+
+def index(req, name, params):
+
+    # set content type
     req.content_type = 'text/html'
 
     req.write('<html>\n')
-#    req.write('<link rel="STYLESHEET" type="text/css" '
-#              'href="http://www.openhosting.com/styles/style.css">\n')
+    #req.write('<link rel="STYLESHEET" type="text/css" '
+    #          'href="http://www.openhosting.com/styles/style.css">\n')
+
+    # server status
+    if vsutil.is_running(name):
+        req.write('<h2>Server status: running</h2><br>\n')
+    else:
+        req.write('<h2>Server status: stopped</h2><br>\n')
+
+    # bandwidth utilization
+    data = _load_rrd_data(name)
     req.write('<center>\n')
     req.write('<h1>Bandwidth use on server <em>%s</em></h1>\n' % name)
     req.write('<h3>%s</h3>\n' % time.ctime())
@@ -93,11 +150,12 @@ def handler(req):
               'One byte is equivalent to eight bits.)</em><br><br>\n')
     req.write('<hr><em>Copyright 2004 OpenHosting, Inc.</em>\n')
     req.write('</center>\n')
+
     req.write('</html>')
 
     return apache.OK
 
-def day_graph(req, name):
+def day_graph(req, name, params):
 
     # location of the bandwidth rrd
     rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
@@ -110,7 +168,7 @@ def day_graph(req, name):
 
     return apache.OK
 
-def month_graph(req, name):
+def month_graph(req, name, params):
 
     # location of the bandwidth rrd
     rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
@@ -123,7 +181,7 @@ def month_graph(req, name):
 
     return apache.OK
 
-def quarter_graph(req, name):
+def quarter_graph(req, name, params):
 
     # location of the bandwidth rrd
     rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)

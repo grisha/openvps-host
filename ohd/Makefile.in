@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.8 2004/10/15 21:35:38 grisha Exp $
+# $Id: Makefile.in,v 1.9 2005/01/12 16:42:36 grisha Exp $
 
 INSTALL=@INSTALL@
 PREFIX=@prefix@
@@ -34,10 +34,10 @@ umount: umount.c common.c common.h
 	$(CC) -o umount umount.c common.c
 
 install: traceroute mount umount
-	$(INSTALL) -m 4755 -o root traceroute $(DESTDIR)$(MISC)/traceroute
-	$(INSTALL) -m 4755 -o root mount $(DESTDIR)$(MISC)/mount
-	$(INSTALL) -m 4755 -o root umount $(DESTDIR)$(MISC)/umount
-	$(INSTALL) -m 4755 -o root ohdexec $(DESTDIR)$(MISC)/ohdexec
+	$(INSTALL) -m 755 -o root traceroute $(DESTDIR)$(MISC)/traceroute
+	$(INSTALL) -m 755 -o root mount $(DESTDIR)$(MISC)/mount
+	$(INSTALL) -m 755 -o root umount $(DESTDIR)$(MISC)/umount
+	$(INSTALL) -m 755 -o root ohdexec $(DESTDIR)$(MISC)/ohdexec
 	$(INSTALL) sshd_config $(DESTDIR)/etc/ssh/sshd_config_ohd
 
 clean:
