@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: authen.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
+# $Id: authen.py,v 1.2 2005/01/12 22:52:29 grisha Exp $
 
 """ Authentication handler for the panel. This
 requires mod_python 3.1 or later """
@@ -23,7 +23,7 @@ from mod_python import apache
 
 import os
 
-from openvs.host import vsutil
+from openvps.host import vsutil
 
 def authenhandler(req):
 

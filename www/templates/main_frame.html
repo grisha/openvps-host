@@ -1,0 +1,89 @@
+
+<html>
+ <head>
+  <title>OpenVPS Control Panel</title>
+
+
+  <!-- Column style sheet. -->
+  <style type="text/css" media="all">@import url(http://www.openhosting.com/styles/columns.css);</style>
+
+  <!-- Main style sheets for CSS2 capable browsers -->
+  <style type="text/css" media="screen"> @import url(http://www.openhosting.com/styles/style.css);</style>
+
+  <link rel="SHORTCUT ICON" href="images/tiny_openvps.png">
+ </head>  
+<body>
+
+  <div id="portal-top">
+
+<%
+opera_fix = ''
+if req.headers_in.has_key('User-Agent'):
+    if 'Opera' in req.headers_in['User-Agent']:
+        opera_fix = '<font size=+4>&nbsp</font>'
+# end
+%>
+
+    <h1 id="portal-logo"><a href="http://www.openvps.org/">OpenVPS Logo</a><%=opera_fix%></h1>
+
+    <%=global_menu%>
+
+  </div>
+
+  <ul id="portal-personaltools">
+    &nbsp;
+  </ul>
+
+  <div class="visualClear"></div>
+
+  <table id="portal-columns">
+    <tr>
+
+      <td id="portal-column-one">
+
+        <div class="visualPadding">
+
+	  <div class="portlet" id="portlet-navigation-tree">
+	    <h5>Navigation</h5>
+	    <div class="portletBody">
+	      <div class="portletContent odd">
+	    <%=navigation%>  
+	      </div>
+	    </div>
+	  </div>
+	    
+
+	</div>
+
+      </td>
+
+      <td id="portal-column-content">
+
+        <div id="content">
+
+	<div class="documentContent">
+
+	<%=body%>
+
+	</div>
+
+	</div>
+
+      </td> 
+
+      <td id="portal-column-two">
+      </td>
+
+
+    </tr>
+ 
+  </table>
+
+  <div id="portal-footer">
+    &copy; 2003-2005 OpenHosting, Inc. &nbsp;&nbsp; OpenVPS is a trademark of OpenHosting, Inc.
+  </div>
+
+
+</body>
+
+</html>

@@ -1,0 +1,32 @@
+<%
+"""
+$Id: navigation.html,v 1.1 2005/01/12 22:52:29 grisha Exp $
+"""
+%>
+                                                                                                                                               
+<%
+for link, text, url, icon, sub in menu_items:
+    attr = ""
+    if location and link == location[-1]:
+        attr = 'class="currentNavItem"'
+    # begin
+%>
+  <div>
+  <span>
+  <a href="<%=url%>" style="padding-left: <%=.5*level%>em;display:block">
+    <img src="<%=icon%>" alt="" title="Folder"
+      longdesc="" height="16" width="16" />&nbsp;
+      <span <%=attr%>><%=text%></span>
+  </a>
+  </span>
+  </div>
+<%
+    if sub and link == location[0]:
+        # begin
+%>
+            <%=render_menu(req, sub, location[1:], level+1)%>
+<%
+    # end
+# end
+%>
+

@@ -2645,7 +2645,7 @@ OHD_PORT="1012"
 
 # final output
 
-                                                                                                                                                                                                        ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec rhinit/ohd rhinit/openvps-mon crontab/Makefile crontab/openvps src/ohchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/openvps/host/dft.py openvps.conf ohd/Makefile ohd/common.h ohd/sshd_config src/pace/Makefile src/wrapper/wrapper.h src/wrapper/Makefile"
+                                                                                                                                                                                                                  ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec rhinit/ohd rhinit/openvps-mon crontab/Makefile crontab/openvps src/ohchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/openvps/host/dft.py openvps.conf ohd/Makefile ohd/common.h ohd/sshd_config src/pace/Makefile src/wrapper/wrapper.h src/wrapper/Makefile www/templates/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -3217,6 +3217,7 @@ do
   "src/pace/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/pace/Makefile" ;;
   "src/wrapper/wrapper.h" ) CONFIG_FILES="$CONFIG_FILES src/wrapper/wrapper.h" ;;
   "src/wrapper/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/wrapper/Makefile" ;;
+  "www/templates/Makefile" ) CONFIG_FILES="$CONFIG_FILES www/templates/Makefile" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;

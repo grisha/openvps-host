@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
+# $Id: panel.py,v 1.2 2005/01/12 22:52:29 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -25,7 +25,7 @@ import os
 import time
 import sys
 
-from mod_python import apache
+from mod_python import apache, psp
 
 from openvps.common import rrdutil
 from openvps.host import cfg
@@ -55,7 +55,7 @@ def handler(req):
     command, params = 'index', ''
 
     if len(parts) < 2:
-        return error('request not understood')
+        return error(req, 'request not understood')
 
     if len(parts) >= 2:
         vserver_name = parts[1]
@@ -67,14 +67,14 @@ def handler(req):
         params = parts[3]
 
     if command not in ALLOWED_COMMANDS:
-        return error('request not understood')
+        return error(req, 'request not understood')
 
     # now call the appropriate action
     self = sys.modules[__name__]
     func = getattr(self, command)
 
     # call the command with params
-    func(req, vserver_name, params)
+    return func(req, vserver_name, params)
 
 #
 # Supporting functions
@@ -108,11 +108,68 @@ def _load_rrd_data(name):
 
     return data
 
+def _navigation_map(req):
+                                                                                                                                               
+    si = '/images/some_icon.gif'
+                                                                                                                                               
+    global_menu = [("status", "Status", "status", si, []),
+                   ("bandwidth", "Bandwidth", "bandwidth", si, []),
+                   ("blah", "Blah", "blah", si, [])]
+                                                                                                                                               
+    return global_menu
+
+
+def _global_menu(req, location):
+
+    menu_items = _navigation_map(req)
+
+    m = psp.PSP(req, '/usr/openvps/templates/global_menu.html',
+                vars={'menu_items':menu_items,
+                      'hlight':location})
+
+    return m
+
+def _navigation_menu(req, location):
+                                                                                                                                               
+    nmap = _navigation_map(req)
+                                                                                                                                               
+    return _render_navi_menu(req, nmap, location)
+                                                                                                                                               
+def _render_navi_menu(req, menu_items, location, level=0):
+                                                                                                                                               
+    # This is a recursive operation - we pass the function
+    # into the PSP template so that it can call it to render
+    # expanded items.
+                                                                                                                                               
+    return psp.PSP(req, '/usr/openvps/templates/navigation.html',
+                   vars={"menu_items": menu_items,
+                         "level": level,
+                         "location": location,
+                         "render_menu": _render_navi_menu})
+
 #
 # Callable from outside
 #
 
 def index(req, name, params):
+
+    location = 'status'.split(':')
+
+    body_tmpl = '/usr/openvps/templates/status_body.html'
+
+    vars = {'global_menu': _global_menu(req, location[0]),
+            'body':psp.PSP(req, body_tmpl, vars={}),
+            'navigation': _navigation_menu(req, location)}
+            
+    p = psp.PSP(req, '/usr/openvps/templates/main_frame.html',
+                vars=vars)
+
+    p.run()
+
+    return apache.OK
+
+
+def index2(req, name, params):
 
     # set content type
     req.content_type = 'text/html'

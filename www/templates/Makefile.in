@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.1 2005/01/12 22:52:29 grisha Exp $
+# $Id: Makefile.in,v 1.2 2005/01/12 22:56:01 grisha Exp $
 
 INSTALL=@INSTALL@
 TMPL=@prefix@/openvps/templates
@@ -27,5 +27,9 @@ distclean: clean
 
 install:
 	$(INSTALL) -m 0644 main_frame.html $(DESTDIR)$(TMPL)/main_frame.html
+	$(INSTALL) -m 0644 global_menu.html $(DESTDIR)$(TMPL)/global_menu.html
+	$(INSTALL) -m 0644 navigation.html $(DESTDIR)$(TMPL)/navigation.html
+	$(INSTALL) -m 0644 status_body.html $(DESTDIR)$(TMPL)/status_body.html
+
 
 
