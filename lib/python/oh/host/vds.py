@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.10 2004/06/09 19:34:37 grisha Exp $
+# $Id: vds.py,v 1.11 2004/06/09 19:39:14 grisha Exp $
 
 """ VDS related functions """
 
@@ -672,14 +672,21 @@ def vserver_make_symlink(root, xid):
     # the symlink names, but from within a vserver you won't).
 
     root = os.path.normpath(root) # strip trailing /
-    base = os.path.split(root)[0]
 
-    newname = os.path.join(base, xid)
+    if not os.path.islink(root):
+    
+        base = os.path.split(root)[0]
 
-    print 'Renaming/symlinking %s -> %s' % (root, newname)
+        newname = os.path.join(base, xid)
 
-    os.rename(root, newname)
-    os.symlink(newname, root)
+        print 'Renaming/symlinking %s -> %s' % (root, newname)
+
+        os.rename(root, newname)
+        os.symlink(newname, root)
+
+    else:
+        print '%s already a symlink, leaving it alone' % root
+
 
 def vserver_vroot_perms():
 
