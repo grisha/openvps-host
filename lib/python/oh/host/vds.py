@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.32 2004/10/27 02:35:00 grisha Exp $
+# $Id: vds.py,v 1.33 2004/11/03 22:43:30 grisha Exp $
 
 """ VDS related functions """
 
@@ -814,6 +814,10 @@ def vserver_make_symlink(root, xid):
 
     else:
         print '%s already a symlink, leaving it alone' % root
+
+def fix_vncserver(root, name):
+
+    pass # ZZZ
 
 def vserver_vroot_perms():
 
