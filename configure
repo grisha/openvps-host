@@ -270,7 +270,7 @@ PACKAGE_VERSION=
 PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE PYTHON_BIN APXS CQ_TOOLS_DIR RRDTOOL NAMED LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE PYTHON_BIN APXS CQ_TOOLS_DIR RRDTOOL NAMED PEERIP BACKUP_TIME LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -793,6 +793,11 @@ fi
 if test -n "$ac_init_help"; then
 
   cat <<\_ACEOF
+
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+--with-peer=HOST     IP of the peer host for backups
 
 Some influential environment variables:
   CC          C compiler command
@@ -2499,6 +2504,52 @@ echo "$as_me: error: not found. Please install bind" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
+# check for --with-peer
+
+PEERIP=""
+echo "$as_me:$LINENO: checking for --with-peer" >&5
+echo $ECHO_N "checking for --with-peer... $ECHO_C" >&6
+
+# Check whether --with-peer or --without-peer was given.
+if test "${with_peer+set}" = set; then
+  withval="$with_peer"
+
+  echo "$as_me:$LINENO: result: $withval, good" >&5
+echo "${ECHO_T}$withval, good" >&6
+  PEERIP=$withval
+
+else
+
+  # no peer, attempt to guess:
+  # if last number of eth1 ip is odd, then +1
+  # else -1
+
+  # extract IP of eth1
+  ip=`grep IPADDR /etc/sysconfig/network-scripts/ifcfg-eth1 | sed -e "s/.*=//g"`
+  if test -z "$ip"; then
+    { { echo "$as_me:$LINENO: error: Unable to guess peer ip, please specify it manually with --with-peer" >&5
+echo "$as_me: error: Unable to guess peer ip, please specify it manually with --with-peer" >&2;}
+   { (exit 1); exit 1; }; }
+  fi
+
+  # do the math
+  PEERIP=`echo $ip | awk '{ x=substr($0,length($0),1); \
+                                if (x%2) \
+				  print substr($0, 1, length($0)-1) x+1; \
+                                else \
+				  print substr($0, 1, length($0)-1) x-1; \
+                          }'`
+
+  echo "$as_me:$LINENO: result: No, but your ip is $ip, so your peer ip is (guessed) $PEERIP" >&5
+echo "${ECHO_T}No, but your ip is $ip, so your peer ip is (guessed) $PEERIP" >&6
+
+fi;
+
+# base backup time on the PEERIP. If it ends with 01, backups will be
+# at 1, 02 @ 1:10, 03 @ 1:20, 07 @ 2:00, etc.
+
+BACKUP_TIME=`echo $PEERIP | awk '{x=substr($0, length($0)-1)-1; print x*10%60 " " int(x*10/60)}'`
+
 # final output
 
                                                                                                                                   ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile rhinit/ohd crontab/Makefile crontab/openhosting src/ohchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/oh/host/dft.py ohhost.conf ohd/Makefile"
@@ -3164,6 +3215,8 @@ s,@APXS@,$APXS,;t t
 s,@CQ_TOOLS_DIR@,$CQ_TOOLS_DIR,;t t
 s,@RRDTOOL@,$RRDTOOL,;t t
 s,@NAMED@,$NAMED,;t t
+s,@PEERIP@,$PEERIP,;t t
+s,@BACKUP_TIME@,$BACKUP_TIME,;t t
 s,@LIBOBJS@,$LIBOBJS,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 CEOF

@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohbackup,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: ohbackup,v 1.2 2004/08/05 21:51:40 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -28,6 +28,7 @@ import os
 import sys
 
 DUMP = '/sbin/dump'
+SSH = '/usr/bin/ssh -c blowfish -i %s' % cfg.OHB_DSA_KEY
 TAR = '/bin/tar'
 LEVEL0_FILE = os.path.join(cfg.BACKUP, 'level0')
 
@@ -59,7 +60,8 @@ def do_dump():
     level = which_level()
     fname = os.path.join(cfg.BACKUP, 'vservers-level%d.dump' % level)
 
-    cmd = '%s %duzf - %s > %s' % (DUMP, level, cfg.VSERVERS_ROOT, fname)
+    cmd = '%s %duzf - %s | %s ohbackup@%s "cat > %s"' % \
+          (DUMP, level, cfg.VSERVERS_ROOT, SSH, cfg.PEERIP, fname)
     run_cmd(cmd)
     os.chmod(fname, 0600)
     
@@ -71,12 +73,14 @@ def other_stuff():
     n = now[2] % 10
 
     fname = os.path.join(cfg.BACKUP, 'var_db_oh-daily%d.tgz' % n)
-    cmd = 'cd /; %s czvf %s %s' % (TAR, fname, cfg.VAR_DB_OH)
+    cmd = 'cd /; %s czvf - %s | %s  ohbackup@%s "cat > %s"' % \
+          (TAR, cfg.VAR_DB_OH, SSH, cfg.PEERIP, fname)
     run_cmd(cmd)
     os.chmod(fname, 0600)
 
     fname = os.path.join(cfg.BACKUP, 'etc_vservers-daily%d.tgz' % n)
-    cmd = 'cd /; %s czvf %s %s' % (TAR, fname, cfg.ETC_VSERVERS)
+    cmd = 'cd /; %s czvf - %s | %s ohbackup@%s "cat > %s"' % \
+          (TAR, cfg.ETC_VSERVERS, SSH, cfg.PEERIP, fname)
     run_cmd(cmd)
     os.chmod(fname, 0600)
 
@@ -84,12 +88,14 @@ def other_stuff():
     if now[2] == 1:
         
         fname = os.path.join(cfg.BACKUP, 'var_db_oh-monthly.tgz')
-        cmd = 'cd /; %s czvf %s %s' % (TAR, fname, cfg.VAR_DB_OH)
+        cmd = 'cd /; %s czvf - %s | %s ohbackup@%s "cat > %s"' % \
+              (TAR, cfg.VAR_DB_OH, SSH, cfg.PEERIP, fname)
         run_cmd(cmd)
         os.chmod(fname, 0600)
         
         fname = os.path.join(cfg.BACKUP, 'etc_vservers-monthly.tgz')
-        cmd = 'cd /; %s czvf %s %s' % (TAR, fname, cfg.ETC_VSERVERS)
+        cmd = 'cd /; %s czvf - %s | %s ohbackup@%s "cat > %s"' % \
+              (TAR, cfg.ETC_VSERVERS, SSH, cfg.PEERIP, fname)
         run_cmd(cmd)
         os.chmod(fname, 0600)
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.6 2004/07/30 22:00:52 grisha Exp $
+# $Id: dft.py.in,v 1.7 2004/08/05 21:51:40 grisha Exp $
 
 """ Configuration Defaults
 
@@ -66,6 +66,12 @@ VAR_DB_OH = '/var/db/oh'
 
 # Location of the backups partition
 BACKUP = NOVAL
+
+# Peer ip (the server to which we backup)
+PEERIP='@PEERIP@'
+
+# DSA key that allows login to peer as ohbackup
+OHB_DSA_KEY='@prefix@/etc/ohbackup_dsa'
 
 # default inodes per vserever allowed
 INODES_LIM = 1000000
