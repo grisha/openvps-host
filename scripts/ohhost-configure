@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.5 2004/09/28 19:09:07 grisha Exp $
+# $Id: ohhost-configure,v 1.6 2004/09/28 19:15:02 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -181,9 +181,12 @@ def plant_peer_key():
                   % (cfg.OHB_DSA_KEY, cfg.PEERIP, cfg.BACKUP)
             run_cmd(cmd)
     else:
+        # we are the peer
             cmd = 'cat %s.pub >> %s/.ssh/authorized_keys' \
                   % (cfg.OHB_DSA_KEY, cfg.BACKUP)
             run_cmd(cmd)
+            key = open('/etc/ssh/ssh_host_rsa_key.pub').read()
+            open('/root/.ssh/known_hosts', 'a').write('\n127.0.0.1 ssh-rsa %s')
 
 def fix_sems():
 
