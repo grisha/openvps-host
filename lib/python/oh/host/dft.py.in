@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.26 2004/11/04 18:18:28 grisha Exp $
+# $Id: dft.py.in,v 1.27 2004/11/04 18:20:09 grisha Exp $
 
 """ Configuration Defaults
 
@@ -587,6 +587,8 @@ FEDORA_C2_PKGS_BASE_II = [
     # emacs
     'emacs',
     'emacs-common',
+    # screen
+    'screen',
     ]
 
 FEDORA_C2_PKGS_ADDL = [ ]
