@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-mon,v 1.3 2005/01/19 18:08:04 grisha Exp $
+# $Id: openvps-mon,v 1.4 2005/02/01 21:01:31 grisha Exp $
 
 # This is a daemon script that runs in the background, collects
 # datapoints (using openvps.host.mon) and sends them out to a central
@@ -224,7 +224,11 @@ def do_work():
 
    # send to mon server
    data = mon.collect_stats()
-   udp_sock.sendto(data, (cfg.MON_TARGET_IP, cfg.MON_TARGET_PORT))
+   if type(cfg.MON_TARGET_IP) == type([]):
+      for target_ip in cfg.MON_TARGET_IP:
+         udp_sock.sendto(data, (target_ip, cfg.MON_TARGET_PORT))
+   else:
+      udp_sock.sendto(data, (cfg.MON_TARGET_IP, cfg.MON_TARGET_PORT))
 
    # local vserver stats
    vsmon.collect_stats()
@@ -244,9 +248,14 @@ def do_work():
          time.sleep(1)
          continue
 
-      # send to mom server
+      # send to mon server
       data = mon.collect_stats()
-      udp_sock.sendto(data, (cfg.MON_TARGET_IP, cfg.MON_TARGET_PORT))
+
+      if type(cfg.MON_TARGET_IP) == type([]):
+         for target_ip in cfg.MON_TARGET_IP:
+            udp_sock.sendto(data, (target_ip, cfg.MON_TARGET_PORT))
+      else:
+         udp_sock.sendto(data, (cfg.MON_TARGET_IP, cfg.MON_TARGET_PORT))
 
       # local vserver stats
       vsmon.collect_stats()
