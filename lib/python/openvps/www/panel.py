@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.24 2005/02/23 19:47:21 grisha Exp $
+# $Id: panel.py,v 1.25 2005/02/24 22:36:42 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -480,15 +480,16 @@ def cpu(req, name, params):
         os.close(tfile)
 
         args = [tpath, '--start', start,
-                  '--title', title,
-                  '-w', str(width),
-                  '-h', str(height),
-                  '-c', 'SHADEB#FFFFFF',
-                  '-c', 'SHADEA#FFFFFF',
-                  'DEF:u=%s:vs_uticks:AVERAGE' % rrd,
-                  'DEF:s=%s:vs_sticks:AVERAGE' % rrd,
-                  'AREA:s#FF4500:system ticks/sec',
-                  'STACK:u#FFA500:user ticks/sec']
+                '--title', title,
+                '-w', str(width),
+                '-h', str(height),
+                '-c', 'SHADEB#FFFFFF',
+                '-c', 'SHADEA#FFFFFF',
+                '-l', '0',
+                'DEF:u=%s:vs_uticks:AVERAGE' % rrd,
+                'DEF:s=%s:vs_sticks:AVERAGE' % rrd,
+                'AREA:s#FF4500:system ticks/sec',
+                'STACK:u#FFA500:user ticks/sec']
 
         if qargs.has_key('l'):
             args.append('-g')  # no legend
@@ -556,11 +557,12 @@ def bwidth(req, name, params):
         os.close(tfile)
 
         args = [tpath, '--start', start,
-                  '--title', title,
-                  '-w', str(width),
-                  '-h', str(height),
-                  '-c', 'SHADEB#FFFFFF',
-                  '-c', 'SHADEA#FFFFFF',
+                '--title', title,
+                '-w', str(width),
+                '-h', str(height),
+                '-c', 'SHADEB#FFFFFF',
+                '-c', 'SHADEA#FFFFFF',
+                '-l', '0',
                 'DEF:in=%s:vs_in:AVERAGE' % rrd,
                 'DEF:out=%s:vs_out:AVERAGE' % rrd,
                 'CDEF:inbits=in,8,*',
@@ -634,11 +636,12 @@ def disk(req, name, params):
         os.close(tfile)
 
         args = [tpath, '--start', start,
-                  '--title', title,
-                  '-w', str(width),
-                  '-h', str(height),
-                  '-c', 'SHADEB#FFFFFF',
-                  '-c', 'SHADEA#FFFFFF',
+                '--title', title,
+                '-w', str(width),
+                '-h', str(height),
+                '-c', 'SHADEB#FFFFFF',
+                '-c', 'SHADEA#FFFFFF',
+                '-l', '0',
                 'DEF:d=%s:vs_disk_b_used:AVERAGE' % rrd,
                 'CDEF:db=d,1024,*',
                 'AREA:db#4eee94:bytes used']
@@ -709,12 +712,13 @@ def mem(req, name, params):
         os.close(tfile)
 
         args = [tpath, '--start', start,
-                  '--title', title,
-                  '-w', str(width),
-                  '-h', str(height),
-                  '-b', '1024',
-                  '-c', 'SHADEB#FFFFFF',
-                  '-c', 'SHADEA#FFFFFF',
+                '--title', title,
+                '-w', str(width),
+                '-h', str(height),
+                '-b', '1024',
+                '-c', 'SHADEB#FFFFFF',
+                '-c', 'SHADEA#FFFFFF',
+                '-l', '0',
                 'DEF:v=%s:vs_vm:AVERAGE' % rrd,
                 'DEF:r=%s:vs_rss:AVERAGE' % rrd,
                 'CDEF:vb=v,1024,*',
