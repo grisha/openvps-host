@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.8 2005/02/07 19:10:02 grisha Exp $
+# $Id: panel.py,v 1.9 2005/02/07 22:52:40 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -28,9 +28,8 @@ import binascii
 
 from mod_python import apache, psp, util, Cookie
 
-from openvps.common import rrdutil, crypto
-from openvps.host import cfg
-from openvps.host import vsutil
+from openvps.common import rrdutil, crypto, RSASignedCookie
+from openvps.host import cfg, vsutil
 
 ALLOWED_COMMANDS = ['index',
                     'day_graph',
@@ -41,12 +40,28 @@ ALLOWED_COMMANDS = ['index',
                     'start',
                     'stop']
 
+TIMEOUT = 60*30 # 30 minutes
+
 def error(req, msg):
     req.content_type = 'text/html'
     req.write('\n<h1>Error: %s</h1>\n' % msg)
     return apache.OK
               
 def handler(req):
+
+    # are we authenticated?
+    try:
+        cookies = Cookie.get_cookies(req, Class=RSASignedCookie.RSASignedCookie,
+                                     secret=_get_pub_key())
+    except RSASignedCookie.RSACookieError:
+        cookies = None
+        
+    if not cookies or not cookies.has_key('openvps-user'):
+        return login(req, message='please log in')
+    else:
+        login_time, userid = cookies['openvps-user'].value.split(':', 1)
+        if (time.time() - int(login_time)) > TIMEOUT:
+            return login(req, message='session time-out, please log in again')
 
     # the URL format is as follows:
     # /vserver_name/command/params...
@@ -70,7 +85,7 @@ def handler(req):
         if not vservers.has_key(vserver_name):
             return error(req, 'request not understood')
 
-        if req.user != vserver_name:
+        if userid != vserver_name:
             return error(req, 'request not understood')
 
         if len(parts) > 3:
@@ -84,6 +99,10 @@ def handler(req):
         # hand out our public key
         return pubkey(req)
 
+    elif parts[1] == 'login':
+
+        return login(req)
+
     else:
 
         # old style XXX needs to go away eventually
@@ -93,7 +112,7 @@ def handler(req):
         if not vservers.has_key(vserver_name):
             return error(req, 'request not understood')
 
-        if req.user != vserver_name:
+        if userid != vserver_name:
             return error(req, 'request not understood')
 
         if len(parts) > 2:
@@ -179,20 +198,6 @@ def _global_menu(req, location):
                       'hlight':location})
     return m
 
-
-def _read_pub_key():
-
-    boottime = time.time() - float(open("/proc/uptime").read().split()[0])
-    boottime = time.strftime("%Y-%M-%d-%H",(time.localtime(boottime)))
-
-    keypath = os.path.join(cfg.VAR_DB_OPENVPS, cfg.KEYFILE)
-    key = crypto.load_key(keypath, boottime)
-
-    mtime = os.stat(keypath).st_mtime
-    pubkey = binascii.hexlify(crypto.rsa2str(key.publickey()))
-
-    return mtime, pubkey
-
 def _read_priv_key():
 
     boottime = time.time() - float(open("/proc/uptime").read().split()[0])
@@ -203,36 +208,82 @@ def _read_priv_key():
 
     return key
 
+def _read_pub_key():
+
+    key = _read_priv_key()
+
+    keypath = os.path.join(cfg.VAR_DB_OPENVPS, cfg.KEYFILE)
+    mtime = os.stat(keypath).st_mtime
+
+    return mtime, key.publickey()
+
+_cached_pub_key = None
+def _get_pub_key():
+
+    global _cached_pub_key
+
+    keypath = os.path.join(cfg.VAR_DB_OPENVPS, cfg.KEYFILE)
+
+    if _cached_pub_key:
+        # it's there, but is it up to date?
+        mtime, key = _cached_pub_key
+        if os.stat(keypath).st_mtime != mtime:
+            _cached_pub_key = _read_pub_key()
+    else:
+            _cached_pub_key = _read_pub_key()
+
+    return _cached_pub_key[1]
+
 #
 # Callable from outside
 #
 
-_cached_key = None
+def login(req, message=''):
+
+    if req.method == 'POST':
+        # someone is trying to login
+                
+        fs = util.FieldStorage(req)
+        userid = fs.getfirst('userid')
+        passwd = fs.getfirst('passwd')
+        uri = fs.getfirst('uri')
+
+        vserver_name = userid
+
+        vservers = vsutil.list_vservers()
+        if vservers.has_key(vserver_name) and vsutil.check_passwd(vserver_name, userid, passwd):
+
+            # plant the cookie
+            key = _read_priv_key()
+            cookie = RSASignedCookie.RSASignedCookie('openvps-user', "%d:%s" % (time.time(), userid), key)
+            cookie.path = '/'
+            Cookie.add_cookie(req, cookie)
+
+            if uri:
+                req.log_error('redirecting to '+uri)
+                util.redirect(req, str(uri))
+
+        else:
+             message = 'invalid login or password'   
+
+    body_tmpl = _tmpl_path('login_body.html')
+    body_vars = {'message':message, 'url':req.uri}
+
+    vars = {'global_menu': '', 
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
+            'name':''}
+            
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                vars=vars)
+
+    p.run()
+
+    return apache.OK
+
 def pubkey(req):
 
-    from openvps.common import RSASignedCookie
-
-    global _cached_key
-
-    keypath = os.path.join(cfg.VAR_DB_OPENVPS, cfg.KEYFILE)
-
-    if _cached_key:
-        mtime, key = _cached_key
-        if os.stat(keypath).st_mtime != mtime:
-            _cached_key = _read_pub_key()
-    else:
-            _cached_key = _read_pub_key()
-
-    key = _read_priv_key()
-
-##     cookie = RSASignedCookie.RSASignedCookie('foo', 'bar', key)
-##     Cookie.add_cookie(req, cookie)
-
-##     cookies = Cookie.get_cookies(req, Class=RSASignedCookie,
-##                                  secret=_cached_key[1])
-
     req.context_type = 'text/plain'
-    req.write(_cached_key[1])
+    req.write(binascii.hexlify(_get_pub_key()))
 
     return apache.OK
 

@@ -20,7 +20,7 @@
 # limitations under the License.
 #
 
-# $Id: ovresources,v 1.2 2005/02/07 19:10:02 grisha Exp $
+# $Id: ovresources,v 1.3 2005/02/07 22:52:40 grisha Exp $
 
 DISKLIMITS=`python -c 'from openvps.host import cfg; print cfg.VAR_DB_OPENVPS'`/disklimits/disklimits
 PREFIX=`python -c 'from openvps.host import cfg; print cfg.PREFIX'`
@@ -29,7 +29,7 @@ PREFIX=`python -c 'from openvps.host import cfg; print cfg.PREFIX'`
 case "$1" in
   start)
 	echo "Generating RSA key"
-	$PREFIX/ovgenkey 
+	$PREFIX/sbin/ovgenkey 
 
 	echo "Restoring context disk limits"
 	/bin/sh $DISKLIMITS

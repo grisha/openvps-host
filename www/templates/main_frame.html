@@ -12,7 +12,21 @@
 
     <div class="container">
 
-    <h2>OpenVPS Control Panel for server <em><%=name%></em></h2>
+    <h2>OpenVPS Control Panel 
+<%
+if name:
+    # begin
+%>
+    for server <em><%=name%></em></h2>
+<%
+#end
+else:
+    # begin
+%>
+    </h2>
+<%
+#end
+%>
 
     <div class="container2">
 

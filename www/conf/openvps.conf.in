@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps.conf.in,v 1.2 2005/01/14 21:41:07 grisha Exp $
+# $Id: openvps.conf.in,v 1.3 2005/02/07 22:52:40 grisha Exp $
 
 <IfModule !mod_python.c>
   LoadModule python_module modules/mod_python.so
@@ -27,12 +27,6 @@
   PythonDebug Off
   PythonAuthenHandler openvps.www.authen
   PythonHandler openvps.www.panel
-
-  <Location />
-    AuthType Basic
-    AuthName "Your main UserId and Password"
-    require valid-user
-  </Location>
 
   Alias /images @prefix@/openvps/images
   <Directory @prefix@/openvps/images>
