@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.27 2005/03/02 15:43:33 grisha Exp $
+# $Id: panel.py,v 1.28 2005/03/02 16:55:05 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -298,13 +298,17 @@ def login(req, vserver_name, message=''):
 
     # it's possible that some qargs were passed in
 
-    qargs = util.parse_qs(req.args)
-    if qargs.has_key('m'):
-        if not message:
-            if qargs['m'][0] == '1':
-                message = 'please log in'
-            elif qargs['m'][0] == '2':
-                message = 'session time-out, please log in again'
+    qargs = {}
+
+    if req.args:
+        qargs = util.parse_qs(req.args)
+        if qargs.has_key('m'):
+            if not message:
+                if qargs['m'][0] == '1':
+                    message = 'please log in'
+                elif qargs['m'][0] == '2':
+                    message = 'session time-out, please log in again'
+                    
     if qargs.has_key('url'):
         url = qargs['url'][0]
     else:
