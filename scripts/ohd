@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# $Id: ohd,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: ohd,v 1.2 2004/04/27 00:19:58 grisha Exp $
 
 """ This is a little daemon-like program that facilitates the use
 of ping, traceroute and other tools not available from within a
@@ -105,15 +105,18 @@ class Channel(asynchat.async_chat):
 ##         self.close_when_done()
 
     def ohsmp_PING(self, arg):
-        if os.name == 'nt':
-            c_opt = '-n'
-        else:
-            c_opt = '-c'
-        usage = 'ping [%s count] host' % c_opt
+        
+        usage = 'ping [%s count] host' % '-c'
         parser = DaemonOptParser(usage, self)
-        parser.add_option(c_opt, dest="count", type="int",
+        parser.add_option('-c', dest="count", type="int",
                           help="Number of echo requests to send",
                           default=0)
+        parser.add_option('-n', dest='numeric', default=False,
+                          action="store_false", help='Numeric output only')
+        parser.add_option('-U', dest='full_latency', default=False,
+                          action="store_false",
+                          help='Print  full  user-to-user  latency')
+
         try:
             (options, args) = parser.parse_args(arg.split())
             if len(args) != 1:
@@ -121,8 +124,8 @@ class Channel(asynchat.async_chat):
             if options.count > 10:
                 parser.error('Sorry, a maximum of 10 ICMP packets is allowed.')
             if options.count == 0:
-                # arg = c_opt + ' 4 -t 5 ' + arg # BSD
-                arg = c_opt + ' 4 -W 5 ' + arg
+                # arg = -c + ' 4 -t 5 ' + arg # BSD
+                arg = '-c' + ' 4 -W 5 ' + arg
             else:
                 # arg = ('-t %d ' % (options.count + 1)) + arg # BSD
                 arg = ('-W %d ' % (options.count + 1)) + arg
