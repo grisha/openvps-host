@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.14 2005/02/11 20:36:35 grisha Exp $
+# $Id: panel.py,v 1.15 2005/02/11 21:03:05 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -433,12 +433,32 @@ def quarter_graph(req, name, params):
     return apache.OK
 
 
+def graph(req, name, params):
+
+    # location of the bandwidth rrd
+    rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
+
+    image = rrdutil.graph(rrd, back=86400, title='Last 24 hours',
+                          width=484, height=50)
+
+    req.content_type = 'image/gif'
+    req.sendfile(image)
+    os.unlink(image)
+
+    return apache.OK
+
+
 def disk(req, name, params):
 
     location = 'stats:disk'
 
+    body_tmpl = _tmpl_path('disk_body.html')
+
+    data = _load_rrd_data(name)
+    body_vars = {'data':data}
+
     vars = {'global_menu': _global_menu(req, location),
-            'body':"disk info here",
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
             'name':name}
             
     p = psp.PSP(req, _tmpl_path('main_frame.html'),
@@ -453,8 +473,13 @@ def cpu(req, name, params):
 
     location = 'stats:cpu'
 
+    body_tmpl = _tmpl_path('cpu_body.html')
+
+    data = _load_rrd_data(name)
+    body_vars = {'data':data}
+
     vars = {'global_menu': _global_menu(req, location),
-            'body':"cpu info here",
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
             'name':name}
             
     p = psp.PSP(req, _tmpl_path('main_frame.html'),
