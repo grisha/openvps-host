@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovbackup,v 1.1 2005/01/20 19:49:34 grisha Exp $
+# $Id: ovbackup,v 1.2 2005/03/08 18:25:07 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -74,7 +74,7 @@ def do_dump():
     level = which_level()
     fname = os.path.join(cfg.BACKUP, HOST+'_vservers-level%d.dump' % level)
 
-    cmd = '%s %duzf - %s %s' % \
+    cmd = '%s %dujf - %s %s' % \
           (DUMP, level, cfg.VSERVERS_ROOT, get_target(fname))
     run_cmd(cmd)
     os.chmod(fname, 0600)
@@ -86,14 +86,14 @@ def other_stuff():
     # 10 days daily
     n = now[2] % 10
 
-    fname = os.path.join(cfg.BACKUP, HOST+'_var_db_oh-daily%d.tgz' % n)
-    cmd = 'cd /; %s czvf - %s %s' % \
+    fname = os.path.join(cfg.BACKUP, HOST+'_var_db_oh-daily%d.tar.bz2' % n)
+    cmd = 'cd /; %s cjvf - %s %s' % \
           (TAR, cfg.VAR_DB_OH, get_target(fname))
     run_cmd(cmd)
     os.chmod(fname, 0600)
 
-    fname = os.path.join(cfg.BACKUP, HOST+'_etc_vservers-daily%d.tgz' % n)
-    cmd = 'cd /; %s czvf - %s %s' % \
+    fname = os.path.join(cfg.BACKUP, HOST+'_etc_vservers-daily%d.tar.bz2' % n)
+    cmd = 'cd /; %s cjvf - %s %s' % \
           (TAR, cfg.ETC_VSERVERS, get_target(fname))
     run_cmd(cmd)
     os.chmod(fname, 0600)
@@ -101,14 +101,14 @@ def other_stuff():
     # 1st of every month
     if now[2] == 1:
         
-        fname = os.path.join(cfg.BACKUP, HOST+'_var_db_oh-monthly.tgz')
-        cmd = 'cd /; %s czvf - %s %s' % \
+        fname = os.path.join(cfg.BACKUP, HOST+'_var_db_oh-monthly.tar.bz2')
+        cmd = 'cd /; %s cjvf - %s %s' % \
               (TAR, cfg.VAR_DB_OH, get_target(fname))
         run_cmd(cmd)
         os.chmod(fname, 0600)
         
-        fname = os.path.join(cfg.BACKUP, HOST+'_etc_vservers-monthly.tgz')
-        cmd = 'cd /; %s czvf - %s %s' % \
+        fname = os.path.join(cfg.BACKUP, HOST+'_etc_vservers-monthly.tar.bz2')
+        cmd = 'cd /; %s cjvf - %s %s' % \
               (TAR, cfg.ETC_VSERVERS, get_target(fname))
         run_cmd(cmd)
         os.chmod(fname, 0600)
