@@ -17,9 +17,9 @@ for d in data:
 %>
     <tr>
       <td><%="%s %d" % (month, year) %></td>
-      <td><%="%.2f Gb (%d bytes)" % (b_in*step/GB, b_in) %></td>
-      <td><%="%.2f Gb (%d bytes)" % (b_out*step/GB, b_out) %></td>
-      <td><%="%.2f Gb (%d bytes)" % ((b_in+b_out)*step/GB, (b_in+b_out)) %></td>
+      <td><%="%.2f Gb (%d bytes)" % (b_in*step/GB, b_in*step) %></td>
+      <td><%="%.2f Gb (%d bytes)" % (b_out*step/GB, b_out*step) %></td>
+      <td><%="%.2f Gb (%d bytes)" % ((b_in+b_out)*step/GB, (b_in+b_out)*step) %></td>
     </tr>
 <%
 # end
