@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovdisk,v 1.1 2005/01/20 19:49:34 grisha Exp $
+# $Id: ovdisk,v 1.2 2005/01/21 20:52:56 grisha Exp $
 
 """
 This script periodically collects data about vservers disk
@@ -67,6 +67,8 @@ for xid in xids:
         
         if (int(dl['i_total']) - int(dl['i_used'])) < 10000:
             syslog('Less than 10000 inodes left for xid %s, resetting' % xid)
+            # actually be a bit more draconian here XXX
+            open("/var/tmp/inode-overflow").write('Less than 10000 inodes left for xid %s, resetting\n' % xid)
             
             # less then 10000 inodes left, reset
             cmd = '%s -x %s -S %s,%s,%s,%s,%s %s' % \

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.3 2005/01/21 19:25:18 grisha Exp $
+# $Id: vsmon.py,v 1.4 2005/01/21 20:52:56 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -175,6 +175,20 @@ def bandwidth(server, input, output, vservers):
 
     return {'vs_in':i, 'vs_out':o}
 
+def disk(xid):
+
+    b_used, b_total, i_used, i_total = 0,0,0,0
+
+    dl = vsutil.get_disk_limits(xid)
+    
+    if not dl:
+        log('Warning: no limits on xid %s' % xid)
+    else:
+        b_used, b_total, i_used, i_total = \
+                dl['b_used'], dl['b_total'], dl['i_used'], dl['i_total']
+
+    return {'vs_disk_b_used': b_used, 'vs_disk_b_total': b_total,
+            'vs_disk_i_used': i_used, 'vs_disk_i_total': i_total}
 
 def _rrd_exists(server):
     path = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon', '%s.rrd' % server)
@@ -263,6 +277,7 @@ def collect_stats():
         try:
 
             data.update(bandwidth(server, input, output, vservers))
+            data.update(disk(xid))
             data.update(limits(xid))
             data.update(sched(xid))
             data.update(ipcs(xid))
