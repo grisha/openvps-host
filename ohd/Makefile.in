@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.2 2004/05/25 17:17:44 grisha Exp $
+# $Id: Makefile.in,v 1.3 2004/09/18 03:07:05 grisha Exp $
 
 INSTALL=@INSTALL@
 PREFIX=@prefix@
@@ -29,10 +29,15 @@ traceroute: traceroute.c common.c common.h
 	$(CC) -o traceroute traceroute.c common.c
 
 install: ping traceroute
-	$(INSTALL) -m 4755 -o root ping $(MISC)/ping
-	$(INSTALL) -m 4755 -o root traceroute $(MISC)/traceroute
-	$(INSTALL) -m 4755 -o root ohdexec $(MISC)/ohdexec
+	$(INSTALL) -m 4755 -o root ping $(DESTDIR)$(MISC)/ping
+	$(INSTALL) -m 4755 -o root traceroute $(DESTDIR)$(MISC)/traceroute
+	$(INSTALL) -m 4755 -o root ohdexec $(DESTDIR)$(MISC)/ohdexec
+	$(INSTALL) sshd_config $(DESTDIR)/etc/ssh/sshd_config_ohd
+	if test -z "$(DESTDIR)"; then \
+		$(MAKE) add_user ; \
+	fi
 
+add_user:
 	@if test -z "`egrep ^$(OHD_USER): /etc/passwd`"; then \
 		echo "Adding user $(OHD_USER)..."; \
 		adduser $(OHD_USER); \
@@ -52,7 +57,6 @@ install: ping traceroute
 		echo "Looks like ohdexec is in sudoers already, leaving $(SUDOERS) alone."; \
 	fi
 
-	@cp sshd_config /etc/ssh/sshd_config_ohd
 
 clean:
 	rm -rf ping traceroute core *~ .libs *.o *.slo *.lo *.la

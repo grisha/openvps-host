@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.6 2004/06/15 18:05:35 grisha Exp $
+# $Id: Makefile.in,v 1.7 2004/09/18 03:07:05 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -29,11 +29,13 @@ all:
 	cd src && $(MAKE)
 
 install:
-	$(INSTALL) -d $(SBINDIR)
-	$(INSTALL) -d $(MISC)
-	@if test ! -e $(VARDB) ; then \
-		$(INSTALL) -d $(VARDB); \
-		touch $(BACKUP)/level0; \
+	$(INSTALL) -d $(DESTDIR)$(SBINDIR)
+	$(INSTALL) -d $(DESTDIR)$(MISC)
+	@if test ! -e $(DESTDIR)$(VARDB) ; then \
+		$(INSTALL) -d $(DESTDIR)$(VARDB); \
+		if test -z "$(DESTDIR)"; then \
+			touch $(DESTDIR)$(BACKUP)/level0; \
+		fi ; \
 	fi
 	cd scripts && $(MAKE) install
 	@$(MAKE) install_py_lib
@@ -42,21 +44,31 @@ install:
 	cd src && $(MAKE) install
 	cd www && $(MAKE) install
 	cd ohd && $(MAKE) install
-	@if test ! -e $(CONFIG) ; then \
-		$(INSTALL) ohhost.conf $(CONFIG); \
+	@if test ! -e $(DESTDIR)$(CONFIG) ; then \
+		$(INSTALL) ohhost.conf $(DESTDIR)$(CONFIG); \
 	else \
-		echo "Not installing $(CONFIG) because it already exists."; \
+		echo "Not installing $(DESTDIR)$(CONFIG) because it already exists."; \
 	fi
+	if test -z "$(DESTDIR)"; then \
+		$(MAKE) fix_sems; \
+	fi
+	$(INSTALL) $(VERSION) $(DESTDIR)/etc/oh-release
+
+
+fix_sems:
 	@if test -z "`grep kernel.sem /etc/sysctl.conf`"; then \
 		echo "Increasing the number of available semaphores"; \
 		sysctl -w kernel.sem="250 256000 32 1024"; \
 		echo "kernel.sem = 250 256000 32 1024" >> /etc/sysctl.conf; \
 	fi
 
-	@cp $(VERSION) /etc/oh-release
-
 install_py_lib:
-	cd lib/python && python setup.py install
+	if test -z "$(DESTDIR)"; then \
+		cd lib/python && python setup.py install; \
+	else \
+		cd lib/python && python setup.py install --root $(DESTDIR); \
+	fi
+
 
 clean:
 	cd scripts && $(MAKE) clean

@@ -14,13 +14,16 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: Makefile.in,v 1.2 2004/09/18 03:07:05 grisha Exp $
 
 HTTPD_CONF=/etc/httpd/conf/httpd.conf
 HTSSL_CONF=/etc/httpd/conf.d/ssl.conf
 HTTPD_PORT=1011
 
-install: fix_httpd
+install: 
+	if test -z "$(DESTDIR)"; then \
+		$(MAKE) fix_httpd ; \
+	fi
 	cd conf && $(MAKE) install
 
 clean:

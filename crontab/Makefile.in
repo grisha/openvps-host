@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: Makefile.in,v 1.2 2004/09/18 03:07:05 grisha Exp $
 
 INSTALL=@INSTALL@
 
@@ -25,4 +25,4 @@ distclean: clean
 	rm -f Makefile
 
 install:
-	$(INSTALL) openhosting /etc/cron.d/openhosting
+	$(INSTALL) openhosting $(DESTDIR)/etc/cron.d/openhosting

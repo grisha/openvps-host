@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: Makefile.in,v 1.2 2004/09/18 03:07:05 grisha Exp $
 
 INSTALL=@INSTALL@
 PREFIX=@prefix@
@@ -23,7 +23,7 @@ ohchkpwd: ohchkpwd.c
 	$(CC) -o ohchkpwd ohchkpwd.c -lcrypt
 
 install: ohchkpwd
-	$(INSTALL) -m 4755 -o root ohchkpwd $(PREFIX)/sbin/ohchkpwd
+	$(INSTALL) -m 4755 -o root ohchkpwd $(DESTDIR)$(PREFIX)/sbin/ohchkpwd
 
 clean:
 	rm -rf ohchkpwd core *~ .libs *.o *.slo *.lo *.la

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.2 2004/08/05 21:51:40 grisha Exp $
+# $Id: Makefile.in,v 1.3 2004/09/18 03:07:05 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -34,15 +34,17 @@ distclean: clean
 	rm -f Makefile
 
 install: 
-	$(INSTALL) -m 0550 ohd $(SBINDIR)/ohd
-	$(INSTALL) -m 0550 ohd_child $(SBINDIR)/ohd_child
-	$(INSTALL) -m 0550 ohdisk $(SBINDIR)/ohdisk
-	$(INSTALL) -m 0550 ohbwidth $(SBINDIR)/ohbwidth
-	$(INSTALL) -m 0550 ohbackup $(SBINDIR)/ohbackup
-	$(INSTALL) -m 0550 ohhost $(SBINDIR)/ohhost
-	$(INSTALL) -m 0550 ping $(MISC)/ping
-	$(INSTALL) -m 0550 traceroute $(MISC)/traceroute
-	$(MAKE) peer_key
+	$(INSTALL) -m 0550 ohd $(DESTDIR)$(SBINDIR)/ohd
+	$(INSTALL) -m 0550 ohd_child $(DESTDIR)$(SBINDIR)/ohd_child
+	$(INSTALL) -m 0550 ohdisk $(DESTDIR)$(SBINDIR)/ohdisk
+	$(INSTALL) -m 0550 ohbwidth $(DESTDIR)$(SBINDIR)/ohbwidth
+	$(INSTALL) -m 0550 ohbackup $(DESTDIR)$(SBINDIR)/ohbackup
+	$(INSTALL) -m 0550 ohhost $(DESTDIR)$(SBINDIR)/ohhost
+	$(INSTALL) -m 0550 ping $(DESTDIR)$(MISC)/ping
+	$(INSTALL) -m 0550 traceroute $(DESTDIR)$(MISC)/traceroute
+	if test -z "$(DESTDIR)"; then \
+		$(MAKE) peer_key ; \
+	fi
 
 peer_key:
 	@if test -z "`egrep ^$(BACKUP_USER): /etc/passwd`"; then \
