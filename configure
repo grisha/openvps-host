@@ -2366,15 +2366,15 @@ fi
 # check for cqtools
 
 
-CQTOOLS_DIR=/usr/local/cq-tools-0.06
+CQ_TOOLS_DIR=/usr/local/cq-tools-0.06
 echo "$as_me:$LINENO: checking for mquota in $CQTOOLS_DIR" >&5
 echo $ECHO_N "checking for mquota in $CQTOOLS_DIR... $ECHO_C" >&6
-if test -x "$CQTOOLS_DIR/mquota"; then
+if test -x "$CQ_TOOLS_DIR/mquota"; then
   echo "$as_me:$LINENO: result: found, excellent." >&5
 echo "${ECHO_T}found, excellent." >&6
 else
-  { { echo "$as_me:$LINENO: error: cqtools not found. You need to place cqtools in $CQTOOLS_DIR" >&5
-echo "$as_me: error: cqtools not found. You need to place cqtools in $CQTOOLS_DIR" >&2;}
+  { { echo "$as_me:$LINENO: error: cqtools not found. You need to place cqtools in $CQ_TOOLS_DIR" >&5
+echo "$as_me: error: cqtools not found. You need to place cqtools in $CQ_TOOLS_DIR" >&2;}
    { (exit 1); exit 1; }; }
 fi
 

@@ -72,7 +72,7 @@ SSL_ORG_NAME = "Some Company, Inc."
 # disabled)
 
 # FEDORA_C1_SRVCS =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
-#                     'syslog', 'xinetd']
+#                     'syslog', 'xinetd', 'webmin']
 
 # This is a list of additional packages that are installed when the
 # reference server is being built. This is a good starting point to a

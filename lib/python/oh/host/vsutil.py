@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: vsutil.py,v 1.2 2004/04/02 22:34:13 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -45,7 +45,7 @@ def list_vservers():
 
         for line in open(os.path.join(cfg.ETC_VSERVERS, file)):
 
-            if line.strip().startswith('#'):
+            if not line.strip() or line.strip().startswith('#'):
                 # it's a comment
                 continue
 
