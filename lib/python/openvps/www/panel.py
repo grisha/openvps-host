@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.28 2005/03/02 16:55:05 grisha Exp $
+# $Id: panel.py,v 1.29 2005/03/08 18:23:07 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -587,8 +587,8 @@ def bwidth(req, name, params):
                 'DEF:out=%s:vs_out:AVERAGE' % rrd,
                 'CDEF:inbits=in,8,*',
                 'CDEF:outbits=out,8,*',
-                'AREA:inbits#00FF00:bps in',
-                'LINE1:outbits#0000FF:bps out']
+                'AREA:outbits#7b68ee:bps out',
+                'LINE1:inbits#7fff00:bps in']
 
         if qargs.has_key('l'):
             args.append('-g')  # no legend
