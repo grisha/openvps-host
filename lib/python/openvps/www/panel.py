@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.31 2005/04/05 20:07:35 grisha Exp $
+# $Id: panel.py,v 1.32 2005/04/06 18:29:34 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -81,6 +81,7 @@ def check_authen(req, vserver_name):
                 return None
         except:
             login(req, vserver_name, message='please log in')
+            return None
 
         return userid
 
