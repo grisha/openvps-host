@@ -1,0 +1,3 @@
+
+This is code that gets installed on the host, i.e. the machine that is
+the actual web server, as opposed to the admin server.

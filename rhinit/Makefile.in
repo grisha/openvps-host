@@ -1,0 +1,77 @@
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: Makefile.in,v 1.1 2004/03/25 16:48:40 grisha Exp $
+
+INSTALL=@INSTALL@
+CHKCONFIG=/sbin/chkconfig
+SSHD_CONFIG=/etc/ssh/sshd_config
+INITD=/etc/init.d
+
+clean:
+	rm -rf *~
+
+distclean: clean
+	rm -f Makefile
+
+install:
+	$(INSTALL) ohresources $(INITD)/ohresources
+	$(INSTALL) ohd $(INITD)/ohd
+	$(INSTALL) ohfixproc $(INITD)/ohfixproc
+	$(MAKE) vserver_srv
+	$(MAKE) services
+	$(MAKE) fix_sshd
+
+services:
+	@echo
+	@echo "Disabling most services:"
+	@cd $(INITD); \
+	for serv in `ls`; do \
+		case $$serv in \
+			*.bak|*~|functions|killall|halt|single) \
+				;; \
+			*) \
+				echo -n " $$serv"; \
+				$(CHKCONFIG) --level 2345 $$serv off; \
+				;; \
+		esac;  \
+	done;        
+	@echo
+	@echo "Enabling services we need:"
+	@for serv in network sshd syslog atd random iptables crond anacron httpd vservers ohresources ohd ohfixproc; do \
+		echo -n " $$serv"; \
+		chkconfig $$serv on; \
+	done;
+	@echo
+
+fix_sshd:
+	@echo "Trying to force sshd to listen to the first IP on eth0 only:"
+	@firstip=`ifconfig | grep inet | head -n 1 | awk '{print $$2}' | awk -F: '{print $$2}'`; \
+	echo "  $$firstip"; \
+	sed s/\#ListenAddress.*/"ListenAddress $$firstip"/g $(SSHD_CONFIG) > $(SSHD_CONFIG).ohnew; \
+	cp $(SSHD_CONFIG).ohnew $(SSHD_CONFIG); rm $(SSHD_CONFIG).ohnew; \
+	echo "done"; \
+	echo "REMEMBER to restart sshd.";
+
+#	service sshd restart;
+
+# util-vserver seems to put sysv scripts into /usr/local/etc/init.d
+# where chkconfig cannot see it
+vserver_srv:
+	@if test ! -e $(INITD)/vservers; then \
+		echo "Installing vservers service"; \
+		cp /usr/local/etc/init.d/vservers $(INITD)/vservers; \
+	fi;

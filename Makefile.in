@@ -1,0 +1,58 @@
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: Makefile.in,v 1.1 2004/03/25 16:48:40 grisha Exp $
+
+INSTALL=@INSTALL@
+SBINDIR=@prefix@/sbin
+MISC=@prefix@/oh/misc
+VARDB=/var/db/oh
+BACKUP=/backup
+
+all:
+
+install:
+	$(INSTALL) -d $(SBINDIR)
+	$(INSTALL) -d $(MISC)
+	@if test ! -e $(VARDB) ; then \
+		$(INSTALL) -d $(VARDB); \
+		touch $(BACKUP)/level0; \
+	fi
+	cd scripts && $(MAKE) install
+	@$(MAKE) install_py_lib
+	cd rhinit && $(MAKE) install
+	cd crontab && $(MAKE) install
+	cd src && $(MAKE) install
+	cd www && $(MAKE) install
+
+install_py_lib:
+	cd lib/python && python setup.py install
+
+clean:
+	cd scripts && $(MAKE) clean
+	cd rhinit && $(MAKE) clean
+	cd src && $(MAKE) clean
+	cd crontab && $(MAKE) clean
+	rm -rf *~ lib/python/oh/host/*.pyc lib/python/oh/host/*.pyo lib/python/oh/host/*~ lib/python/build
+
+distclean: clean
+	cd scripts && $(MAKE) distclean
+	cd rhinit && $(MAKE) distclean
+	cd src && $(MAKE) distclean
+	cd crontab && $(MAKE) distclean
+	rm -rf Makefile config.h config.status config.cache config.log \
+		autom4te.cache
+

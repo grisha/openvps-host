@@ -1,0 +1,97 @@
+#!/usr/local/bin/python
+
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: ohbackup,v 1.1 2004/03/25 16:48:40 grisha Exp $
+
+"""Script to dump the vserver and some other important files
+to a backup drive"""
+
+from oh.host import cfg
+
+import time
+import os
+import sys
+
+DUMP = '/sbin/dump'
+TAR = '/bin/tar'
+LEVEL0_FILE = os.path.join(cfg.BACKUP, 'level0')
+
+def which_level():
+
+    """Figure out dump level for today"""
+
+    if os.path.exists(LEVEL0_FILE):
+        os.unlink(LEVEL0_FILE)
+        return 0
+
+    day = time.localtime()[2]
+    levels = [9,0,3,2,5,4,7,6,9,8]
+    return levels[day % 10]
+
+def run_cmd(cmd):
+
+    print cmd
+
+    pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
+    s = pipe.read(1)
+    while s:
+        sys.stdout.write(s); sys.stdout.flush()
+        s = pipe.read(1)
+    pipe.close()
+
+def do_dump():
+
+    level = which_level()
+    fname = os.path.join(cfg.BACKUP, 'vservers-level%d.dump' % level)
+
+    cmd = '%s %duzf - %s > %s' % (DUMP, level, cfg.VSERVERS_ROOT, fname)
+    run_cmd(cmd)
+    os.chmod(fname, 0600)
+    
+def other_stuff():
+
+    now = time.localtime()
+
+    # 10 days daily
+    n = now[2] % 10
+
+    fname = os.path.join(cfg.BACKUP, 'var_db_oh-daily%d.tgz' % n)
+    cmd = 'cd /; %s czvf %s %s' % (TAR, fname, cfg.VAR_DB_OH)
+    run_cmd(cmd)
+    os.chmod(fname, 0600)
+
+    fname = os.path.join(cfg.BACKUP, 'etc_vservers-daily%d.tgz' % n)
+    cmd = 'cd /; %s czvf %s %s' % (TAR, fname, cfg.ETC_VSERVERS)
+    run_cmd(cmd)
+    os.chmod(fname, 0600)
+
+    # 1st of every month
+    if now[2] == 1:
+        
+        fname = os.path.join(cfg.BACKUP, 'var_db_oh-monthly.tgz')
+        cmd = 'cd /; %s czvf %s %s' % (TAR, fname, cfg.VAR_DB_OH)
+        run_cmd(cmd)
+        os.chmod(fname, 0600)
+        
+        fname = os.path.join(cfg.BACKUP, 'etc_vservers-monthly.tgz')
+        cmd = 'cd /; %s czvf %s %s' % (TAR, fname, cfg.ETC_VSERVERS)
+        run_cmd(cmd)
+        os.chmod(fname, 0600)
+
+do_dump()
+other_stuff()

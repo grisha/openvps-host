@@ -1,0 +1,142 @@
+#!/usr/local/bin/python
+
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: ohhost,v 1.1 2004/03/25 16:48:40 grisha Exp $
+
+
+"""
+This is the script to manipulate virtual servers.
+
+"""
+
+CFG_FILE="/usr/local/oh/etc/oh.conf"
+#cfg = None
+
+import sys, os, commands
+from oh.host import vds
+from oh.host import cfg
+import md5
+
+# To add a command, simply define a cmd_* function here
+
+def cmd_clone():
+
+    parser = OptionParser(usage="%prog clone <sourse> <destination>\n"
+                          "  Clone a reference server at source to destination "
+                          "hard-linking when necessary")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 2:
+        parser.error("Must specify <source> and <destination>")
+
+    source, dest = args
+
+    vds.clone(source, dest)
+
+def cmd_version():
+    from oh.host import VERSION
+    print 'OpenHosting Host Tools version %s' % VERSION
+    from oh.common import VERSION
+    print 'OpenHosting Common Lib version %s' % VERSION
+
+    
+def cmd_buildref():
+
+    parser = OptionParser(usage="%prog buildref <refroot> <distroot>\n"
+                          "  Build a reference server")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 2:
+        parser.error("Must specify <refroot> and <distroot>")
+
+    refroot, distroot = args
+
+    # XXX some checking needs to go here?
+
+    vds.buildref(refroot, distroot)
+
+def cmd_customize():
+
+    parser = OptionParser(usage="%prog customize <name> <fqdn> <ip> <xid> <userid> <passwd> <disklim> <dns>\n"
+                          "  Customize named <name> with <fqdn> <ip> <xid> <userid> <passwd> <disklim> <dns>")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 8:
+        parser.error("Must specify all 8 arguments")
+
+    name, fqdn, ip, xid, userid, passwd, disklim, dns = args
+
+    # XXX some checking needs to go here?
+
+    vds.customize(name, fqdn, ip, xid, userid, passwd, disklim, dns)
+
+
+########
+
+import optparse
+
+class OptionParser (optparse.OptionParser):
+
+    def check_required (self, opt):
+        option = self.get_option(opt)
+
+        # Assumes the option's 'default' is set to None!
+        if getattr(self.values, option.dest) is None:
+            self.error("%s option not supplied" % option)
+
+def main():
+
+    module = sys.modules[__name__]
+    commands = [c[4:] for c in dir(module) if c.startswith("cmd_")]
+
+    parser = OptionParser(usage = "%%prog [-c CONFIG] <command> [command options]\n"                          
+                          "  Where <command> is one of: %s\n" 
+                          "  For help on a specific command, use: %%prog <command> --help\n"
+                          "  CONFIG option in NOT implemented" % " ".join(commands))
+#                          "  CONFIG defaults to %s" % (" ".join(commands), CFG_FILE))
+
+    parser.add_option("-c", dest="config", help="Config file name", default=CFG_FILE)
+
+    # anything after a command is not our argument
+    try:
+        cmd_idx = [sys.argv.index(arg) for arg in sys.argv if arg in commands][0]
+    except IndexError:
+        cmd_idx = 1
+
+    (options, args) = parser.parse_args(sys.argv[1:cmd_idx+1])
+
+    if not args:
+        parser.error("Please specify a command")
+
+    command = args[0]
+
+    if command not in commands:
+        parser.error("Invalid command: %s" % command)
+
+    # load config
+##     import imp
+##     global cfg
+##     cfg = imp.load_module("cfg", open(options.config), options.config, ('.py', 'U', 1))
+        
+    cmd_func = module.__dict__["cmd_"+command]
+    cmd_func()
+
+# main
+if __name__ == "__main__":
+    main()
+

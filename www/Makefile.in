@@ -1,0 +1,45 @@
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: Makefile.in,v 1.1 2004/03/25 16:48:40 grisha Exp $
+
+HTTPD_CONF=/etc/httpd/conf/httpd.conf
+HTSSL_CONF=/etc/httpd/conf.d/ssl.conf
+HTTPD_PORT=1011
+
+install: fix_httpd
+	cd conf && $(MAKE) install
+
+clean:
+	cd conf && $(MAKE) clean
+	rm -rf *~ 
+
+distclean: clean
+	cd conf && $(MAKE) distclean
+	rm -rf Makefile 
+
+fix_httpd:
+	@echo "Configuring httpd to listen on port $(HTTPD_PORT)..."
+	@firstip=`ifconfig | grep inet | head -n 1 | awk '{print $$2}' | awk -F: '{print $$2}'`; \
+	echo "  $$firstip"; \
+	sed s/^Listen.*/"Listen $(HTTPD_PORT)"/g $(HTTPD_CONF) > $(HTTPD_CONF).ohnew; \
+	cp $(HTTPD_CONF).ohnew $(HTTPD_CONF); rm $(HTTPD_CONF).ohnew; \
+	sed s/^Listen.*/"Listen $$firstip:443"/g $(HTSSL_CONF) > $(HTSSL_CONF).ohnew; \
+	cp $(HTSSL_CONF).ohnew $(HTSSL_CONF); rm $(HTSSL_CONF).ohnew; \
+	echo "done";
+
+
+

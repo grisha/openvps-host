@@ -1,0 +1,67 @@
+#!/bin/sh
+# chkconfig: 345 30 70
+# description: This restores the context disk limits which should be \
+#   periodically saved in /var/db/oh/disklimits by a cronjob calling ohdisk
+#
+
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: ohresources,v 1.1 2004/03/25 16:48:40 grisha Exp $
+
+DISKLIMITS=/var/db/oh/disklimits
+ETHIF=eth0
+
+# See how we were called.
+case "$1" in
+  start)
+	echo "Restoring context disk limits"
+	/bin/sh $DISKLIMITS
+	echo "Creating iptables entries for vservers"
+	for ip in `grep IPROOT= /etc/vservers/*.conf | awk -F= '{print $2}'`; do
+	    iptables -D INPUT -i $ETHIF -d $ip > /dev/null 2>&1
+	    iptables -A INPUT -i $ETHIF -d $ip
+	    iptables -D OUTPUT -o $ETHIF -s $ip > /dev/null 2>&1
+	    iptables -A OUTPUT -o $ETHIF -s $ip
+	done
+	;;
+  stop)
+	# nothing to do here
+	;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  reload)
+	echo Not implemented
+	;;
+  force-reload)
+	$0 stop
+	$0 start
+        ;;
+  status)
+	echo Not implemented
+	;;
+  *)
+	echo "Usage: ohdisklimit {start|stop|restart|reload|status}"
+	exit 1
+esac
+
+exit 0
+
+
+
+
