@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.25 2005/02/24 22:36:42 grisha Exp $
+# $Id: panel.py,v 1.26 2005/02/28 17:43:42 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -780,8 +780,10 @@ def getstats(req, name, command):
 
     lj = 15
     req.write('%s%s\n' % ('name:'.ljust(15), name))
-    for s in [('start', ''),
-              ('end', ''),
+    for s in [('start', time.strftime('(%Y-%m-%d %H:%M:%S %Z)',
+                                      time.localtime(result['start']))),
+              ('end', time.strftime('(%Y-%m-%d %H:%M:%S %Z)',
+                                    time.localtime(result['end']))),
               ('step', '(secs)'),
               ('steps', ''),
               ('ticks', '(cpu ticks)'),
