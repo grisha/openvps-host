@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.33 2004/12/09 05:26:40 grisha Exp $
+# $Id: dft.py.in,v 1.34 2004/12/14 21:43:10 grisha Exp $
 
 """ Configuration Defaults
 
@@ -138,8 +138,8 @@ INDEX_HTML = """
 # Default nice.
 DFT_NICE = '9' # not as nice as default (10), but nice
 
-# Vserver flags
-DFT_FLAGS = 'lock\nhide_netif\nvirt_uptime\nsched_hard\nfakeinit\n'
+# Vserver flags (^19 is VIRT_LOAD)
+DFT_FLAGS = 'lock\nhide_netif\nvirt_uptime\nsched_hard\nfakeinit\n^19\n'
 
 # Scheduler parameters. This only has effect when the sched_hard flag
 # is set. Every <interval> (in jiffies ~10ms), a <fill-rate> tokens is
