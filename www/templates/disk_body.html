@@ -1,4 +1,3 @@
-  
 
   
   <h4>DISK Utilization (1 Disk Token = 1 average KB over 1 minute interval)</h4>
@@ -20,7 +19,7 @@ for d in data:
 %>
     <tr>
       <td><%="%s %s" % (month, year) %></td>
-      <td><%="%s" % locale.format("%d", int(b/1024)*step/60, 3) %></td>
+      <td><%="%s" % locale.format("%d", int(b*step/60), 3) %></td>
     </tr>
 <%
 # end

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.12 2005/02/23 22:43:51 grisha Exp $
+# $Id: vsmon.py,v 1.13 2005/02/25 20:07:49 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -331,7 +331,7 @@ def report_sum(name, start=None, end=None):
 
     for row in rows:
         
-        ticks = _sum_none(header, row, ['vs_uticks', 'vs_sticks', 'vs_hticks'])
+        ticks = _sum_none(header, row, ['vs_uticks', 'vs_sticks'])
         result['ticks'] += ticks
         result['vm'] += _sum_none(header, row, ['vs_vm'])
         result['rss'] += _sum_none(header, row, ['vs_rss'])
