@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: authen.py,v 1.4 2005/01/14 21:41:07 grisha Exp $
+# $Id: authen.py,v 1.5 2005/02/03 22:45:28 grisha Exp $
 
 """ Authentication handler for the panel. This
 requires mod_python 3.1 or later """
@@ -33,7 +33,27 @@ def authenhandler(req):
     userid = req.user
     
     path = os.path.normpath(req.uri)
-    vserver_name = path.split('/')[1]
+    parts = path.split('/', 3)
+
+    if len(parts) < 2:
+        return apache.HTTP_FORBIDDEN
+
+    if parts[1] == 'admin':
+
+        # new style
+        if len(parts) < 3:
+            return apache.HTTP_FORBIDDEN
+        vserver_name = parts[2]
+
+    elif parts[1] == 'pubkey':
+
+        # no authen
+        return apache.OK
+
+    else:
+
+        # old style, XXX remove soon
+        vserver_name = path.split('/')[1]
 
     vservers = vsutil.list_vservers()
 

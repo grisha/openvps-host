@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.5 2005/01/14 23:12:13 grisha Exp $
+# $Id: panel.py,v 1.6 2005/02/03 22:45:28 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -26,6 +26,8 @@ import time
 import sys
 
 from mod_python import apache, psp, util
+
+from M2Crypto import RSA, BIO
 
 from openvps.common import rrdutil
 from openvps.host import cfg
@@ -52,7 +54,7 @@ def handler(req):
     
     # figure out the vserver name and command
     path = os.path.normpath(req.uri) # no trailing slash
-    parts = path.split('/', 3)
+    parts = path.split('/', 4)
 
     # defaults
     command, params = 'index', ''
@@ -60,20 +62,46 @@ def handler(req):
     if len(parts) < 2:
         return error(req, 'request not understood')
 
-    if len(parts) >= 2:
+    if parts[1] == 'admin':
+        
+        # new style
+
+        vserver_name = parts[2]
+        vservers = vsutil.list_vservers()
+        if not vservers.has_key(vserver_name):
+            return error(req, 'request not understood')
+
+        if req.user != vserver_name:
+            return error(req, 'request not understood')
+
+        if len(parts) > 3:
+            command  = parts[3]
+
+        if len(parts) > 4:
+            params = parts[4]
+
+    elif parts[1] == 'pubkey':
+
+        # hand out our public key
+        return pubkey(req)
+
+    else:
+
+        # old style XXX needs to go away eventually
+
         vserver_name = parts[1]
         vservers = vsutil.list_vservers()
         if not vservers.has_key(vserver_name):
             return error(req, 'request not understood')
 
-    if req.user != vserver_name:
-        return error(req, 'request not understood')
-        
-    if len(parts) > 2:
-        command = parts[2]
+        if req.user != vserver_name:
+            return error(req, 'request not understood')
 
-    if len(parts) > 3:
-        params = parts[3]
+        if len(parts) > 2:
+            command = parts[2]
+
+        if len(parts) > 3:
+            params = '/'.join(parts[3:])
 
     if command not in ALLOWED_COMMANDS:
         return error(req, 'request not understood')
@@ -152,6 +180,18 @@ def _global_menu(req, location):
                       'hlight':location})
     return m
 
+
+def _read_pub_key(keypath):
+
+    def _passphrase(x):
+        return time.strftime('%Y-%M-%d %H', (time.localtime(time.time() - float(open('/proc/uptime').read().split()[0]))))
+    
+    key = RSA.load_key(keypath, _passphrase)
+    bio = BIO.MemoryBuffer()
+    key.save_pub_key_bio(bio)
+
+    return bio.getvalue()
+
 #
 # Callable from outside
 #
@@ -159,7 +199,6 @@ def _global_menu(req, location):
 def index(req, name, params):
 
     return status(req, name, params)
-
 
 def traffic(req, name, params):
 
@@ -270,3 +309,22 @@ def start(req, name, params):
     # note - this redirect is relative because absolute won't work with
     # our proxypass proxy
     util.redirect(req, 'status')
+
+_cached_key = None
+def pubkey(req):
+
+    global _cached_key
+
+    keypath = os.path.join(cfg.VAR_DB_OPENVPS, '.key')
+    
+    if not _cached_key:
+        _cached_key = (os.stat(keypath).st_mtime, _read_pub_key(keypath))
+    else:
+        if os.stat(keypath).st_mtime != _cached_key[0]:
+            _cached_key = (os.stat(keypath).st_mtime, _read_pub_key(keypath))
+
+    req.context_type = 'text/plain'
+    req.write(_cached_key[1])
+
+    return apache.OK
+
