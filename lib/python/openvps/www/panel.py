@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.15 2005/02/11 21:03:05 grisha Exp $
+# $Id: panel.py,v 1.16 2005/02/11 22:47:26 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
