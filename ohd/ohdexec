@@ -153,7 +153,7 @@ def run_command(vserver, path, args, caps):
     vcontext = os.path.join(cfg.VSERVER_PREFIX, 'sbin/vcontext')
     vattr = os.path.join(cfg.VSERVER_PREFIX, 'sbin/vattribute')
 
-    cmd = '%s --ip %s -- %s --create -- %s --set --secure ' \
+    cmd = '%s --silent --ip %s -- %s --silent --create -- %s --set --secure ' \
           '%s -- %s --migrate-self --chroot %s %s' % \
           (chbind, vserver['interfaces'][0]['ip'],
            vcontext, vattr, cap_opts, vcontext,
