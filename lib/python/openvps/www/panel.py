@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.19 2005/02/16 16:23:19 grisha Exp $
+# $Id: panel.py,v 1.20 2005/02/16 16:39:06 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -533,7 +533,7 @@ def bwidth(req, name, params):
 
         start = '-'+qargs['s'][0]
         width = 484
-        height = 56
+        height = 60
         nolegend = ''
         if qargs.has_key('l'):
             nolegend = '-g'  # no legend
@@ -611,7 +611,7 @@ def disk(req, name, params):
 
         start = '-'+qargs['s'][0]
         width = 484
-        height = 56
+        height = 70
         nolegend = ''
         if qargs.has_key('l'):
             nolegend = '-g'  # no legend
@@ -686,7 +686,7 @@ def mem(req, name, params):
 
         start = '-'+qargs['s'][0]
         width = 484
-        height = 64
+        height = 70
         nolegend = ''
         if qargs.has_key('l'):
             nolegend = '-g'  # no legend

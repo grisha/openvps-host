@@ -18,9 +18,9 @@ for d in data:
 %>
     <tr>
       <td><%="%s %d" % (d[1], d[0]) %></td>
-      <td><%="%.2f Gb (%d bytes)" % (d[2]/GB, d[2]) %></td>
-      <td><%="%.2f Gb (%d bytes)" % (d[3]/GB, d[3]) %></td>
-      <td><%="%.2f Gb (%d bytes)" % ((d[2]+d[3])/GB, (d[2]+d[3])) %></td>
+      <td><%="%.2f GB (%d B)" % (d[2]/GB, d[2]) %></td>
+      <td><%="%.2f GB (%d B)" % (d[3]/GB, d[3]) %></td>
+      <td><%="%.2f GB (%d B)" % ((d[2]+d[3])/GB, (d[2]+d[3])) %></td>
     </tr>
 <%
 # end
