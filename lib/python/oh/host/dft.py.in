@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.28 2004/11/04 20:37:37 grisha Exp $
+# $Id: dft.py.in,v 1.29 2004/11/08 19:44:49 grisha Exp $
 
 """ Configuration Defaults
 
@@ -46,6 +46,9 @@ NOVAL = 'NO VALUE SET - edit %s' % CONFIG_FILE
 # Location of miscellaneous files, particularly ping and traceroute
 # that later on are copied into a reference vserver
 OH_MISC = os.path.join(OH_DIR, 'misc')
+
+# Version
+VERSION = open('/etc/oh-release').read().strip()
 
 # Location of ohchkpwd script used by the web interface panel to
 # verify vserver account passwords
@@ -124,12 +127,13 @@ MOTD = """
 
 INDEX_HTML = """
     <html>
-      <title>OpenHosting Virtual Server</title>
+      <!-- Version %s -->
+      <title>OpenVPS Virtual Server</title>
       <center>
-         <h2>This site is under construction</h2>
+         <h2>This site is under construction.</h2>
       </center>
       </html>
-      """ # keep emacs happy "
+      """ % VERSION # keep emacs happy "
 
 # Default nice.
 DFT_NICE = '9' # not as nice as default (10), but nice
