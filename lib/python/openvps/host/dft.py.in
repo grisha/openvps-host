@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.7 2005/01/26 21:49:00 grisha Exp $
+# $Id: dft.py.in,v 1.8 2005/01/27 21:50:56 grisha Exp $
 
 """ Configuration Defaults
 
@@ -104,9 +104,19 @@ INODES_LIM = 1000000
 # XXX there will be more limits available in the future,
 # there is socks, but no way to set it in utils, there is
 # locks and msg_queue, but they are not implemented
-RLIMITS = {'as': 524288,    # virtual memory limit, 512MB
-           'memlock': 4096, # locked memory, 4MB
-           'rss': 262144,   # RSS, 256MB
+#
+# A note on memory limits:
+#   they are reported in 4K pages by /proc/virtual/.../limit
+#   they are NOT accurate. It is simply a sum of individual process
+#   memory stats. Processes that fork() initially share their memory
+#   pages, but that is not reflected (and cannot technically be
+#   accounted for). Thus, it makes sense to keep these limits a tad
+#   higher than seems reasonable at first. The defaults here are aimed
+#   at large systems with at least 2GB of RAM or more.
+#
+RLIMITS = {'as': 524288, # virtual memory limit, 2 GB
+           'memlock': 4096, # locked memory, 16MB
+           'rss': 262144,   # RSS, 1GB
            'nofile': 2048,  # number of open files
            'nproc': 256,    # number of processes
            }

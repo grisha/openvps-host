@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.5 2005/01/26 17:49:25 grisha Exp $
+# $Id: vsmon.py,v 1.6 2005/01/27 21:50:56 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -38,6 +38,8 @@ def log(s):
 
 def limits(xid):
 
+    PAGE_SIZE = 4 # 4K
+
     try:
         s = open('/proc/virtual/%s/limit' % xid).read()
     except IOError:
@@ -56,16 +58,16 @@ def limits(xid):
             result['vs_procs_lim'] = int(lim)
             result['vs_procs_lhits'] = int(hits)
         elif what == 'VM:':
-            result['vs_vm'] = long(cur)
-            result['vs_vm_lim'] = long(lim)
+            result['vs_vm'] = long(cur)*PAGE_SIZE
+            result['vs_vm_lim'] = long(lim)*PAGE_SIZE
             result['vs_vm_lhits'] = long(hits)
         elif what == 'VML:':
-            result['vs_vml'] = long(cur)
-            result['vs_vml_lim'] = long(lim)
+            result['vs_vml'] = long(cur)*PAGE_SIZE
+            result['vs_vml_lim'] = long(lim)*PAGE_SIZE
             result['vs_vml_lhits'] = long(hits)
         elif what == 'RSS:':
-            result['vs_rss'] = long(cur)
-            result['vs_rss_lim'] = long(lim)
+            result['vs_rss'] = long(cur)*PAGE_SIZE
+            result['vs_rss_lim'] = long(lim)*PAGE_SIZE
             result['vs_rss_lhits'] = long(hits)
         elif what == 'FILES:':
             result['vs_files'] = int(cur)
