@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.6 2004/05/25 17:17:44 grisha Exp $
+# $Id: vds.py,v 1.7 2004/05/25 17:56:57 grisha Exp $
 
 """ VDS related functions """
 
@@ -25,6 +25,7 @@ import shutil
 import re
 import commands
 import tempfile
+import time
 
 # oh modules
 import cfg
@@ -747,7 +748,10 @@ def copy(src, dst, link=1, touch=0):
 
             devs += 1
 
-def clone(source, dest):
+def clone(source, dest, pace=1000):
+
+    # pace counter
+    p = 0
 
     # this will strip trailing slashes
     source, dest = os.path.normpath(source), os.path.normpath(dest)
@@ -766,6 +770,13 @@ def clone(source, dest):
 
         for file in files + dirs:
 
+            if pace and p >= pace:
+                sys.stdout.write('.'); sys.stdout.flush()
+                time.sleep(2)
+                p = 0
+            else:
+                p += 1
+
             src = os.path.join(root, file)
             # reldst is they way it would look inside vserver
             reldst = os.path.join(max(root[len(source):], '/'), file)
@@ -779,6 +790,7 @@ def clone(source, dest):
                 link = not c and not is_config(source, reldst)
                 copy(src, dst, link=link, touch=t)
 
+    print 'Done.'
 
 rpm_cache = {}
 
