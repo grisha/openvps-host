@@ -15,12 +15,13 @@ GB = 1073741824.0  # bytes in gigabyte
 
 for d in data:
     # begin
+    year, month, step, b_in, b_out = d
 %>
     <tr>
-      <td><%="%s %d" % (d[1], d[0]) %></td>
-      <td><%="%.2f GB (%d B)" % (d[2]/GB, d[2]) %></td>
-      <td><%="%.2f GB (%d B)" % (d[3]/GB, d[3]) %></td>
-      <td><%="%.2f GB (%d B)" % ((d[2]+d[3])/GB, (d[2]+d[3])) %></td>
+      <td><%="%s %d" % (month, year) %></td>
+      <td><%="%.2f GB (%d B)" % (b_in*step/GB, b_in*step) %></td>
+      <td><%="%.2f GB (%d B)" % (b_out*step/GB, b_out*step) %></td>
+      <td><%="%.2f GB (%d B)" % ((b_in+b_out)*step/GB, (b_in+b_out)*step) %></td>
     </tr>
 <%
 # end

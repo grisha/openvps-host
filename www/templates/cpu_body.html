@@ -16,12 +16,13 @@ locale.setlocale(locale.LC_ALL, "")
 
 for d in data:
     # begin
+    year, month, step, st, ut = d
 %>
     <tr>
-      <td><%="%s %s" % (d[1], d[0]) %></td>
-      <td><%="%s" % locale.format("%d", d[2], 3) %></td>
-      <td><%="%s" % locale.format("%d", d[3], 3) %></td>
-      <td><%="%s" % locale.format("%d", (d[2]+d[3]), 3) %></td>
+      <td><%="%s %s" % (month, year) %></td>
+      <td><%="%s" % locale.format("%d", st*step, 3) %></td>
+      <td><%="%s" % locale.format("%d", ut*step, 3) %></td>
+      <td><%="%s" % locale.format("%d", (st+ut)*step, 3) %></td>
     </tr>
 <%
 # end

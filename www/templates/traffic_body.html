@@ -1,6 +1,4 @@
   
-
-  
   <h4>Bandwidth Utilization Statistics  (1 gigabyte is 1073741824 bytes)</h4>
 
   <p>
@@ -15,12 +13,13 @@ GB = 1073741824.0  # bytes in gigabyte
 
 for d in data:
     # begin
+    year, month, step, b_in, b_out = d
 %>
     <tr>
-      <td><%="%s %d" % (d[1], d[0]) %></td>
-      <td><%="%.2f Gb (%d bytes)" % (d[2]/GB, d[2]) %></td>
-      <td><%="%.2f Gb (%d bytes)" % (d[3]/GB, d[3]) %></td>
-      <td><%="%.2f Gb (%d bytes)" % ((d[2]+d[3])/GB, (d[2]+d[3])) %></td>
+      <td><%="%s %d" % (month, year) %></td>
+      <td><%="%.2f Gb (%d bytes)" % (b_in*step/GB, b_in) %></td>
+      <td><%="%.2f Gb (%d bytes)" % (b_out*step/GB, b_out) %></td>
+      <td><%="%.2f Gb (%d bytes)" % ((b_in+b_out)*step/GB, (b_in+b_out)) %></td>
     </tr>
 <%
 # end

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.22 2005/02/16 20:52:58 grisha Exp $
+# $Id: panel.py,v 1.23 2005/02/16 22:11:57 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -153,9 +153,9 @@ def _load_rrd_data(rrd, dslist):
 
     # dslist is a list of DS's in the RRD that we're totalling
 
-    # build a list of
-    # [[year, month, x1, x2]
-    #  [year, month, x1, x2]...]
+    # build a list of (step is in seconds)
+    # [[year, month, step, x1, x2]
+    #  [year, month, step, x1, x2]...]
 
     MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -163,16 +163,16 @@ def _load_rrd_data(rrd, dslist):
     data = []
 
     yyyy, mm = time.localtime()[0:2]
-    x  = rrdutil.month_total(rrd, yyyy, mm, dslist)
-    data.append([yyyy, MONTHS[mm-1]] + x)
+    step, totals  = rrdutil.month_total(rrd, yyyy, mm, dslist)
+    data.append([yyyy, MONTHS[mm-1], step] + totals)
 
     yyyy, mm = rrdutil.prev_month(yyyy, mm)
-    x = rrdutil.month_total(rrd, yyyy, mm, dslist)
-    data.append([yyyy, MONTHS[mm-1]] + x)
+    step, totals = rrdutil.month_total(rrd, yyyy, mm, dslist)
+    data.append([yyyy, MONTHS[mm-1], step] + totals)
 
     yyyy, mm = rrdutil.prev_month(yyyy, mm)
-    x = rrdutil.month_total(rrd, yyyy, mm, dslist)
-    data.append([yyyy, MONTHS[mm-1]] + x)
+    step, totals = rrdutil.month_total(rrd, yyyy, mm, dslist)
+    data.append([yyyy, MONTHS[mm-1], step] + totals)
 
     return data
 
