@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.4 2005/01/21 20:52:56 grisha Exp $
+# $Id: vsmon.py,v 1.5 2005/01/26 17:49:25 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -49,7 +49,7 @@ def limits(xid):
     for line in lines:
 
         # hits is how many times the limit's been hit
-        what, max, cur, lim, hits = line.split()
+        what, cur, max, lim, hits = line.split()
 
         if what == 'PROC:':
             result['vs_procs'] = int(cur)
