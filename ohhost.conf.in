@@ -20,6 +20,12 @@ VSERVERS_ROOT = '/vservers'
 
 BACKUP = '/backup'
 
+# Our main primary IP address (ssh/named/httpd will listen on it, and
+# the vservers will default to using it as the first nameserver in
+# /etc/resolv.conf)
+
+PRIMARY_IP='10.10.10.10'
+
 # Ip or address of the peer server to receive backups.
 PEERIP = '127.0.0.1'
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.17 2004/10/13 21:36:43 grisha Exp $
+# $Id: dft.py.in,v 1.18 2004/10/13 22:47:08 grisha Exp $
 
 """ Configuration Defaults
 
@@ -93,9 +93,9 @@ INODES_LIM = 1000000
 # into a triple of (copy, touch, skip) re objects.
 
 CLONE_RULES = {
-    'copy' : ['/etc', '/var', '/root'],
+    'copy' : ['/etc', '/var', '/root', '^/dev'],
     'touch' : ['/var/log', '/var/run', '\.bash_history'],
-    'skip' : ['ssh_host_', '.pem$', '/proc/', '/var/tmp/', '/dev', '/var/cache/.*/.+'] 
+    'skip' : ['ssh_host_', '.pem$', '/proc/', '/var/tmp/', '/var/cache/.*/.+'] 
     }
 
 # location of chroot command

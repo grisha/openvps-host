@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost,v 1.5 2004/10/05 20:08:40 grisha Exp $
+# $Id: ohhost,v 1.6 2004/10/13 22:47:08 grisha Exp $
 
 
 """
@@ -72,18 +72,19 @@ def cmd_buildref():
 
 def cmd_customize():
 
-    parser = OptionParser(usage="%prog customize <name> <fqdn> <ip> <xid> <userid> <passwd> <disklim> <dns>\n"
-                          "  Customize name <name> with <fqdn> <ip> <xid> <userid> <passwd> <disklim> <dns>")
+    parser = OptionParser(usage="%prog customize <name> <fqdn> <ip> <xid> <userid> <passwd> <disklim>\n"
+                          "  Customize name <name> with <fqdn> <ip> <xid> <userid> <passwd> <disklim>")
 
     (options, args) = parser.parse_args(sys.argv[2:])
-    if len(args) != 8:
-        parser.error("Must specify all 8 arguments")
+    if len(args) != 7:
+        par
+        ser.error("Must specify all 8 arguments")
 
-    name, fqdn, ip, xid, userid, passwd, disklim, dns = args
+    name, fqdn, ip, xid, userid, passwd, disklim = args
 
     # XXX some checking needs to go here?
 
-    vds.customize(name, fqdn, ip, xid, userid, passwd, disklim, dns)
+    vds.customize(name, fqdn, ip, xid, userid, passwd, disklim)
 
 def cmd_fixflags():
 

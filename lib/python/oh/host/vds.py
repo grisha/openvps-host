@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.23 2004/10/13 21:36:43 grisha Exp $
+# $Id: vds.py,v 1.24 2004/10/13 22:47:08 grisha Exp $
 
 """ VDS related functions """
 
@@ -766,7 +766,7 @@ def vserver_vroot_perms():
     os.chmod(cfg.VSERVERS_ROOT, 0)
 
 
-def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
+def customize(name, hostname, ip, xid, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
 
     # first make a configuration
     vsutil.save_vserver_config(name, ip, xid, hostname=hostname)

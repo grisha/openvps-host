@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.15 2004/10/12 19:28:53 grisha Exp $
+# $Id: ohhost-configure,v 1.16 2004/10/13 22:47:08 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -126,6 +126,15 @@ def get_util_vserver_prefix():
 
     cfg.VSERVER_PREFIX = s
     return s
+
+def get_primary_ip():
+
+    print 'Trying to figure out the primary ip...',
+    ip = commands.getoutput("ifconfig | grep inet | head -n 1 | awk '{print $2}' | awk -F: '{print $2}'")
+    print '    ', ip
+
+    cfg.PRIMARY_IP = ip
+    return ip
 
 def save_config(params):
 
@@ -260,9 +269,8 @@ def fix_services():
 
 def fix_sshd():
 
-    print 'Forcing sshd to listen to the first IP on eth0 and loopback only'
-    ip = commands.getoutput("ifconfig | grep inet | head -n 1 | awk '{print $2}' | awk -F: '{print $2}'")
-    print '    ', ip
+    print 'Forcing sshd to listen to the primary IP on eth0 (%s) and loopback only' % cfg.PRIMARY_IP
+    ip = cfg.PRIMARY_IP
 
     shutil.copy('/etc/ssh/sshd_config', '/etc/ssh/sshd_config.orig')
     lines = open('/etc/ssh/sshd_config').readlines()
@@ -286,9 +294,8 @@ def fix_sshd():
 
 def fix_named():
 
-    print 'Trying to force named to listen on the first IP on eth0 only'
-    ip = commands.getoutput("ifconfig | grep inet | head -n 1 | awk '{print $2}' | awk -F: '{print $2}'")
-
+    print 'Trying to force named to listen on the primary IP on eth0 (%s) only' % cfg.PRIMARY_IP
+    ip = cfg.PRIMARY_IP
 
     # are we using chroot?
     if os.path.exists('/var/named/chroot'):
@@ -320,7 +327,6 @@ def fix_named():
 def fix_httpd():
 
     print 'Configuring httpd to listen on port 1011'
-    ip = commands.getoutput("ifconfig | grep inet | head -n 1 | awk '{print $2}' | awk -F: '{print $2}'")
 
     shutil.copy('/etc/httpd/conf/httpd.conf', '/etc/httpd/conf/httpd.conf.orig')
     lines = open('/etc/httpd/conf/httpd.conf').readlines()
@@ -343,7 +349,7 @@ def fix_httpd():
     for n in range(len(lines)):
         if lines[n].strip().lower().startswith('listen'):
             if not set:
-                lines[n] = 'Listen %s:443\n' % ip
+                lines[n] = 'Listen %s:443\n' % cfg.PRIMARY_IP
                 set = 1
             else:
                 lines[n] = '#'+lines[n]
@@ -403,6 +409,7 @@ def main():
     params['SSL_ORG_COUNTRY'] = get_ssl_org_country()
     params['SSL_ORG_STATE'] = get_ssl_org_state()
     params['SSL_ORG_NAME'] = get_ssl_org_name()
+    params['PRIMARY_IP'] = get_primary_ip()
 
     save_config(params)
     vserver_config()
