@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.7 2004/10/08 02:07:43 grisha Exp $
+# $Id: vsutil.py,v 1.8 2004/10/12 18:34:27 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -248,16 +248,20 @@ def set_file_immutable_unlink(path):
     # XXX unless we make a python binding for vserver, that is.
 
     cmd = "setattr --iunlink '%s'" % path
-    s = commands.getoutput(cmd)
+    s, o = commands.getstatusoutput(cmd)
     if s:
-        raise `s`
+        print s
+        raise 'Error running %s' % `cmd`
 
 def is_file_immutable_unlink(path):
     """ Check wither the iunlink flag is set """
 
     cmd = "showattr '%s'" % path
-    s = commands.getoutput(cmd)
-    return s[4:6] == 'UI'
+    s, o = commands.getstatusoutput(cmd)
+    if s:
+        print s
+        raise 'Error running %s' % `cmd`
+    return o[4:6] == 'UI'
 
 #
 # XXX These are obsolete with vs 1.9.x and up

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.21 2004/10/07 21:58:15 grisha Exp $
+# $Id: vds.py,v 1.22 2004/10/12 18:34:27 grisha Exp $
 
 """ VDS related functions """
 
@@ -80,7 +80,7 @@ def ref_make_devs(root):
     open(hdv1, 'w')
     os.chmod(hdv1, 0644)
 
-def resolve_packages(pkglist):
+def resolve_packages(pkglist, distroot='.'):
 
     # XXX for whatever reason we were having a difficult time with passing urls
     # to rpm -i (as if it's http implementation is buggy - in some setups with proxy
@@ -95,24 +95,50 @@ def resolve_packages(pkglist):
         print 'Creating directory', cfg.RPM_CACHE
         os.mkdir(cfg.RPM_CACHE)
 
-    # read current dir into a dict keyed by the beginning of a file
+    ## read current dir or headers.info into a dict keyed by the beginning of a file
     
-    files = os.listdir('.')
-    files.sort()
     pkgdict = {}
-    for f in files:
-        # everythin but the last two dash separated parts
-        name = '-'.join(f.split('-')[:-2])
-        pkgdict[name] = f
 
-    # go throught the list
+    if distroot.startswith('http://') or distroot.startswith('https://'):
+        
+        # the distroot is a url
+
+        # we rely on header.info file
+        hi_url = os.path.join(distroot, 'headers/header.info')
+        print 'Getting '+hi_url
+        
+        hi = urllib.urlopen(hi_url).readlines()
+
+        for line in hi:
+            rpm_name, rpm_path = line.split(':')[1].split('=')
+            name = '-'.join(rpm_name.split('-')[:-2])
+            pkgdict[name] = os.path.join(distroot, rpm_path)
+
+    else:
+
+        # the distroot is a local directory
+    
+        files = os.listdir(distroot)
+        files.sort()
+        pkgdict = {}
+        for f in files:
+            # everythin but the last two dash separated parts
+            name = '-'.join(f.split('-')[:-2])
+            pkgdict[name] = f
+
+    ## go throught the list and pull the files as needed
 
     result = []
 
     for pkg in pkglist:
-        
+
+        if distroot.startswith('http://') or distroot.startswith('https://'):
+            # if distroot is a url, then replace a package name with its url
+            pkg = pkgdict[pkg]
+
         if pkg.startswith('http://') or pkg.startswith('https://'):
-            # remote package, get it
+           
+            # remote package
 
             basename = os.path.split(pkg)[1]
 
@@ -127,11 +153,8 @@ def resolve_packages(pkglist):
                 
             result.append(cache_file)
 
-        elif pkg.endswith('.rpm'):
-            # local, specific package
-            result.append(pkg)
         else:
-            # local non-specific package, resolve it
+            # non-specific package, resolve it
             result.append(pkgdict[pkg])
 
     return result
@@ -155,10 +178,10 @@ def ref_install_pkgs(root, distroot):
     commands.getoutput(cmd)
 
     try:
-        os.chdir(distroot)
+        #os.chdir(distroot)
         
         print "Installing base packages STEP I..."
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_BASE_I)))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_BASE_I, distroot)))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -167,10 +190,14 @@ def ref_install_pkgs(root, distroot):
         pipe.close()
 
         # another mising dir
+        if not os.path.isdir(os.path.join(root, 'usr')):
+            os.mkdir(os.path.join(root, 'usr'))
+        if not os.path.isdir(os.path.join(root, 'usr', 'src')):
+            os.mkdir(os.path.join(root, 'usr', 'src'))
         os.mkdir(os.path.join(root, 'usr', 'src', 'redhat'))
 
         print "Installing packages STEP II..."
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_BASE_II)))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_BASE_II, distroot)))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -182,7 +209,7 @@ def ref_install_pkgs(root, distroot):
         if cfg.FEDORA_C1_PKGS_ADDL:
         
             print "Installing additional packages..."
-            cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_ADDL)))
+            cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_ADDL, distroot)))
             pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
             s = pipe.read(1)
             while s:
@@ -290,15 +317,15 @@ def ref_fix_syslog(refroot):
 
     open(fname, 'w').writelines(result)
 
-def ref_fix_python(refroot):
-    print 'Making python 2.3 default'
+# def ref_fix_python(refroot):
+#     print 'Making python 2.3 default'
 
-    cmd = 'rm %s' % os.path.join(refroot, 'usr/bin/python')
-    commands.getoutput(cmd)
+#     cmd = 'rm %s' % os.path.join(refroot, 'usr/bin/python')
+#     commands.getoutput(cmd)
 
-    cmd = 'ln %s %s' % (os.path.join(refroot, 'usr/bin/python2.3'),
-                        os.path.join(refroot, 'usr/bin/python'))
-    commands.getoutput(cmd)
+#     cmd = 'ln %s %s' % (os.path.join(refroot, 'usr/bin/python2.3'),
+#                         os.path.join(refroot, 'usr/bin/python'))
+#     commands.getoutput(cmd)
 
 def ref_make_libexec_oh(refroot):
 
@@ -352,7 +379,7 @@ def buildref(refroot, distroot):
     ref_make_tabs(refroot)
     ref_fix_halt(refroot)
     ref_fix_syslog(refroot)
-    ref_fix_python(refroot)
+#    ref_fix_python(refroot)
     ref_make_libexec_oh(refroot)
     ref_make_i18n(refroot)
 
@@ -443,7 +470,7 @@ def vserver_fixup_rc(root):
     lines = open(rc).readlines()
     if not lines[-1] == 'true\n':
         print 'Appending true to %s' % rc
-        lines.append('true\n')
+        lines.append('\ntrue\n')
         open(rc, 'w').writelines(lines)
     else:
         print 'Not appending true to %s as it is already there' % rc
@@ -464,6 +491,10 @@ def vserver_config_sendmail(root, hostname):
 def vserver_enable_imaps(root):
 
     print 'Enabling IMAPS and POP3S'
+
+    print 'FIXME!!!!'
+    return
+
 
     imaps_path = os.path.join(root, 'etc', 'xinetd.d', 'imaps')
     s = open(imaps_path).read()
@@ -717,7 +748,6 @@ def vserver_make_symlink(root, xid):
     else:
         print '%s already a symlink, leaving it alone' % root
 
-
 def vserver_vroot_perms():
 
     # set perms on VSERVERS_ROOT
@@ -761,6 +791,15 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
     vserver_fixup_libexec_oh(root)
     vserver_make_symlink(root, xid)
     vserver_vroot_perms()
+
+    # ZZZ localedef -i en_US -c -f UTF-8 en_US.UTF-8
+    # ZZZ also remember to create an immutable /modules
+    # ZZZ and a bogus kernel rpm (DONE)
+    # ZZZ need to check the named rpm (it needs caps, remember?)
+    # ZZZ need to update webmin rpm
+    
+    # rm -f /var/lib/rpm/__db*
+    # (this is because we install from FC1)
     
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""
@@ -976,7 +1015,7 @@ rpm_cache = {}
 def rpm_which_package(root, file):
 
     # find out which package owns file
-    cmd = '%s %s rpm -qf %s' % (cfg.CHROOT, root, file)
+    cmd = "%s %s rpm -qf '%s'" % (cfg.CHROOT, root, file)
     s = commands.getoutput(cmd)
 
     if 'not owned by any package' in s:
