@@ -1,20 +1,22 @@
 
 
   <br><br><br>
-  <center>
+
+  <div style="text-align: center;">
 
   <form action="login" method="POST">
-  <table>
+  <table style="width: auto; margin-left: auto; margin-right: auto;"> 
     <tr><th>login:</th><td><input type="text" name="userid"></td></tr>
     <tr><th>password:</th><td><input type="password" name="passwd"></td></tr>
   </table>
+  <br>
   <input type="submit" value="go">
   <input type="hidden" value="<%=url%>" name="uri">
   </form>
 
-  <br><br>
+  <br>
   <font color="orange">
-  <%=message%>
+  <%=message%>&nbsp;
   </font>
 
     <p>
@@ -25,5 +27,5 @@
 
 
 
-  </center>
+  </div>
 

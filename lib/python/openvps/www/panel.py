@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.13 2005/02/10 20:17:17 grisha Exp $
+# $Id: panel.py,v 1.14 2005/02/11 20:36:35 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -36,7 +36,10 @@ ALLOWED_COMMANDS = ['index',
                     'month_graph',
                     'quarter_graph',
                     'status',
+                    'stats',
                     'traffic',
+                    'disk',
+                    'cpu',
                     'start',
                     'stop',
                     'logout']
@@ -109,14 +112,14 @@ def handler(req):
         # hand out our public key
         return pubkey(req)
 
-    elif parts[1] == 'stats':
+    elif parts[1] == 'getstats':
 
         if len(parts) != 4:
             return error(req, 'request not understood')
 
         name, command = parts[2:]
 
-        return stats(req, name, command)
+        return getstats(req, name, command)
 
     else:
         return error(req, 'request not understood')
@@ -183,19 +186,29 @@ def _navigation_map(req):
 
     # tag, Text, link, icon_url, submenu
 
+    stats = [("traffic", "Bandwidth", "traffic", None, []),
+             ("disk", "Disk", "disk", None, []),
+             ("cpu", "CPU", "cpu", None, []),
+             ]
+
     global_menu = [("status", "Status", "status", None, []),
-                   ("traffic", "Bandwidth", "traffic", None, []),
+                   ("stats", "Stats", "stats", None, stats),
                    ]
 
     return global_menu
 
 def _global_menu(req, location):
 
+    if ':' in location:
+        hlight, s_hlight = location.split(':')
+    else:
+        hlight, s_hlight = location, ''
+
     menu_items = _navigation_map(req)
 
     m = psp.PSP(req, _tmpl_path('global_menu.html'),
                 vars={'menu_items':menu_items,
-                      'hlight':location})
+                      'hlight':hlight, 's_hlight':s_hlight})
     return m
 
 def _read_priv_key():
@@ -300,29 +313,9 @@ def index(req, name, params):
     return status(req, name, params)
 
 
-def traffic(req, name, params):
-
-    location = 'traffic'.split(':')
-
-    body_tmpl = _tmpl_path('traffic_body.html')
-
-    data = _load_rrd_data(name)
-    body_vars = {'data':data}
-
-    vars = {'global_menu': _global_menu(req, location[0]),
-            'body':psp.PSP(req, body_tmpl, vars=body_vars),
-            'name':name}
-            
-    p = psp.PSP(req, _tmpl_path('main_frame.html'),
-                vars=vars)
-
-    p.run()
-
-    return apache.OK
-
 def status(req, name, params):
 
-    location = 'status'.split(':')
+    location = 'status'
 
     status = 'stopped'
     if vsutil.is_running(name):
@@ -331,7 +324,7 @@ def status(req, name, params):
     body_tmpl = _tmpl_path('status_body.html')
     body_vars = {'status':status}
 
-    vars = {'global_menu': _global_menu(req, location[0]),
+    vars = {'global_menu': _global_menu(req, location),
             'body':psp.PSP(req, body_tmpl, vars=body_vars),
             'name':name}
             
@@ -341,6 +334,61 @@ def status(req, name, params):
     p.run()
 
     return apache.OK
+
+
+def stop(req, name, params):
+
+    req.log_error('Stopping vserver %s at request of %s.' % (name, req.user))
+
+    if vsutil.is_running(name):
+
+        vsutil.stop(name)
+        time.sleep(3)
+
+    # note - this redirect is relative because absolute won't work with
+    # our proxypass proxy
+    util.redirect(req, 'status')
+
+
+def start(req, name, params):
+
+    req.log_error('Starting vserver %s at request of %s.' % (name, req.user))
+
+    if not vsutil.is_running(name):
+
+        vsutil.start(name)
+        time.sleep(3)
+
+    # note - this redirect is relative because absolute won't work with
+    # our proxypass proxy
+    util.redirect(req, 'status')
+
+
+def stats(req, name, params):
+
+    return traffic(req, name, params)
+
+
+def traffic(req, name, params):
+
+    location = 'stats:traffic'
+
+    body_tmpl = _tmpl_path('traffic_body.html')
+
+    data = _load_rrd_data(name)
+    body_vars = {'data':data}
+
+    vars = {'global_menu': _global_menu(req, location),
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
+            'name':name}
+            
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                vars=vars)
+
+    p.run()
+
+    return apache.OK
+
 
 def day_graph(req, name, params):
 
@@ -384,33 +432,40 @@ def quarter_graph(req, name, params):
 
     return apache.OK
 
-def stop(req, name, params):
 
-    req.log_error('Stopping vserver %s at request of %s.' % (name, req.user))
+def disk(req, name, params):
 
-    if vsutil.is_running(name):
+    location = 'stats:disk'
 
-        vsutil.stop(name)
-        time.sleep(3)
+    vars = {'global_menu': _global_menu(req, location),
+            'body':"disk info here",
+            'name':name}
+            
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                vars=vars)
 
-    # note - this redirect is relative because absolute won't work with
-    # our proxypass proxy
-    util.redirect(req, 'status')
+    p.run()
 
-def start(req, name, params):
+    return apache.OK
 
-    req.log_error('Starting vserver %s at request of %s.' % (name, req.user))
 
-    if not vsutil.is_running(name):
+def cpu(req, name, params):
 
-        vsutil.start(name)
-        time.sleep(3)
+    location = 'stats:cpu'
 
-    # note - this redirect is relative because absolute won't work with
-    # our proxypass proxy
-    util.redirect(req, 'status')
+    vars = {'global_menu': _global_menu(req, location),
+            'body':"cpu info here",
+            'name':name}
+            
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                vars=vars)
 
-def stats(req, name, command):
+    p.run()
+
+    return apache.OK
+
+
+def getstats(req, name, command):
 
     # we expect two commands:
     #   sum

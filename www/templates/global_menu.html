@@ -1,26 +1,40 @@
 <%
 """
-$Id: global_menu.html,v 1.4 2005/02/09 20:04:04 grisha Exp $
+$Id: global_menu.html,v 1.5 2005/02/11 20:36:35 grisha Exp $
 
 """
 %>
 
-<ul id="globalnav">
+<ul id="miniflex">
 
 <%
+s_menu_items = []
 for mi in menu_items:
     link, text, url, icon, sub = mi
     attr = "plain"
     if link == hlight:
         attr = "active"
-    # begin
+        if sub:
+            s_menu_items = sub
+    # begin for 1
 %>
-  <li><a href="<%=url%>" class="<%=attr%>"><%=text%></a></li>
+    <li><a href="<%=url%>" class="<%=attr%>"><%=text%></a></li>
+<%
+# end for 1
+%>
+    <li style="float: right;"><a href="logout">Logout</a></li>
+</ul>
+<ul id="miniflex2">
+<%
+for mi in s_menu_items:
+    link, text, url, icon, sub = mi
+    attr = "plain"
+    if link == s_hlight:
+        attr = "active"
+    # begin for
+%>
+    <li><a href="<%=url%>" class="<%=attr%>"><%=text%></a></li>
 <%
 # end
 %>
-  <li><a href="logout" class="plain" style="float: right;">Logout</a></li>
-                                                                                                                                               
 </ul>
-
-

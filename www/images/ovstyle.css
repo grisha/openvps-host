@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * $Id: ovstyle.css,v 1.1 2005/01/18 17:54:25 grisha Exp $
+ * $Id: ovstyle.css,v 1.2 2005/02/11 20:36:35 grisha Exp $
  *
  */
 
@@ -27,7 +27,7 @@ body {
 	}
 
 h3 {
-	font-size: 130%;
+	font-size: 100%;
 	}
 
 h4 {
@@ -38,6 +38,8 @@ h4 {
 
 table {
 	border: 0;
+	margin: 0;
+	width: 100%;
 	font-size: 13px;
 }
 
@@ -56,7 +58,7 @@ table td {
 
 .container {
 	width: 600px;
-	padding: 15px;
+	padding: 5px 15px 15px 15px;
 	margin: 3px 0 20px 0;
 	border: 1px solid #ccc;
 	background: #fff;
@@ -101,35 +103,74 @@ table td {
 }
 
 
-
-/* rounded */
-
-#globalnav {
+#miniflex {
+	width: 100%;
+	float: left;
+	font-size: small; /* could be specified at a higher level */
 	margin: 0;
-	padding: 0 0 22px 10px;
-	border-bottom: 1px solid #9FB1BC;
+	padding: 0 0 0 10px;
+	border-bottom: 1px solid #333;
 	}
 
-#globalnav li {
+#miniflex li {
+	float: left;
 	margin: 0; 
 	padding: 0;
 	display: inline;
-	list-style-type: none;
+	list-style: none;
 	}
 	
-#globalnav a:link, #globalnav a:visited {
+#miniflex a:link, #miniflex a:visited {
 	float: left;
-	font-size: 13px;
-	line-height: 14px;
+	font-size: 85%;
+	line-height: 20px;
 	font-weight: bold;
-	padding: 0 12px 8px 12px;
+	margin: 0 10px 0 10px;
 	text-decoration: none;
-	color: #708491;
+	color: #999;
 	}
 
-#globalnav a:link.active, #globalnav a:visited.active, #globalnav a:hover {
-	color: #000;
-	background: url(../images/tab_rounded.gif) no-repeat bottom center;
+#miniflex a.active:link, #miniflex a.active:visited, #miniflex a:hover {
+	border-bottom: 4px solid #333;
+	color: #333;
 	}
+
+
+
+#miniflex2 {
+        width: 100%;
+        float: left;
+        font-size: small; /* could be specified at a higher level */
+        margin: 1px 0 10px 0;
+        padding: 0 10px 0 0;
+        border-top: 1px solid #999;
+        }
+ 
+#miniflex2 li {
+        float: left;
+        margin: 0;
+        padding: 0;
+        display: inline;
+        list-style: none;
+        }
+         
+#miniflex2 a:link, #miniflex2 a:visited {
+        float: left;
+        font-size: 85%;
+        line-height: 20px;
+        font-weight: bold;
+        margin: 0 10px 0 10px;
+        padding-top: 6px;
+        text-decoration: none;
+        color: #999;
+        }
+ 
+#miniflex2 a.active:link, #miniflex2 a.active:visited, #miniflex2 a:hover {
+        border-top: 4px solid #999;
+        padding-top: 2px;
+	color: #333;
+       }
+
+
 
 /* */

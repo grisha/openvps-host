@@ -1,12 +1,12 @@
 
-
+   <div style="text-align: center;">
 <%
 if status == 'running':
     # begin
 %>
    <br><br><br><br>
-   <center>
-   <table style="width: 300px;">
+   
+   <table style="width: 300px; margin-left: auto; margin-right: auto;">
    <tr>
      <th style="border: 0;" colspan=3>
        <h1>Status: <font color="blue">Running</font></h1>
@@ -23,15 +23,13 @@ if status == 'running':
        Click to stop.
      </th>  
    </table>
-   </center>
 <%
 # end
 else:
     # begin
 %>
    <br><br><br><br>
-   <center>
-   <table style="width: 300px;">
+   <table style="width: 300px; margin-left: 140px">
    <tr>
      <th style="border: 0;" colspan=3>
        <h1>Status: <font color="red">Stopped</font></h1>
@@ -48,8 +46,9 @@ else:
        Click to start.
      </th>  
    </table>
-   </center>
 <%
 # end
 %>
+
+   </div>
 
