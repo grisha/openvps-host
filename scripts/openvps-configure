@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.5 2005/01/04 22:57:25 grisha Exp $
+# $Id: openvps-configure,v 1.6 2005/01/05 18:56:30 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -95,6 +95,16 @@ def get_mon_secret():
         return cfg.MON_SECRET
 
     cfg.MON_SECRET = s
+    return s
+
+def get_dump_secret():
+
+    prompt = 'Please enter a passphrase to encrypt vps dumps [%s]:' % cfg.DUMP_SECRET
+    s = raw_input(prompt)
+    if not s:
+        return cfg.DUMP_SECRET
+
+    cfg.DUMP_SECRET = s
     return s
 
 def get_ssl_org_country():
@@ -529,6 +539,7 @@ def main():
     params['PEERIP'] = get_peerip()
     params['MON_TARGET_IP'] = get_mon_target_ip()
     params['MON_SECRET'] = get_mon_secret()
+    params['DUMP_SECRET'] = get_dump_secret()
     params['SSL_ORG_COUNTRY'] = get_ssl_org_country()
     params['SSL_ORG_STATE'] = get_ssl_org_state()
     params['SSL_ORG_NAME'] = get_ssl_org_name()

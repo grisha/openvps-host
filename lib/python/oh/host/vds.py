@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.45 2005/01/04 22:57:25 grisha Exp $
+# $Id: vds.py,v 1.46 2005/01/05 18:56:30 grisha Exp $
 
 """ VDS related functions """
 
@@ -1180,52 +1180,42 @@ def unify(source, dest, pace=cfg.PACE[0]):
     print 'Bytes saved:'.ljust(20), bytes
 
 
-def dump(vserver, refserver, pace=cfg.PACE[0]):
+def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
 
-    # save the difference between reference and the server in an archive
+    # XXX we need add the remaining components, namely,
+    # /etc/vservers/xxxx and the RRD(s)
 
-
-    # so we walk the filesystem, if links is 1+, then get the inode,
-    # compare with reference, if matches, we don't care for this
-    # file. if we do care for this file, then we need to pipe its name
-    # to cpio so that it can archive it... the archive should be bzip2
-    # compressed for coolness. this will be an interesting use of
-    # pipes...
-
-    # ok, the next thing we need to do is to encrypt the output. the
-    # reasons are twofold - if we're going to be storing
-    # outside-vserver files such as rrd's and /etc stuff, we need to
-    # know that this file can be trusted at restore time. the second
-    # reason is that it's best that the customer data is encrypted
-    # anyway.
-
-    # openssl seems like the best way to encrypt/decrypt:
-    # cat XX | openssl bf -salt -pass pass:hello > XXX
-    # cat XXX | openssl bf -salt -pass pass:hello -d > XXXX
-
+    # Save the difference between reference and the server in an
+    # archive The archive is encrypted. This is because you have to
+    # trust it before you try restoring it. It is also better for any
+    # backed up data to be encrypted always.
 
     # pace counter
     p = 0
 
     # this will also strip trailing slashes
-    vserver, refserver = os.path.abspath(vserver), os.path.abspath(refserver)
+    vserver, refserver = os.path.abspath(os.path.join(cfg.VSERVERS_ROOT, vserver_name)), \
+                         os.path.abspath(refserver)
 
     print 'Dumping %s in reference to %s ... (this will take a while)' % (vserver, refserver)
 
     # this will prevent some warnings
     os.chdir(cfg.VSERVERS_ROOT)
 
-
     # open a pipe to cpio
+    fd_r, fd_w = os.pipe()
 
-    # XXX now need to figure out how to feed via a file descriptor in Python
+    # write the password to the new file descriptor so openssl can read it
+    os.write(fd_w, cfg.DUMP_SECRET)
+    os.close(fd_w)
 
-    cmd = '/bin/cpio -oHcrc | /usr/bin/bzip2 | /usr/bin/openssl bf -salt -pass pass:qweqwekweqw > /var/tmp/BLEH2'
+    # cpio will be fed the list of files to archive. the output is compressed using
+    # bzip2, then encrypted with openssl using blowfish
+    cmd = '/bin/cpio -oHcrc | /usr/bin/bzip2 | /usr/bin/openssl bf -salt -pass fd:%d > %s' % (fd_r, outfile)
     pipe = os.popen(cmd, 'w', 0)
     
     #print source, dest
-
-    for root, dirs, files in os.walk(vserver):
+    for root, dirs, files in os.walk(vserver, topdown=False):
 
         for file in files + dirs:
 
@@ -1246,10 +1236,12 @@ def dump(vserver, refserver, pace=cfg.PACE[0]):
 
                 if os.path.islink(dst) or os.path.isdir(dst) or not os.path.isfile(dst):
                     
-                    # their mere existence is sufficient, since these
-                    # are never unified. but we need to make sure they
-                    # are not skipped (copy means they will be there
-                    # after cloning, touch doesn't apply here)
+                    # If this is a link, dir or other non-file, their
+                    # mere existence is sufficient, no need to compare
+                    # inodes since these are never unified. But we
+                    # need to make sure they are not skipped (copy
+                    # means they will be there after cloning, touch
+                    # doesn't apply here)
                     
                     c, t, s = match_path(file)
 
@@ -1269,9 +1261,22 @@ def dump(vserver, refserver, pace=cfg.PACE[0]):
                         # reason to back it up
 
                         continue
-
-            print src
             pipe.write(src+'\n')
+
+    # now we need /etc/vservers dir
+    cfg_dir = os.path.join(cfg.ETC_VSERVERS, vserver_name)
+    cmd = '/usr/bin/find %s -print' % cfg_dir
+    cfg_files = commands.output(cmd).splitlines()
+
+    for cfg_file in cfg_files:
+        pipe.write(cfg_file+'\n')
+
+    # XXX last, but not the least - the RRD
+
+    # XXX what about disk limits? Seems like our notion of limits may
+    # have to be redone - perhaps they should be save in /etc? Don't
+    # really like this idea... how about just a small temp file?
+
     pipe.close()
 
 def fixflags(refroot):
