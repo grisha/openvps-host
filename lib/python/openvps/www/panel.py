@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.17 2005/02/15 21:49:00 grisha Exp $
+# $Id: panel.py,v 1.18 2005/02/15 22:46:41 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -48,6 +48,7 @@ ALLOWED_COMMANDS = ['index',
                     'bwidth',
                     'disk',
                     'cpu',
+                    'rss',
                     'start',
                     'stop',
                     'logout']
@@ -196,6 +197,7 @@ def _navigation_map(req):
     stats = [("traffic", "Bandwidth", "traffic", None, []),
              ("disk", "Disk", "disk", None, []),
              ("cpu", "CPU", "cpu", None, []),
+             ("rss", "Memory", "rss", None, []),
              ]
 
     global_menu = [("status", "Status", "status", None, []),
@@ -480,8 +482,8 @@ def cpu(req, name, params):
                   '-c', 'SHADEA#FFFFFF',
                   'DEF:u=%s:vs_uticks:AVERAGE' % rrd,
                   'DEF:s=%s:vs_sticks:AVERAGE' % rrd,
-                  'AREA:s#FF4500:user ticks',
-                  'STACK:u#FF8000:system ticks']
+                  'AREA:s#FF4500:user ticks/sec',
+                  'STACK:u#FF8000:system ticks/sec']
 
         if qargs.has_key('l'):
             args.append('-g')  # no legend
@@ -651,6 +653,80 @@ def disk(req, name, params):
         location = 'stats:disk'
 
         body_tmpl = _tmpl_path('disk_body.html')
+
+        rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
+        data = _load_rrd_data(rrd, ['vs_disk_b_used'])
+
+        body_vars = {'data':data}
+
+        vars = {'global_menu': _global_menu(req, location),
+                'body':psp.PSP(req, body_tmpl, vars=body_vars),
+                'name':name}
+
+        p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                    vars=vars)
+
+        p.run()
+
+        return apache.OK
+
+
+def rss(req, name, params):
+
+    if params.startswith('graph'):
+
+        if not req.args:
+            return error(req, 'Not sure what you mean')
+
+        qargs = util.parse_qs(req.args)
+        
+        if not qargs.has_key('s'):
+            return error(req, 'Where do I start?')
+
+        start = '-'+qargs['s'][0]
+        width = 484
+        height = 64
+        nolegend = ''
+        if qargs.has_key('l'):
+            nolegend = '-g'  # no legend
+
+        # how many days back?
+        secs = abs(int(start))
+        if secs < 60*60*24:
+            # we're talking hours
+            title = 'last %d hours' % (secs/(60*60))
+        else:
+            title = 'last %d days' % (secs/(60*60*24))
+
+        rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
+        tfile, tpath = tempfile.mkstemp('.gif', 'oh')
+        os.close(tfile)
+
+        args = [tpath, '--start', start,
+                  '--title', title,
+                  '-w', str(width),
+                  '-h', str(height),
+                  '-c', 'SHADEB#FFFFFF',
+                  '-c', 'SHADEA#FFFFFF',
+                'DEF:d=%s:vs_rss:AVERAGE' % rrd,
+                'AREA:d#4682b4:RSS (Resident Segment Size) in bytes']
+
+        if qargs.has_key('l'):
+            args.append('-g')  # no legend
+        
+        RRD.graph(*args)
+        
+        req.content_type = 'image/gif'
+        req.sendfile(tpath)
+        os.unlink(tpath)
+        
+        return apache.OK
+
+    else:
+
+        location = 'stats:rss'
+
+        body_tmpl = _tmpl_path('rss_body.html')
 
         rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
         data = _load_rrd_data(rrd, ['vs_disk_b_used'])

@@ -1,0 +1,29 @@
+  
+
+  
+  <h4>RSS (Memory) Utilization (1 RSS Token = 1 average KB RSS over 1 minute interval)</h4>
+
+  <p>
+  <table style="float: left;">
+    <tr>
+      <th></th><th>RSS tokens used</th></th>
+    </tr>
+
+<%
+for d in data:
+    # begin
+%>
+    <tr>
+      <td><%="%s %s" % (d[1], d[0]) %></td>
+      <td><%="%d" % int(d[2]/1024) %></td>
+    </tr>
+<%
+# end
+%>
+  </table>
+
+  <p>
+  <img src="rss/graph?s=86400&l=1"><br>   
+  <img src="rss/graph?s=2592000&l=1"><br>
+  <img src="rss/graph?s=7776000"><br>
+
