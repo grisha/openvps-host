@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.43 2004/12/22 21:12:48 grisha Exp $
+# $Id: vds.py,v 1.44 2005/01/03 22:13:29 grisha Exp $
 
 """ VDS related functions """
 
@@ -1096,6 +1096,88 @@ def clone(source, dest, pace=cfg.PACE[0]):
     print 'Touched files:'.ljust(20), touchs
     print 'Copied files:'.ljust(20), copys
     print 'Devices:'.ljust(20), devs
+
+
+bytes, lins = 0, 0
+
+def unify(source, dest, pace=cfg.PACE[0]):
+
+    global bytes, lins
+
+    # pace counter
+    p = 0
+
+    # this will also strip trailing slashes
+    source, dest = os.path.abspath(source), os.path.abspath(dest)
+
+    print 'Unifying %s -> %s ... (this will take a while)' % (source, dest)
+
+    # this will prevent some warnings
+    os.chdir(cfg.VSERVERS_ROOT)
+    
+    #print source, dest
+
+    for root, dirs, files in os.walk(source):
+
+#        print root, dirs, files
+
+        for file in files + dirs:
+
+            if pace and p >= pace:
+                sys.stdout.write('.'); sys.stdout.flush()
+                time.sleep(cfg.PACE[1])
+                p = 0
+            else:
+                p += 1
+
+            src = os.path.join(root, file)
+
+            # reldst is they way it would look inside vserver
+            reldst = os.path.join(max(root[len(source):], '/'), file)
+            dst = os.path.join(dest, reldst[1:])
+
+            if not os.path.exists(dst) or not os.path.isfile(src) or os.path.islink(src):
+                # nothing to do here
+                continue
+
+#            print reldst, src, dst
+
+            c, t, s = match_path(reldst)
+
+            # copy/touch/skip?
+            if not (c or t or s):
+
+                # config?
+                if not is_config(source, reldst):
+
+                    # do they look the same?
+
+                    src_stat = os.lstat(src)
+                    dst_stat = os.lstat(dst)
+
+                    if src_stat.st_dev == dst_stat.st_dev and \
+                       src_stat.st_ino != dst_stat.st_ino and \
+                       src_stat.st_uid == dst_stat.st_uid and \
+                       src_stat.st_gid == dst_stat.st_gid and \
+                       src_stat.st_size == dst_stat.st_size and \
+                       src_stat.st_mtime == dst_stat.st_mtime:
+
+                        # XXX add MD5 (of at least beginning) check here?
+                    
+                        # flags ok?
+                        if vsutil.is_file_immutable_unlink(src):
+
+                            # go for it
+                            vsutil.unify(src, dst)
+                            bytes += src_stat.st_size
+                            lins += 1
+                        else:
+                            print 'Warning: not unifying %s because it is not iunlink' % src
+
+    print 'Done.'
+
+    print 'Files unified:'.ljust(20), lins
+    print 'Bytes saved:'.ljust(20), bytes
 
 def fixflags(refroot):
 

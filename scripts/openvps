@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.1 2004/12/22 15:54:50 grisha Exp $
+# $Id: openvps,v 1.2 2005/01/03 22:13:29 grisha Exp $
 
 
 """
@@ -35,7 +35,7 @@ from oh.host import cfg
 
 def cmd_clone():
 
-    parser = OptionParser(usage="%prog clone <sourse> <destination>\n"
+    parser = OptionParser(usage="%prog clone <source> <destination>\n"
                           "  Clone a reference server at source to destination "
                           "hard-linking when necessary")
 
@@ -46,6 +46,19 @@ def cmd_clone():
     source, dest = args
 
     vds.clone(source, dest)
+
+def cmd_unify():
+
+    parser = OptionParser(usage="%prog unify <source> <destination>\n"
+                          "  Unify a reference server at source with destination ")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 2:
+        parser.error("Must specify <source> and <destination>")
+
+    source, dest = args
+
+    vds.unify(source, dest)
 
 def cmd_version():
     from oh.host import VERSION
