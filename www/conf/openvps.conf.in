@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps.conf.in,v 1.3 2005/02/07 22:52:40 grisha Exp $
+# $Id: openvps.conf.in,v 1.4 2005/02/09 20:04:04 grisha Exp $
 
 <IfModule !mod_python.c>
   LoadModule python_module modules/mod_python.so
@@ -25,7 +25,6 @@
   SetHandler mod_python
 
   PythonDebug Off
-  PythonAuthenHandler openvps.www.authen
   PythonHandler openvps.www.panel
 
   Alias /images @prefix@/openvps/images
@@ -36,10 +35,30 @@
     Satisfy Any
   </Directory>
 
-  ErrorDocument 401 /images/unauthorized.html
-
 </IfModule>
 
+<VirtualHost 127.0.0.1:443>
 
+  ServerName host
+
+  ErrorLog logs/ssl_error_log
+  TransferLog logs/ssl_access_log
+  SSLEngine on
+  SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP
+  SSLCertificateFile /etc/httpd/conf/ssl.crt/server.crt
+  SSLCertificateKeyFile /etc/httpd/conf/ssl.key/server.key
+
+
+  # The next line should really point to your CA certificate, which
+  # you must generate manually, keep the private key offline and share it
+  # across hosts. It can be generated with something like:
+  #  openssl req -new -x509 -keyout openvps-ca.pem -out openvps-ca.key
+  #
+  #SSLCACertificateFile /etc/openvps-ca.pem
+
+  SSLVerifyClient require
+  SSLVerifyDepth 1
+
+</VirtualHost>
 
 

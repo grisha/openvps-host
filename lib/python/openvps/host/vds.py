@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.2 2005/02/01 20:16:37 grisha Exp $
+# $Id: vds.py,v 1.3 2005/02/09 20:04:04 grisha Exp $
 
 """ VDS related functions """
 
@@ -623,7 +623,7 @@ def vserver_fix_services(root):
 
 def vserver_disk_limit(root, xid, limit, d_used=0, i_used=0):
 
-    dldb = os.path.join(cfg.VAR_DB_OH, 'disklimits')
+    dldb = os.path.join(cfg.VAR_DB_OPENVPS, 'disklimits', 'disklimits')
     for line in open(dldb):
         if '-x %s ' % xid in line:
             print 'NOT setting disk limits, they exist already for xid %s' % xid

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.10 2005/02/08 17:17:30 grisha Exp $
+# $Id: panel.py,v 1.11 2005/02/09 20:04:04 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -38,7 +38,8 @@ ALLOWED_COMMANDS = ['index',
                     'status',
                     'traffic',
                     'start',
-                    'stop']
+                    'stop',
+                    'logout']
 
 TIMEOUT = 60*30 # 30 minutes
 
@@ -62,15 +63,13 @@ def check_authen(req):
         login_time, userid = cookies['openvps-user'].value.split(':', 1)
         if (time.time() - int(login_time)) > TIMEOUT:
             login(req, message='session time-out, please log in again')
+            return None
 
         return userid
 
               
 def handler(req):
 
-    # the URL format is as follows:
-    # /vserver_name/command/params...
-    
     # figure out the vserver name and command
     path = os.path.normpath(req.uri) # no trailing slash
     parts = path.split('/', 4)
@@ -83,21 +82,24 @@ def handler(req):
 
     if parts[1] == 'admin':
         
-        # requires authentication
-        userid = check_authen(req)
-        if not userid:
-            return apache.OK
-
         vserver_name = parts[2]
         vservers = vsutil.list_vservers()
         if not vservers.has_key(vserver_name):
             return error(req, 'request not understood')
 
-        if userid != vserver_name:
-            return error(req, 'request not understood')
-
         if len(parts) > 3:
             command  = parts[3]
+
+            if command == 'login':
+                return login(req)
+
+        # anything else requires authentication
+        userid = check_authen(req)
+        if not userid:
+            return apache.OK
+
+        if userid != vserver_name:
+            return error(req, 'request not understood')
 
         if len(parts) > 4:
             params = parts[4]
@@ -106,12 +108,6 @@ def handler(req):
 
         # hand out our public key
         return pubkey(req)
-
-    elif parts[1] == 'login':
-        return login(req)
-
-    elif parts[1] == 'logout':
-        return logout(req)
 
     elif parts[1] == 'stats':
         return stats(req)
@@ -257,11 +253,10 @@ def login(req, message=''):
             cookie.path = '/'
             Cookie.add_cookie(req, cookie)
 
-            if uri and uri != '/login':
-                req.log_error('redirecting to '+uri)
+            if uri and not uri.endswith('login'):
                 util.redirect(req, str(uri))
             else:
-                util.redirect(req, '/admin/%s/' % vserver_name)
+                util.redirect(req, '/admin/%s/status' % vserver_name)
 
         else:
              message = 'invalid login or password'   
@@ -280,10 +275,10 @@ def login(req, message=''):
 
     return apache.OK
 
-def logout(req):
+def logout(req, name, params):
 
-    Cookie.add_cookie(req, Cookie.Cookie('openvps-user', ''))
-    util.redirect(req, '/login')
+    Cookie.add_cookie(req, Cookie.Cookie('openvps-user', '', path='/'))
+    util.redirect(req, '/admin/%s/login' % name)
 
     return apache.OK
 
@@ -320,7 +315,7 @@ def traffic(req, name, params):
     return apache.OK
 
 def status(req, name, params):
-    
+
     location = 'status'.split(':')
 
     status = 'stopped'
@@ -410,6 +405,8 @@ def start(req, name, params):
     util.redirect(req, 'status')
 
 def stats(req):
+
+    # we need some fancy way of specifying parameters here....
 
     req.write('stats here')
 
