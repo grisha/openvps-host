@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.3 2005/01/13 23:40:33 grisha Exp $
+# $Id: panel.py,v 1.4 2005/01/14 17:04:18 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -247,6 +247,8 @@ def quarter_graph(req, name, params):
 
 def stop(req, name, params):
 
+    req.log_error('Stopping vserver %s at request of %s.' % (name, req.user))
+
     if vsutil.is_running(name):
 
         vsutil.stop(name)
@@ -255,6 +257,8 @@ def stop(req, name, params):
     util.redirect(req, _base_url(req)+'/status')
 
 def start(req, name, params):
+
+    req.log_error('Starting vserver %s at request of %s.' % (name, req.user))
 
     if not vsutil.is_running(name):
 

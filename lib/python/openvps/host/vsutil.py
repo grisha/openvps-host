@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.2 2005/01/13 23:40:33 grisha Exp $
+# $Id: vsutil.py,v 1.3 2005/01/14 17:04:17 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -346,22 +346,30 @@ def start(vserver):
         # as simple - if we were to start the vserver directly, its init process would
         # inherit all our file descriptors for as long as the vserver will run,
         # making it impossible to restart httpd on the main server since its ip/port
-        # will remain open. so we have to daemonize here
+        # will remain open. so we have to fork then close all file descriptors.
 
-        if os.fork() == 0:
+        pid = os.fork()
+        if pid == 0:
             
-            # in child, fork again to avoid zombies
-            if os.fork() == 0:
+            # in child
 
-                # now close all file descriptors
-                for fd in range(os.sysconf("SC_OPEN_MAX")):
-                    try:
-                        os.close(fd)
-                    except OSError:   # ERROR (ignore)
-                        pass
+            # now close all file descriptors
+            for fd in range(os.sysconf("SC_OPEN_MAX")):
+                try:
+                    os.close(fd)
+                except OSError:   # ERROR (ignore)
+                    pass
 
-                # only now is it OK to do our thing
-                commands.getoutput('%s vserver-start %s' % (cfg.OVWRAPPER, vserver))
+            # only now is it OK to do our thing
+            os.system('%s vserver-start %s > /dev/null 2>&1 &' % (cfg.OVWRAPPER, vserver))
+
+            # exit child
+            os._exit(0)
+            
+        else:
+            # wait on the child to avoid a defunct (zombie) process
+            os.wait()
+
 
 def stop(vserver):
 
