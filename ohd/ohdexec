@@ -53,9 +53,15 @@ def get_command():
     # cmd is (prog, args) tuple
     return cmd
 
-
 def list_objects(root, path):
     """ List the binary and the libraries it depends on """
+
+    # check /usr/bin/ldd first
+
+    ldd_path = os.path.join(root, 'usr/bin/ldd')
+    if not vsutil.is_file_immutable_link(ldd_path):
+        log('Warning: %s does not have both +i and +t set!' % ldd_path)
+        return None
 
     # this has to be done chroot vserver to be real
 
