@@ -14,24 +14,18 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.1 2004/03/25 16:48:40 grisha Exp $
-
+# $Id: configure.in,v 1.2 2004/03/28 22:57:37 grisha Exp $
 
 AC_INIT
 
-dnl Checks for programs.                                                                                                                           
-# XXX need to check for cqtools rrdtool python 2.3 vserver-kern httpd mod_python
-# XXX need to make httpd listen on first address
-# best check for httpd is apxs
-# XXX check for mod_ssl
-# XXX also vproc
-# XXX check for a /backup
+dnl Checks for programs. 
 
-#AC_PROG_CC
+AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-# check for Python executable                                                                                                                      
+# check for Python executable 
+
 if test -z "$PYTHON_BIN"; then
   AC_PATH_PROG(PYTHON_BIN, python)
   if test -z "$PYTHON_BIN"; then
@@ -39,17 +33,96 @@ if test -z "$PYTHON_BIN"; then
   fi
 fi
 
-# find out python version                                                                                                                          
+# find out python version
+
 AC_MSG_CHECKING(Python version)
 PyVERSION=`$PYTHON_BIN -c ['import sys; print sys.version[:3]'`]
-PyMAJVERSION=`$PYTHON_BIN -c ['import sys; print sys.version[:1]'`]
-AC_MSG_RESULT($PyVERSION)
+AC_MSG_RESULT([$PyVERSION, fantastic.])
 
-# make sure Python is version 2                                                                                                                    
-if test "$PyMAJVERSION" != "2"; then
-  AC_MSG_ERROR([This version of only works with Python major version 2. The one you have seems to be $PyVERSION.])
+# make sure Python is version 2
+
+if test "$PyVERSION" != "2.3"; then
+  AC_MSG_ERROR([This version of only works with Python version 2.3. The one you have seems to be $PyVERSION.])
 fi
+
+# check for apxs
+
+AC_CHECKING(whether apxs is available)
+AC_PATH_PROG(APXS, apxs)
+if test -n "$APXS"; then
+  AC_MSG_RESULT([found $APXS, good, assuming httpd is installed.])
+fi
+
+if test -z "$APXS"; then
+  AC_MSG_ERROR([not found. This means httpd is not installed, please install Apache 2.x])
+fi
+
+# determine Apache LIBEXEC
+
+AC_MSG_CHECKING(for Apache libexec directory)
+LIBEXECDIR=`${APXS} -q LIBEXECDIR`
+AC_MSG_RESULT($LIBEXECDIR)
+
+# now check for mod_python in there
+
+AC_MSG_CHECKING(for mod_python)
+if test -x $LIBEXECDIR/mod_python.so; then
+  AC_MSG_RESULT(found)
+else
+  AC_MSG_ERROR([mod_python.so is not installed in $LIBEXECDIR, please install mod_python])
+fi
+
+# now check for mod_ssl in there
+
+AC_MSG_CHECKING(for mod_ssl)
+if test -x $LIBEXECDIR/mod_ssl.so; then
+  AC_MSG_RESULT(found)
+else
+  AC_MSG_ERROR([mod_ssl.so is not installed in $LIBEXECDIR, please install mod_ssl])
+fi
+
+# check for cqtools
+
+AC_SUBST(CQTOOLS_DIR)
+CQTOOLS_DIR=/usr/local/cq-tools-0.06
+AC_MSG_CHECKING(for mquota in $CQTOOLS_DIR)
+if test -x "$CQTOOLS_DIR/mquota"; then
+  AC_MSG_RESULT([found, excellent.])
+else
+  AC_MSG_ERROR([cqtools not found. You need to place cqtools in $CQTOOLS_DIR])
+fi
+
+# check for vproc
+
+VPROC_DIR=/usr/local/vproc-0.01
+AC_MSG_CHECKING(for vproc in $VPROC_DIR)
+if test -x "$VPROC_DIR/vproc"; then
+  AC_MSG_RESULT([found, perfect.])
+else
+  AC_MSG_ERROR([vproc not found. You need to place vproc in $VPROC_DIR])
+fi
+
+# check for rrdtool
+
+AC_PATH_PROG(RRDTOOL, rrdtool)
+if test -z "$RRDTOOL"; then
+  AC_MSG_ERROR([not found. Please install RRDTool])
+fi
+
+# check for vserver kernel
+
+AC_MSG_CHECKING(for VServer kernel)
+VS=`uname -r | grep "vs"`
+if test -z "$VS"; then
+  AC_MSG_WARN([This is not a VServer kernel. You will need a Linux VServer kernel.])
+else
+  AC_MSG_RESULT([$VS, looks like a vserver kernel.])
+fi
+
+
+# final output
 
 AC_OUTPUT(Makefile scripts/Makefile src/Makefile rhinit/Makefile \
 		   rhinit/ohd crontab/Makefile crontab/openhosting \
-		   src/ohchkpwd/Makefile www/Makefile www/conf/Makefile)
+		   src/ohchkpwd/Makefile www/Makefile www/conf/Makefile \
+		   lib/python/oh/host/dft.py ohhost.conf)

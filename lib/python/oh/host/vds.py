@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: vds.py,v 1.2 2004/03/28 22:57:37 grisha Exp $
 
 """ VDS related functions """
 
@@ -102,7 +102,7 @@ def ref_install_pkgs(root, distroot):
         os.chdir(distroot)
         
         print "Installing base packages..."
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS['BASE']))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_BASE))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -112,7 +112,7 @@ def ref_install_pkgs(root, distroot):
 
         print "Installing additional packages..."
         #cmd = 'rpm --root %s -Uvh --nodeps %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS['ADDL']))
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS['ADDL']))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_ADDL))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -481,7 +481,7 @@ def vserver_make_ssl_cert(root, hostname):
     print 'Generating an SSL certificate...'
 
     # now make a cert
-    ssl_conf = cfg.SSL_CONFIG.replace('www.openhosting.com', hostname)
+    ssl_conf = cfg.SSL_CONFIG.replace('@SSL_HOSTNAME@', hostname)
     d = tempfile.mkdtemp()
     f = open(os.path.join(d, "ssl.cfg"), 'w')
     f.write(ssl_conf)

@@ -1,0 +1,130 @@
+#
+# Sample OpenHosting configuration file
+#
+
+# This file must follow Python syntax. If you don't know Python,
+# don't worry about, it's easy.
+
+# This file only lists the options that you are most likely to tweak.
+# There are more variables that you can look up in the oh/host/dft.py
+# file your Python standard lib site-packages subdirectory.
+
+# Location of the directory where vservers are. This must be mounted
+# with the tagctx option provided by the context disk limits kernel
+# patchand should probably be a separate partition.
+
+VSERVERS_ROOT = '/vservers'
+
+# Location of the backups partition. This should have plenty of
+# space, and probably should be on a separate (non-raid) drive
+
+BACKUP = '/backup'
+
+# The organization name for the SSL certs. This is your company name
+# and other info.
+
+SSL_ORG_COUNTRY = "US"
+SSL_ORG_STATE = "Virginia"
+SSL_ORG_NAME = "Some Company, Inc."
+
+# Location of the directory that stores data about vservers such as
+# disk and bandwidth utilization
+
+# VAR_DB_OH = '/var/db/oh'
+
+# Default max inodes per vserever allowed
+
+# INODES_LIM = 50000
+
+# location of rrdtool
+
+# RRDTOOL = '/usr/bin/rrdtool' 
+
+# /etc/motd file for new server. You may want to add your support
+# information here.
+
+# MOTD = """
+#
+#    Welcome to your new OpenHosting Virtual Server!
+#
+# """
+
+# The initial index.html placed into the servers. This should probably
+# be a page with a link to the explanation of what to do with a new
+# server.
+
+# INDEX_HTML = """
+#    <html>
+#      <title>OpenHosting Virtual Server</title>
+#      <center>
+#         <h2>This site is under construction</h2>
+#      </center>
+#      </html>
+#      """ # keep emacs happy "
+
+# Default ulimits. Note that this is per pocess, not per vserver, so
+# it doesn't really mean much.
+
+# DFT_ULIMIT = '-HS -u 1000 -v 500000'
+# DFT_NICE = '9' # not as nice as default (10), but nice
+
+# services we want enabled on new vservers (everything else is
+# disabled)
+
+# FEDORA_C1_SRVCS =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
+#                     'syslog', 'xinetd']
+
+# This is a list of additional packages that are installed when the
+# reference server is being built. This is a good starting point to a
+# minimalistic reference server. Of course you can (and will) also add
+# stuff to the reference server manually, so this list isn't that
+# important, since you will only build a reference server once per
+# physical machine, if that.
+
+FEDORA_C1_PKGS_ADDL = [
+    'apr-0.9.4-2.i386.rpm',
+    'cyrus-sasl-devel-2.1.15-6.i386.rpm',
+    'httpd-2.0.47-10.i386.rpm',
+    'apr-devel-0.9.4-2.i386.rpm',
+    'db4-devel-4.1.25-14.i386.rpm',
+    'httpd-devel-2.0.47-10.i386.rpm',
+    'apr-util-0.9.4-2.i386.rpm',
+    'expat-devel-1.95.5-3.i386.rpm',
+    'libtool-1.5-8.i386.rpm',
+    'apr-util-devel-0.9.4-2.i386.rpm',
+    'gcc-3.3.2-1.i386.rpm',
+    'libtool-libs-1.5-8.i386.rpm',
+    'autoconf-2.57-3.noarch.rpm',
+    'gdbm-devel-1.8.0-21.i386.rpm',
+    'openldap-devel-2.1.22-8.i386.rpm',
+    'automake-1.7.8-1.noarch.rpm',
+    'glibc-devel-2.3.2-101.i386.rpm',
+    'python-devel-2.2.3-7.i386.rpm',
+    'binutils-2.14.90.0.6-3.i386.rpm',
+    'glibc-headers-2.3.2-101.i386.rpm',
+    'cpp-3.3.2-1.i386.rpm',
+    'glibc-kernheaders-2.4-8.36.i386.rpm',
+    'finger-0.17-18.1.i386.rpm',
+    'telnet-0.17-26.2.i386.rpm',
+    'bind-utils-9.2.2.P3-9.i386.rpm',
+    'vim-enhanced-6.2.121-1.i386.rpm',
+    'wget-1.8.2-15.3.i386.rpm',
+    'curl-7.10.6-7.i386.rpm',
+    'mod_ssl-2.0.47-10.i386.rpm',
+    'imap-2002d-3.i386.rpm',
+    'telnet-server-0.17-26.2.i386.rpm',
+    'vsftpd-1.2.0-5.i386.rpm',
+    'rpm-build-4.2.1-0.30.i386.rpm',
+    'nano-1.2.1-3.i386.rpm',
+    'cvs-1.11.5-3.i386.rpm',
+    'rcs-5.7-21.i386.rpm',
+    'sudo-1.6.7p5-2.i386.rpm',
+    'http://download.fedora.us/fedora/fedora/1/i386/RPMS.stable/apt-0.5.15cnc5-0.fdr.10.1.i386.rpm'
+    ]
+
+###
+# do not edit this if you like using emacs
+# makes emacs go into python mode
+### Local Variables:
+### mode:python
+### End:

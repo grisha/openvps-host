@@ -14,13 +14,14 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: Makefile.in,v 1.2 2004/03/28 22:57:37 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
 MISC=@prefix@/oh/misc
 VARDB=/var/db/oh
 BACKUP=/backup
+CONFIG=@prefix@/etc/ohhost.conf
 
 all:
 
@@ -37,6 +38,11 @@ install:
 	cd crontab && $(MAKE) install
 	cd src && $(MAKE) install
 	cd www && $(MAKE) install
+	@if test ! -e $(CONFIG) ; then \
+		$(INSTALL) ohhost.conf $(CONFIG); \
+	else \
+		echo "Not installing $(CONFIG) because it already exists."; \
+	fi
 
 install_py_lib:
 	cd lib/python && python setup.py install
