@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.6 2004/09/28 19:15:02 grisha Exp $
+# $Id: ohhost-configure,v 1.7 2004/09/29 15:42:26 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -185,8 +185,11 @@ def plant_peer_key():
             cmd = 'cat %s.pub >> %s/.ssh/authorized_keys' \
                   % (cfg.OHB_DSA_KEY, cfg.BACKUP)
             run_cmd(cmd)
+            # add host key to known_hosts
+            if not os.path.exists('/root/.ssh'):
+                os.mkdir(sshdir, 0700)
             key = open('/etc/ssh/ssh_host_rsa_key.pub').read()
-            open('/root/.ssh/known_hosts', 'a').write('\n127.0.0.1 ssh-rsa %s')
+            open('/root/.ssh/known_hosts', 'a').write('\n127.0.0.1 ssh-rsa %s' % key)
 
 def fix_sems():
 
@@ -375,9 +378,12 @@ def main():
     print "We are *almost* done now. The last remaining step is to"
     print "build a reference server. To do this we first need a"
     print "directory that contains all the rpms from the distribution"
-    print "CDs (i.e. everything in the RPMS directory. You can do this"
-    print "by either copying them to a local directory, or perhaps"
-    print "making them available via NFS. Once you have that setup, do"
+    print "CDs (i.e. everything in the RPMS directory on all 3 Fedora CD's."
+    print "You can do this by either copying them to a local directory, "
+    print "or perhaps making them available via an NFS mount. You will also"
+    print "need to make sure the server can get out to the Internet via HTTP"
+    print "at this point, because the next step will attempt to download a"
+    print "few files from openvps.org. Once you have that setup, do"
     print
     print "ohhost buildref /vservers/REF /location/of/rpms"
     print
