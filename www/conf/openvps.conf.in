@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps.conf.in,v 1.1 2005/01/13 23:40:33 grisha Exp $
+# $Id: openvps.conf.in,v 1.2 2005/01/14 21:41:07 grisha Exp $
 
 <IfModule !mod_python.c>
   LoadModule python_module modules/mod_python.so
@@ -38,7 +38,11 @@
   <Directory @prefix@/openvps/images>
     SetHandler None
     Options -Indexes
+    Allow from all
+    Satisfy Any
   </Directory>
+
+  ErrorDocument 401 /images/unauthorized.html
 
 </IfModule>
 
