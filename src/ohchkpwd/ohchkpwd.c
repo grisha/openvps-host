@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * $Id: ohchkpwd.c,v 1.1 2004/03/25 16:48:40 grisha Exp $
+ * $Id: ohchkpwd.c,v 1.2 2004/12/03 20:01:27 grisha Exp $
  * 
  * This file is based on unix_chkpwd.c by Andrew G. Morgan, the
  * Copyright for which is at the bottom of this file.
@@ -183,7 +183,7 @@ static char *getuidname(uid_t uid)
 int main(int argc, char *argv[])
 {
 	char pass[MAXPASS + 1];
-	char user[9];
+	char user[33];
         int n = 0;
 	int retval = UNIX_FAILED;
         char c;
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 
 	/* read the userid */
 
-        for (n=0; n<=8; n++) {
+        for (n=0; n<=32; n++) {
             c = getchar();
             if (c == EOF || c == ':')
                 break;
