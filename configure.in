@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.10 2004/10/04 15:28:54 grisha Exp $
+# $Id: configure.in,v 1.11 2004/10/04 17:03:34 grisha Exp $
 
 AC_INIT
 
@@ -26,13 +26,14 @@ AC_PROG_MAKE_SET
 
 # check for Python executable 
 
-AC_SUBST(PYTHON_BIN)
 if test -z "$PYTHON_BIN"; then
   AC_PATH_PROG(PYTHON_BIN, python2.3)
   if test -z "$PYTHON_BIN"; then
     AC_MSG_ERROR(python binary not found in path)
   fi
 fi
+AC_SUBST(PYTHON)
+PYTHON=`basename $PYTHON_BIN`
 
 # find out python version
 

@@ -270,7 +270,7 @@ PACKAGE_VERSION=
 PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE PYTHON_BIN APXS CQ_TOOLS_DIR RRDTOOL NAMED OHD_USER OHD_PORT LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE PYTHON_BIN PYTHON APXS CQ_TOOLS_DIR RRDTOOL NAMED OHD_USER OHD_PORT LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -2259,6 +2259,8 @@ echo "$as_me: error: python binary not found in path" >&2;}
   fi
 fi
 
+PYTHON=`basename $PYTHON_BIN`
+
 # find out python version
 
 echo "$as_me:$LINENO: checking Python version" >&5
@@ -2507,7 +2509,7 @@ OHD_PORT="1012"
 
 # final output
 
-                                                                                                                                                      ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile rhinit/ohd crontab/Makefile crontab/openhosting src/ohchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/oh/host/dft.py ohhost.conf ohd/Makefile ohd/common.h ohd/sshd_config"
+                                                                                                                                                                ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec rhinit/ohd crontab/Makefile crontab/openhosting src/ohchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/oh/host/dft.py ohhost.conf ohd/Makefile ohd/common.h ohd/sshd_config"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -3062,6 +3064,7 @@ do
   "scripts/Makefile" ) CONFIG_FILES="$CONFIG_FILES scripts/Makefile" ;;
   "src/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
   "rhinit/Makefile" ) CONFIG_FILES="$CONFIG_FILES rhinit/Makefile" ;;
+  "mkspec" ) CONFIG_FILES="$CONFIG_FILES mkspec" ;;
   "rhinit/ohd" ) CONFIG_FILES="$CONFIG_FILES rhinit/ohd" ;;
   "crontab/Makefile" ) CONFIG_FILES="$CONFIG_FILES crontab/Makefile" ;;
   "crontab/openhosting" ) CONFIG_FILES="$CONFIG_FILES crontab/openhosting" ;;
@@ -3168,6 +3171,7 @@ s,@INSTALL_SCRIPT@,$INSTALL_SCRIPT,;t t
 s,@INSTALL_DATA@,$INSTALL_DATA,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
 s,@PYTHON_BIN@,$PYTHON_BIN,;t t
+s,@PYTHON@,$PYTHON,;t t
 s,@APXS@,$APXS,;t t
 s,@CQ_TOOLS_DIR@,$CQ_TOOLS_DIR,;t t
 s,@RRDTOOL@,$RRDTOOL,;t t
