@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.24 2004/11/29 21:34:23 grisha Exp $
+# $Id: ohhost-configure,v 1.25 2004/11/29 21:57:50 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -249,6 +249,17 @@ def fix_arp_ignore():
         commands.getoutput('echo 1 > /proc/sys/net/ipv4/conf/eth0/arp_ignore')
         commands.getoutput('echo "net.ipv4.conf.default.arp_ignore = 1" >> /etc/sysctl.conf')
 
+def create_dummy0():
+
+    # make sure that the dummy interface exists prior to starting vservers. this is only
+    # important in dsr lb setups
+
+    path = '/etc/sysconfig/network-scripts/ifcfg-dummy0'
+
+    if not os.path.exists(path):
+        print 'Writing %s so a dummy0 exists' % path
+        open(path, 'w').write('DEVICE=dummy0\nONBOOT=yes\nIPV6INIT=no\n')
+
 def disable_ipv6():
     # XXX Is this really necessary?
 
@@ -461,6 +472,7 @@ def main():
     vserver_config()
     fix_sems()
     fix_arp_ignore()
+    create_dummy0()
     disable_ipv6()
     fix_services()
     fix_sshd()
