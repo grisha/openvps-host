@@ -1,5 +1,5 @@
 /*
- * Copyright 2004 Apache Software Foundation 
+ * Copyright 2005 OpenHosting, Inc.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you
  * may not use this file except in compliance with the License.  You
@@ -13,7 +13,7 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  *
- * $Id: _vserver.c,v 1.2 2004/11/08 23:01:44 grisha Exp $
+ * $Id: _vserver.c,v 1.3 2005/03/26 05:57:31 grisha Exp $
  *
  */
 
