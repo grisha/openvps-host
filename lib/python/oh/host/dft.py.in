@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.7 2004/08/05 21:51:40 grisha Exp $
+# $Id: dft.py.in,v 1.8 2004/09/18 03:46:04 grisha Exp $
 
 """ Configuration Defaults
 
@@ -133,6 +133,8 @@ DFT_NICE = '9' # not as nice as default (10), but nice
 COMMAND_CAPS = {
     'PING' : ['/usr/libexec/oh/ping', ['CAP_NET_RAW']],
     'TRACEROUTE' : ['/usr/libexec/oh/traceroute', ['CAP_NET_RAW']],
+    'MOUNT_BIND': ['/usr/libexec/oh/mount', ['CAP_SYS_ADMIN']],
+    'UMOUNT': ['/usr/libexec/oh/umount', ['CAP_SYS_ADMIN']],
     }
 
 # services we want enabled (everything else is disabled)

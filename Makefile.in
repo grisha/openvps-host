@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.7 2004/09/18 03:07:05 grisha Exp $
+# $Id: Makefile.in,v 1.8 2004/09/18 03:46:04 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -71,6 +71,7 @@ install_py_lib:
 
 
 clean:
+	cd ohd && $(MAKE) clean
 	cd scripts && $(MAKE) clean
 	cd rhinit && $(MAKE) clean
 	cd src && $(MAKE) clean

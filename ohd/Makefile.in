@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.3 2004/09/18 03:07:05 grisha Exp $
+# $Id: Makefile.in,v 1.4 2004/09/18 03:46:04 grisha Exp $
 
 INSTALL=@INSTALL@
 PREFIX=@prefix@
@@ -22,15 +22,25 @@ MISC=@prefix@/oh/misc
 SUDOERS=/etc/sudoers  # XXX conf
 OHD_USER=ohd
 
+all: ping traceroute mount umount
+
 ping: ping.c common.c common.h
 	$(CC) -o ping ping.c common.c
 
 traceroute: traceroute.c common.c common.h
 	$(CC) -o traceroute traceroute.c common.c
 
-install: ping traceroute
+mount: mount.c common.c common.h
+	$(CC) -o mount mount.c common.c
+
+umount: umount.c common.c common.h
+	$(CC) -o umount umount.c common.c
+
+install: ping traceroute mount umount
 	$(INSTALL) -m 4755 -o root ping $(DESTDIR)$(MISC)/ping
 	$(INSTALL) -m 4755 -o root traceroute $(DESTDIR)$(MISC)/traceroute
+	$(INSTALL) -m 4755 -o root traceroute $(DESTDIR)$(MISC)/mount
+	$(INSTALL) -m 4755 -o root traceroute $(DESTDIR)$(MISC)/umount
 	$(INSTALL) -m 4755 -o root ohdexec $(DESTDIR)$(MISC)/ohdexec
 	$(INSTALL) sshd_config $(DESTDIR)/etc/ssh/sshd_config_ohd
 	if test -z "$(DESTDIR)"; then \
@@ -59,7 +69,7 @@ add_user:
 
 
 clean:
-	rm -rf ping traceroute core *~ .libs *.o *.slo *.lo *.la
+	rm -rf ping traceroute mount umount core *~ .libs *.o *.slo *.lo *.la
 
 distclean: clean
 	rm -f Makefile

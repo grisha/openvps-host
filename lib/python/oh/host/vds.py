@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.13 2004/06/09 20:09:34 grisha Exp $
+# $Id: vds.py,v 1.14 2004/09/18 03:46:04 grisha Exp $
 
 """ VDS related functions """
 
@@ -234,17 +234,6 @@ def ref_fix_syslog(refroot):
 
     open(fname, 'w').writelines(result)
 
-## def ref_ping_traceroute(refroot):
-##     print 'Installing special ping and traceroute'
-##     ping = os.path.join(refroot, 'bin', 'ping')
-##     shutil.copy(os.path.join(cfg.OH_MISC, 'ping'),
-##                 ping)
-##     os.chmod(ping, 0755)
-##     tracert = os.path.join(refroot, 'usr', 'sbin', 'traceroute')
-##     shutil.copy(os.path.join(cfg.OH_MISC, 'traceroute'),
-##                 tracert)
-##     os.chmod(tracert, 0755)
-
 def ref_fix_python(refroot):
     print 'Making python 2.3 default'
 
@@ -257,44 +246,38 @@ def ref_fix_python(refroot):
 
 def ref_make_libexec_oh(refroot):
 
-    dir = os.path.join(refroot, 'usr/libexec/oh')
+    libexec_dir = os.path.join(refroot, 'usr/libexec/oh')
     
-    print 'Making %s' % dir
-    os.mkdir(dir)
+    print 'Making %s' % libexec_dir
+    os.mkdir(libexec_dir)
 
-    print 'Copying ping and traceroute there'
+    print 'Copying ping, traceroute, mount and umount there'
 
-    # move the originals into libexec/oh
 
-    png = os.path.join(dir, 'ping')
-    tr = os.path.join(dir, 'traceroute')
+    for path, short_name in [('bin/ping', 'ping'),
+                             ('bin/traceroute', 'traceroute'),
+                             ('bin/mount', 'mount'),
+                             ('bin/umount', 'umount'),]:
 
-    shutil.move(os.path.join(refroot, 'bin/ping'), png)
-    shutil.move(os.path.join(refroot, 'bin/traceroute'), tr)
+        # move the originals into libexec/oh
+        dest_path = os.path.join(libexec_dir, src)
 
-    if not vsutil.is_file_immutable_link(png):
-        vsutil.set_file_immutable_link(png)
-    if not vsutil.is_file_immutable_link(tr):
-        vsutil.set_file_immutable_link(tr)
+        shutil.move(os.path.join(refroot, short_name), dest_path)
 
-    # now place our custom in their path
+        if not vsutil.is_file_immutable_link(dest_path):
+            vsutil.set_file_immutable_link(dest_path)
 
-    png = os.path.join(refroot, 'bin/ping')
-    tr = os.path.join(refroot, 'bin/traceroute')
+        # now place our custom in their path
+        dest_path = os.path.join(refroot, 'bin/ping')
 
-    shutil.copy(os.path.join(cfg.OH_MISC, 'ping'), png)
-    shutil.copy(os.path.join(cfg.OH_MISC, 'traceroute'), tr)
+        shutil.copy(os.path.join(cfg.OH_MISC, short_name), dest_path)
 
-    # why can't I do setuid with os.chmod?
-    cmd = 'chmod 04755 %s' % png
-    commands.getoutput(cmd)
-    cmd = 'chmod 04755 %s' % tr
-    commands.getoutput(cmd)
+        # why can't I do setuid with os.chmod?
+        cmd = 'chmod 04755 %s' % dest_path
+        commands.getoutput(cmd)
 
-    if not vsutil.is_file_immutable_link(png):
-        vsutil.set_file_immutable_link(png)
-    if not vsutil.is_file_immutable_link(tr):
-        vsutil.set_file_immutable_link(tr)
+        if not vsutil.is_file_immutable_link(dest_path):
+            vsutil.set_file_immutable_link(dest_path)
 
 
 def buildref(refroot, distroot):
@@ -309,7 +292,6 @@ def buildref(refroot, distroot):
     ref_make_tabs(refroot)
     ref_fix_halt(refroot)
     ref_fix_syslog(refroot)
-    ##ref_ping_traceroute(refroot)
     ref_fix_python(refroot)
     ref_make_libexec_oh(refroot)
 
