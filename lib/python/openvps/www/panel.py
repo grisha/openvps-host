@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.23 2005/02/16 22:11:57 grisha Exp $
+# $Id: panel.py,v 1.24 2005/02/23 19:47:21 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -761,7 +761,7 @@ def getstats(req, name, command):
     # we expect two commands:
     #   sum
     #   list
-    # and two [optional] - start and end
+    # and two [optional] args - start and end
 
     start, end = None, None
 
@@ -776,8 +776,22 @@ def getstats(req, name, command):
 
     lj = 15
     req.write('%s%s\n' % ('name:'.ljust(15), name))
-    for s in ['start', 'end', 'step', 'steps', 'ticks',
-              'vm', 'rss', 'in', 'out', 'disk']:
-        req.write('%s%s\n' % ((s+':').ljust(lj), result[s]))
+    for s in [('start', ''),
+              ('end', ''),
+              ('step', '(secs)'),
+              ('steps', ''),
+              ('ticks', '(cpu ticks)'),
+              ('vm', '(mem tokens)'),
+              ('rss', '(mem tokens)'),
+              ('in', '(bytes)'),
+              ('out', '(bytes)'),
+              ('disk', '(disk tokens)')]:
+        
+        req.write('%s%s  %s\n' % ((s[0]+':').ljust(lj), result[s[0]], s[1]))
+
+    req.write('\n\n')
+    req.write('1 mem token = 1 average KB over 1 minute interval\n')
+    req.write('1 disk token = 1 average KB over 1 minute interval\n')
+
 
     return apache.OK
