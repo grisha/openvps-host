@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.22 2004/10/18 23:14:47 grisha Exp $
+# $Id: dft.py.in,v 1.23 2004/10/25 20:43:18 grisha Exp $
 
 """ Configuration Defaults
 
@@ -81,6 +81,10 @@ BACKUP_USER = 'ohbackup'
 
 # default inodes per vserever allowed
 INODES_LIM = 1000000
+
+# default domain name - the hostname for vservers will be
+# vservername + this domain
+DEFAULT_DOMAIN = 'domain.tld'
 
 # When cloning a reference server, these rules dictate
 # what is done. Default action is to hardlink, unless

@@ -39,6 +39,10 @@ SSL_ORG_NAME = "Some Company, Inc."
 # Where is util-vserver?
 VSERVER_PREFIX = '/usr/local'
 
+# default domain name - the hostname for vservers will be
+# vservername + this domain
+DEFAULT_DOMAIN = 'domain.tld'
+
 # Location of the directory that stores data about vservers such as
 # disk and bandwidth utilization
 

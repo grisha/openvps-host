@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.30 2004/10/18 23:14:47 grisha Exp $
+# $Id: vds.py,v 1.31 2004/10/25 20:43:18 grisha Exp $
 
 """ VDS related functions """
 
@@ -375,6 +375,22 @@ def ref_make_i18n(refroot):
     cmd = '%s %s %s' % (cfg.CHROOT, refroot, s)
     commands.getoutput(cmd)
 
+def ref_fix_inittab(refroot):
+
+    # we do not want mingetty in the inittab
+
+    file = os.path.join(refroot, 'etc/inittab')
+
+    print 'Commenting out mingetty lines in', file
+
+    lines  = open(file).readlines()
+    for n in range(len(lines)):
+        if lines[n].find('mingetty') != -1:
+            if not lines[n].strip().startswith('#'):
+                lines[n] ='#' + lines[n]
+
+    open(file, 'w').writelines(lines)
+
 def buildref(refroot, distroot):
 
     print 'Building a reference server at %s using packages in %s' % \
@@ -390,6 +406,7 @@ def buildref(refroot, distroot):
 #    ref_fix_python(refroot)
     ref_make_libexec_oh(refroot)
     ref_make_i18n(refroot)
+    ref_fix_inittab(refroot)
 
     # enable shadow (I wonder why it isn't by default)
     cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, refroot)
@@ -808,7 +825,9 @@ def vserver_vroot_perms():
     os.chmod(cfg.VSERVERS_ROOT, 0)
 
 
-def customize(name, hostname, ip, xid, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
+def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
+
+    hostname = name + '.' + cfg.DEFAULT_DOMAIN
 
     # first make a configuration
     vsutil.save_vserver_config(name, ip, xid, hostname=hostname)

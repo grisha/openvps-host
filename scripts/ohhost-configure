@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.19 2004/10/17 19:21:31 grisha Exp $
+# $Id: ohhost-configure,v 1.20 2004/10/25 20:43:18 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -135,6 +135,21 @@ def get_primary_ip():
 
     cfg.PRIMARY_IP = ip
     return ip
+
+def get_domain_name():
+
+    if cfg.DEFAULT_DOMAIN == 'domain.tld':
+        domain = '.'.join(commands.getoutput('hostname -f').split('.')[1:])
+    else:
+        domain = cfg.DEFAULT_DOMAIN
+
+    prompt = 'Please enter the default domain name for vservers [%s]:' % domain
+    s = raw_input(prompt)
+    if not s:
+        s = domain
+
+    cfg.VSERVER_PREFIX = s
+    return s
 
 def save_config(params):
 
@@ -424,6 +439,7 @@ def main():
     params['SSL_ORG_COUNTRY'] = get_ssl_org_country()
     params['SSL_ORG_STATE'] = get_ssl_org_state()
     params['SSL_ORG_NAME'] = get_ssl_org_name()
+    params['DEFAULT_DOMAIN'] = get_domain_name()
     params['PRIMARY_IP'] = get_primary_ip()
 
     save_config(params)
