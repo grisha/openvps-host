@@ -192,7 +192,18 @@ FEDORA_C1_PKGS_ADDL = [
     'XFree86-libs-data-4.3.0-42.i386.rpm',
     'gd-devel-2.0.15-1.i386.rpm',
     # webmin
-    'http://dev.openhosting.com/dist/misc/webmin-1.130-1_OH.noarch.rpm'
+    'http://dev.openhosting.com/dist/misc/webmin-1.130-1_OH.noarch.rpm',
+    # php
+    'aspell-0.50.3-16.i386.rpm',
+    'php-devel-4.3.3-6.i386.rpm',
+    'php-ldap-4.3.3-6.i386.rpm',
+    'php-xmlrpc-4.3.3-6.i386.rpm',
+    'aspell-en-0.51-6.i386.rpm',
+    'php-domxml-4.3.3-6.i386.rpm',
+    'php-mysql-4.3.3-6.i386.rpm',
+    'php-4.3.3-6.i386.rpm',
+    'php-imap-4.3.3-6.i386.rpm',
+    'php-pgsql-4.3.3-6.i386.rpm'
     ]
 
 ###
