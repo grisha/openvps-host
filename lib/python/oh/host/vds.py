@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.18 2004/10/05 20:08:40 grisha Exp $
+# $Id: vds.py,v 1.19 2004/10/05 20:50:54 grisha Exp $
 
 """ VDS related functions """
 
@@ -508,16 +508,10 @@ def vserver_disk_limit(root, xid, limit):
 
     dev = vsutil.guess_vserver_device()
 
-    cmd = '%s -x %s -v %s' % \
-          (os.path.join(cfg.CQ_TOOLS, 'cqhadd'), xid, dev)
+    cmd = '%s -a -x %s -S 0,%s,0,%s,5 %s' % \
+          (cfg.VDLIMIT, xid, limit, cfg.INODES_LIM, cfg.VSERVERS_ROOT)
     print ' ', cmd
-    commands.getoutput(cmd)
-
-    cmd = '%s -x %s -S 0,%s,0,%s,5 -v %s' % \
-          (os.path.join(cfg.CQ_TOOLS, 'cqdlim'), xid, cfg.INODES_LIM,
-           limit, dev)
-    print ' ', cmd
-    commands.getoutput(cmd)
+    print commands.getoutput(cmd)
 
 def vserver_bwidth_acct(name, ip):
 

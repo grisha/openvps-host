@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.11 2004/10/04 17:03:34 grisha Exp $
+# $Id: configure.in,v 1.12 2004/10/05 20:50:54 grisha Exp $
 
 AC_INIT
 
@@ -83,25 +83,15 @@ else
   AC_MSG_ERROR([mod_ssl.so is not installed in $LIBEXECDIR, please install mod_ssl])
 fi
 
-# check for cqtools
+# check for vdlimit
 
-AC_SUBST(CQ_TOOLS_DIR)
-CQ_TOOLS_DIR=/usr/local/cq-tools-0.06
-AC_MSG_CHECKING(for mquota in $CQTOOLS_DIR)
-if test -x "$CQ_TOOLS_DIR/mquota"; then
+AC_SUBST(VDLIMIT_DIR)
+VDLIMIT_DIR=/usr/local/vdlimit-0.01
+AC_MSG_CHECKING(for vdlimit in $VDLIMIT_DIR)
+if test -x "$VDLIMIT_DIR/vdlimit"; then
   AC_MSG_RESULT([found, excellent.])
 else
-  AC_MSG_ERROR([cqtools not found. You need to place cqtools in $CQ_TOOLS_DIR])
-fi
-
-# check for vproc
-
-VPROC_DIR=/usr/local/vproc-0.01
-AC_MSG_CHECKING(for vproc in $VPROC_DIR)
-if test -x "$VPROC_DIR/vproc"; then
-  AC_MSG_RESULT([found, perfect.])
-else
-  AC_MSG_ERROR([vproc not found. You need to place vproc in $VPROC_DIR])
+  AC_MSG_ERROR([vdlimit not found. You need to place vdlimit in $VDLIMIT_DIR])
 fi
 
 # check for rrdtool

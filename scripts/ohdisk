@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohdisk,v 1.4 2004/10/04 15:28:54 grisha Exp $
+# $Id: ohdisk,v 1.5 2004/10/05 20:50:54 grisha Exp $
 
 """
 This script periodically collects data about vservers disk
@@ -31,8 +31,11 @@ bootup before any vservers are started.
 import commands
 import os
 import sys
+from syslog import syslog, openlog
 
 from oh.host import vsutil, cfg
+
+openlog('ohdisk')
 
 def list_vserver_xids():
 
@@ -47,67 +50,68 @@ def list_vserver_xids():
 
     return xids
 
-def get_disk_limits(xid, dev):
+def get_disk_limits(xid):
 
-    result = {}
+    r = {}
 
-    cmd = '%s -x %s %s' % (os.path.join(cfg.CQ_TOOLS, 'cqdlim'), xid, dev)
-    
+    cmd = '%s -x %s %s' % (cfg.VDLIMIT, xid, cfg.VSERVERS_ROOT)
+
     s =  commands.getoutput(cmd)
 
     lines = s.splitlines()
     for line in lines:
 
-        key, val = line.split(':\t')
+        if line == 'vc_get_dlimit: No such process':
+            continue
 
-        if key == 'inodes':
-            result['i_used'], result['i_total'] = val.split('/')
-        elif key == 'blocks':
-            blocks, percent = val.split(' ')
-            result['b_used'], result['b_total'] = blocks.split('/')
-            result['root'] = percent[1:-2]
+        key, val = line.split(': ')
 
-    return result
+        if val == '0,0,0,0,0':
+            return None
 
-# are we on vserver machine?
+        r['b_used'], r['b_total'], r['i_used'], r['i_total'], r['root'] = \
+                     val.split(',')
+
+    return r
+
+# are we on a vserver kernel?
 if not vsutil.is_vserver_kernel():
     sys.exit()
-
-dev = vsutil.guess_vserver_device()
 
 #servers = running_vservers()
 xids = list_vserver_xids()
 
 for xid in xids:
 
-    dl = get_disk_limits(xid, dev)
+    dl = get_disk_limits(xid)
     if dl:
 
         # XXX begin workaround
+        # XXX is still true for vs 1.9.3 ?
         # this is because of an apparent bug in the disklimits
         # code that somehow does not count inodes correctly
+        
         if (int(dl['i_total']) - int(dl['i_used'])) < 10000:
+            syslog('Less than 10000 inodes left for xid %s, resetting' % xid)
+            
             # less then 10000 inodes left, reset
             cmd = '%s -x %s -S %s,%s,%s,%s,%s -v %s' % \
-                  (os.path.join(cfg.CQ_TOOLS, 'cqdlim'), xid, 0,
-                   dl['i_total'], dl['b_used'], dl['b_total'], dl['root'],
-                   dev)
+                  (cfg.VDLIMIT, xid, 
+                   dl['b_used'], dl['b_total'], 0, dl['i_total'], dl['root'],
+                   cfg.VSERVERS_ROOT)
+            
             commands.getoutput(cmd)
         # end workaround
 
         # print out the current counters in the form of a readily
         # usable command (that is then executed on server startup)
         
-        print '%s -x %s -v %s' % \
-              (os.path.join(cfg.CQ_TOOLS, 'cqhadd'), xid, dev)
-        print '%s -x %s -S %s,%s,%s,%s,%s -v %s' % \
-              (os.path.join(cfg.CQ_TOOLS, 'cqdlim'), xid, dl['i_used'],
-               dl['i_total'], dl['b_used'], dl['b_total'], dl['root'],
-               dev)
+        print '%s -a -x %s -S %s,%s,%s,%s,%s -v %s' % \
+              (cfg.VDLIMIT, xid,
+               dl['b_used'], dl['b_total'], dl['i_used'], dl['i_total'], dl['root'],
+               cfg.VSERVERS_ROOT)
     else:
         print '# no limits on xid %s' % xid
-
-
 
 ###
 # do not edit this if you like using emacs

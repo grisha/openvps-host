@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.11 2004/10/04 19:23:05 grisha Exp $
+# $Id: dft.py.in,v 1.12 2004/10/05 20:50:54 grisha Exp $
 
 """ Configuration Defaults
 
@@ -58,8 +58,8 @@ VSERVER_LIB = os.path.join(VSERVER_PREFIX, 'lib/util-vserver')
 VSERVER_STAT = os.path.join(VSERVER_PREFIX, 'sbin/vserver-stat')
 VSERVER = os.path.join(VSERVER_PREFIX, 'sbin/vserver')
 
-# Location of context disk limit tools
-CQ_TOOLS = '@CQ_TOOLS_DIR@'
+# Location of context disk limit tool (vdlimit)
+VDLIMIT = os.path.join('@VDLIMIT_DIR@', 'vdlimit')
 
 # The partition where vservers live
 VSERVERS_ROOT = NOVAL

@@ -270,7 +270,7 @@ PACKAGE_VERSION=
 PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE PYTHON_BIN PYTHON APXS CQ_TOOLS_DIR RRDTOOL NAMED OHD_USER OHD_PORT LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA SET_MAKE PYTHON_BIN PYTHON APXS VDLIMIT_DIR RRDTOOL NAMED OHD_USER OHD_PORT LIBOBJS LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -2365,32 +2365,18 @@ echo "$as_me: error: mod_ssl.so is not installed in $LIBEXECDIR, please install 
    { (exit 1); exit 1; }; }
 fi
 
-# check for cqtools
+# check for vdlimit
 
 
-CQ_TOOLS_DIR=/usr/local/cq-tools-0.06
-echo "$as_me:$LINENO: checking for mquota in $CQTOOLS_DIR" >&5
-echo $ECHO_N "checking for mquota in $CQTOOLS_DIR... $ECHO_C" >&6
-if test -x "$CQ_TOOLS_DIR/mquota"; then
+VDLIMIT_DIR=/usr/local/vdlimit-0.01
+echo "$as_me:$LINENO: checking for vdlimit in $VDLIMIT_DIR" >&5
+echo $ECHO_N "checking for vdlimit in $VDLIMIT_DIR... $ECHO_C" >&6
+if test -x "$VDLIMIT_DIR/vdlimit"; then
   echo "$as_me:$LINENO: result: found, excellent." >&5
 echo "${ECHO_T}found, excellent." >&6
 else
-  { { echo "$as_me:$LINENO: error: cqtools not found. You need to place cqtools in $CQ_TOOLS_DIR" >&5
-echo "$as_me: error: cqtools not found. You need to place cqtools in $CQ_TOOLS_DIR" >&2;}
-   { (exit 1); exit 1; }; }
-fi
-
-# check for vproc
-
-VPROC_DIR=/usr/local/vproc-0.01
-echo "$as_me:$LINENO: checking for vproc in $VPROC_DIR" >&5
-echo $ECHO_N "checking for vproc in $VPROC_DIR... $ECHO_C" >&6
-if test -x "$VPROC_DIR/vproc"; then
-  echo "$as_me:$LINENO: result: found, perfect." >&5
-echo "${ECHO_T}found, perfect." >&6
-else
-  { { echo "$as_me:$LINENO: error: vproc not found. You need to place vproc in $VPROC_DIR" >&5
-echo "$as_me: error: vproc not found. You need to place vproc in $VPROC_DIR" >&2;}
+  { { echo "$as_me:$LINENO: error: vdlimit not found. You need to place vdlimit in $VDLIMIT_DIR" >&5
+echo "$as_me: error: vdlimit not found. You need to place vdlimit in $VDLIMIT_DIR" >&2;}
    { (exit 1); exit 1; }; }
 fi
 
@@ -3173,7 +3159,7 @@ s,@SET_MAKE@,$SET_MAKE,;t t
 s,@PYTHON_BIN@,$PYTHON_BIN,;t t
 s,@PYTHON@,$PYTHON,;t t
 s,@APXS@,$APXS,;t t
-s,@CQ_TOOLS_DIR@,$CQ_TOOLS_DIR,;t t
+s,@VDLIMIT_DIR@,$VDLIMIT_DIR,;t t
 s,@RRDTOOL@,$RRDTOOL,;t t
 s,@NAMED@,$NAMED,;t t
 s,@OHD_USER@,$OHD_USER,;t t
