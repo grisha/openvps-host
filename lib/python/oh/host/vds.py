@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.14 2004/09/18 03:46:04 grisha Exp $
+# $Id: vds.py,v 1.15 2004/09/28 01:42:54 grisha Exp $
 
 """ VDS related functions """
 
@@ -279,6 +279,12 @@ def ref_make_libexec_oh(refroot):
         if not vsutil.is_file_immutable_link(dest_path):
             vsutil.set_file_immutable_link(dest_path)
 
+def ref_make_i18n(refroot):
+
+    open(os.path.join(refroot, 'etc/sysconfig/i18n'), 'w').write(
+        'LANG="en_US.UTF-8"'
+        'SUPPORTED="en_US.UTF-8:en_US:en"'
+        'SYSFONT="latarcyrheb-sun16"')
 
 def buildref(refroot, distroot):
 
@@ -294,6 +300,7 @@ def buildref(refroot, distroot):
     ref_fix_syslog(refroot)
     ref_fix_python(refroot)
     ref_make_libexec_oh(refroot)
+    ref_make_i18n(refroot)
 
     # enable shadow (I wonder why it isn't by default)
     cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, refroot)
