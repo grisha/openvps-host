@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.38 2005/01/04 22:57:25 grisha Exp $
+# $Id: dft.py.in,v 1.39 2005/01/11 21:42:32 grisha Exp $
 
 """ Configuration Defaults
 
@@ -54,9 +54,14 @@ VERSION = open('/etc/oh-release').read().strip()
 # verify vserver account passwords
 OHCHKPWD = os.path.join(PREFIX, 'sbin', 'ohchkpwd')
 
+# Location of ovwrapper to allow us to do special stuff
+# DO NOT change this in the config, since the ovwrapper is used
+# to load the config in the first place when you're not root
+OVWRAPPER = os.path.join(PREFIX, 'sbin', 'ovwrapper')
+
 # Location of vservers config and lib
-ETC_VSERVERS = '/etc/vservers'  # XXX needs to be set by ./configure
-VSERVER_PREFIX = '/usr/local'   # XXX needs to be set by ./configure
+ETC_VSERVERS = '/etc/vservers'  # overriden by openvps.conf
+VSERVER_PREFIX = '/usr/local'   # overriden by openvps.conf
 VSERVER_LIB = os.path.join(VSERVER_PREFIX, 'lib/util-vserver')
 VSERVER_STAT = os.path.join(VSERVER_PREFIX, 'sbin/vserver-stat')
 VSERVER = os.path.join(VSERVER_PREFIX, 'sbin/vserver')

@@ -14,15 +14,18 @@
 # limitations under the License.
 #
 
-# $Id: cfg.py,v 1.3 2004/12/23 19:51:26 grisha Exp $
+# $Id: cfg.py,v 1.4 2005/01/11 21:42:32 grisha Exp $
 
 """ This module contains our configuration """
 
 import os
+import commands
 import time
 import pprint
 import re
 import sys
+
+from exceptions import IOError
 
 def load_file(path):
     """Load a config file"""
@@ -30,7 +33,17 @@ def load_file(path):
     locals = {}
 
     try:
-        execfile(path, {}, locals)
+        if os.getuid() == 0:
+            # if we are root
+            execfile(path, {}, locals)
+        else:
+            # we must be called by apache and should not have the
+            # rights to read the config, use the ovwrapper
+            rc, config = commands.getstatusoutput('%s read-config' % OVWRAPPER)
+            if rc != 0:
+                raise IOError, 'Most likely you are not allowed to run %s, check syslog.' % OVWRAPPER
+            exec config in {}, locals
+                
     except IOError, err:
         if 'No such file' in str(err):
             # no file is OK

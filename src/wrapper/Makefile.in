@@ -14,20 +14,20 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.2 2005/01/11 21:42:32 grisha Exp $
+# $Id: Makefile.in,v 1.1 2005/01/11 21:42:32 grisha Exp $
 
 INSTALL=@INSTALL@
 PREFIX=@prefix@
 
-pace: pace.c
-	$(CC) -o pace pace.c
+ovwrapper: wrapper.c
+	$(CC) -o ovwrapper wrapper.c
 
-install: pace
-	$(INSTALL) -m 755 -o root pace $(DESTDIR)$(PREFIX)/sbin/pace
+install: ovwrapper
+	$(INSTALL) -m 4755 -o root -g root ovwrapper $(DESTDIR)$(PREFIX)/sbin/ovwrapper
 
 clean:
-	rm -rf pace *~ .libs *.o *.slo *.lo *.la
+	rm -rf ovwrapper *~ .libs *.o *.slo *.lo *.la
 
 distclean: clean
-	rm -f Makefile
+	rm -f Makefile wrapper.h
 
