@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.22 2004/10/12 18:34:27 grisha Exp $
+# $Id: vds.py,v 1.23 2004/10/13 21:36:43 grisha Exp $
 
 """ VDS related functions """
 
@@ -110,7 +110,7 @@ def resolve_packages(pkglist, distroot='.'):
         hi = urllib.urlopen(hi_url).readlines()
 
         for line in hi:
-            rpm_name, rpm_path = line.split(':')[1].split('=')
+            rpm_name, rpm_path = line.strip().split(':')[1].split('=')
             name = '-'.join(rpm_name.split('-')[:-2])
             pkgdict[name] = os.path.join(distroot, rpm_path)
 
@@ -122,7 +122,7 @@ def resolve_packages(pkglist, distroot='.'):
         files.sort()
         pkgdict = {}
         for f in files:
-            # everythin but the last two dash separated parts
+            # everything but the last two dash separated parts
             name = '-'.join(f.split('-')[:-2])
             pkgdict[name] = f
 
@@ -133,8 +133,10 @@ def resolve_packages(pkglist, distroot='.'):
     for pkg in pkglist:
 
         if distroot.startswith('http://') or distroot.startswith('https://'):
-            # if distroot is a url, then replace a package name with its url
-            pkg = pkgdict[pkg]
+            # if distroot is a url, 
+            if not (pkg.startswith('http://') or pkg.startswith('https://')):
+                # and this package is not a url, then replace a package name with its url
+                pkg = pkgdict[pkg]
 
         if pkg.startswith('http://') or pkg.startswith('https://'):
            
@@ -362,10 +364,16 @@ def ref_make_libexec_oh(refroot):
 
 def ref_make_i18n(refroot):
 
+    print 'Creating etc/sysconfig/i18n.'
     open(os.path.join(refroot, 'etc/sysconfig/i18n'), 'w').write(
-        'LANG="en_US.UTF-8"'
-        'SUPPORTED="en_US.UTF-8:en_US:en"'
-        'SYSFONT="latarcyrheb-sun16"')
+        'LANG="en_US.UTF-8"\n'
+        'SUPPORTED="en_US.UTF-8:en_US:en"\n'
+        'SYSFONT="latarcyrheb-sun16"\n')
+
+    s = 'localedef -i en_US -c -f UTF-8 en_US.UTF-8'
+    print 'Running', s
+    cmd = '%s %s %s' % (cfg.CHROOT, refroot, s)
+    commands.getoutput(cmd)
 
 def buildref(refroot, distroot):
 
@@ -835,6 +843,9 @@ def copy(src, dst, link=1, touch=0):
     
     if os.path.islink(src):
 
+        # if it is a symlink, always copy it
+        # (no sense in trying to hardlink a symlink)
+
         if DRYRUN:
             print 'ln -s %s %s' % (os.readlink(src), dst)
         else:
@@ -843,6 +854,8 @@ def copy(src, dst, link=1, touch=0):
         syms += 1
 
     elif os.path.isdir(src):
+
+        # directories are also copied always
 
         if DRYRUN:
             s = os.stat(src)
@@ -856,7 +869,12 @@ def copy(src, dst, link=1, touch=0):
 
     elif os.path.isfile(src):
 
+        # this a file, not a dir or symlink
+
         if touch:
+
+            # means create a new file and copy perms
+            
             if DRYRUN:
                 print 'touch %s' % dst
             else:
@@ -867,6 +885,9 @@ def copy(src, dst, link=1, touch=0):
             touchs += 1
             
         elif link:
+
+            # means we should hardlink
+            
             if DRYRUN:
                 print 'ln %s %s' % (src, dst)
             else:
@@ -884,6 +905,8 @@ def copy(src, dst, link=1, touch=0):
             
         else:
 
+            # else copy it
+
             if DRYRUN:
                 print 'cp -a %s %s' % (src, dst)
             else:
@@ -897,6 +920,7 @@ def copy(src, dst, link=1, touch=0):
     else:
 
         # this is a special device?
+
         s = os.stat(src)
         if stat.S_ISBLK(s.st_mode) or stat.S_ISCHR(s.st_mode) \
            or stat.S_ISFIFO(s.st_mode):
@@ -1002,8 +1026,14 @@ def fixflags(refroot, pace=cfg.PACE[0]):
             # reldst is the way it would look relative to refroot
             reldst = os.path.join(max(root[len(refroot):], '/'), file)
             
-            if not is_config(refroot, reldst):
-                vsutil.set_file_immutable_unlink(abspath)
+            c, t, s = match_path(reldst)
+
+            if is_config(refroot, reldst) or c or t or s:
+                pass
+            else:
+                if (not os.path.islink(abspath)) and (not os.path.isdir(abspath)):
+                    # (do not make symlinks and dirs immutable)
+                    vsutil.set_file_immutable_unlink(abspath)
             # NOTE that under no circumstances we *unset* the flag. This
             # is because e.g. usr/libexec/oh stuff must be iunlink, but
             # is not in an rpm.
