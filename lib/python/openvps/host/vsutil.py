@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.5 2005/01/20 22:43:47 grisha Exp $
+# $Id: vsutil.py,v 1.6 2005/02/16 17:52:16 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -238,7 +238,11 @@ def guess_vserver_device():
 def check_passwd(vserver, userid, passwd):
     """ Check password for a user on a vserver """
 
-    vpath = os.path.join(cfg.VSERVERS_ROOT, vserver)
+    if vserver == '/':
+        # this is actual host machine
+        vpath = '/'
+    else:
+        vpath = os.path.join(cfg.VSERVERS_ROOT, vserver)
 
     cmd = '%s %s' % (cfg.OVCHKPWD, vpath)
     pipe = os.popen(cmd, 'w')

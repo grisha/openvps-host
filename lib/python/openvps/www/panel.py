@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.20 2005/02/16 16:39:06 grisha Exp $
+# $Id: panel.py,v 1.21 2005/02/16 17:52:16 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -55,12 +55,14 @@ ALLOWED_COMMANDS = ['index',
 
 TIMEOUT = 60*30 # 30 minutes
 
+SUPER = 'root'
+
 def error(req, msg):
     req.content_type = 'text/html'
     req.write('\n<h1>Error: %s</h1>\n' % msg)
     return apache.OK
 
-def check_authen(req):
+def check_authen(req, vserver_name):
     """ If authenticated, return userid """
 
     try:
@@ -70,11 +72,11 @@ def check_authen(req):
         cookies = None
         
     if not cookies or not cookies.has_key('openvps-user'):
-        login(req, message='please log in')
+        login(req, vserver_name, message='please log in')
     else:
         login_time, userid = cookies['openvps-user'].value.split(':', 1)
         if (time.time() - int(login_time)) > TIMEOUT:
-            login(req, message='session time-out, please log in again')
+            login(req, vserver_name, message='session time-out, please log in again')
             return None
 
         return userid
@@ -103,14 +105,14 @@ def handler(req):
             command  = parts[3]
 
             if command == 'login':
-                return login(req)
+                return login(req, vserver_name)
 
         # anything else requires authentication
-        userid = check_authen(req)
+        userid = check_authen(req, vserver_name)
         if not userid:
             return apache.OK
 
-        if userid != vserver_name:
+        if (userid != SUPER) and (userid != vserver_name):
             return error(req, 'request not understood')
 
         if len(parts) > 4:
@@ -260,7 +262,7 @@ def _get_pub_key():
 # Callable from outside
 #
 
-def login(req, message=''):
+def login(req, vserver_name, message=''):
 
     if req.method == 'POST':
         # someone is trying to login
@@ -270,10 +272,13 @@ def login(req, message=''):
         passwd = fs.getfirst('passwd')
         uri = fs.getfirst('uri')
 
-        vserver_name = userid
-
         vservers = vsutil.list_vservers()
-        if vservers.has_key(vserver_name) and vsutil.check_passwd(vserver_name, userid, passwd):
+        if ((vserver_name == userid and
+             vservers.has_key(vserver_name) and
+             vsutil.check_passwd(vserver_name, userid, passwd)) or
+             # superuser
+            (userid == SUPER and
+             vsutil.check_passwd('/', userid, passwd))):
 
             # plant the cookie
             key = _read_priv_key()
