@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.9 2005/02/16 20:35:58 grisha Exp $
+# $Id: vsmon.py,v 1.10 2005/02/16 20:52:58 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -315,7 +315,6 @@ def report_sum(name, start=None, end=None):
 
     header, rows = RRD.fetch(*rrdargs)
 
-    STEP = 60
     result = {'start':rows[0][0],
               'end': rows[-1][0],
               'step': round((rows[-1][0]-rows[0][0])/len(rows)),
@@ -331,7 +330,7 @@ def report_sum(name, start=None, end=None):
     for row in rows:
         
         ticks = _sum_none(header, row, ['vs_uticks', 'vs_sticks', 'vs_hticks'])
-        result['ticks'] += ticks*STEP
+        result['ticks'] += ticks
         result['vm'] += _sum_none(header, row, ['vs_vm'])
         result['rss'] += _sum_none(header, row, ['vs_rss'])
         result['in'] += _sum_none(header, row, ['vs_in'])

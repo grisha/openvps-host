@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.21 2005/02/16 17:52:16 grisha Exp $
+# $Id: panel.py,v 1.22 2005/02/16 20:52:58 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -735,7 +735,7 @@ def mem(req, name, params):
 
     else:
 
-        location = 'stats:rss'
+        location = 'stats:mem'
 
         body_tmpl = _tmpl_path('mem_body.html')
 
