@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.11 2005/02/16 22:11:57 grisha Exp $
+# $Id: vsmon.py,v 1.12 2005/02/23 22:43:51 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -315,9 +315,11 @@ def report_sum(name, start=None, end=None):
 
     header, rows = RRD.fetch(*rrdargs)
 
+    step = int(rows[1][0]-rows[0][0])
+
     result = {'start':rows[0][0],
               'end': rows[-1][0],
-              'step': rows[1][0]-rows[0][0],
+              'step': step,
               'steps': len(rows),
               'ticks':0,
               'vm':0,
@@ -326,13 +328,6 @@ def report_sum(name, start=None, end=None):
               'out':0,
               'disk':0,
               }
-
-    # a COUNTER is always per-second. To get the actual number, it
-    # is AVG * STEP (where step is in seconds)
-
-    # a GAUGE is an average (i.e. not per-second). If our tokens are
-    # based on a per-minute interval, then the total tokens would be
-    # sum(averages) * (STEP/60) 
 
     for row in rows:
         
@@ -343,6 +338,20 @@ def report_sum(name, start=None, end=None):
         result['in'] += _sum_none(header, row, ['vs_in'])
         result['out'] += _sum_none(header, row, ['vs_out'])
         result['disk'] += _sum_none(header, row, ['vs_disk_b_used'])
+
+    # a COUNTER is always per-second. To get the actual number, it
+    # is AVG * STEP (where step is in seconds)
+
+    # a GAUGE is an average (i.e. not per-second). If our tokens are
+    # based on a per-minute interval, then the total tokens would be
+    # sum(averages) * (STEP/60) 
+
+    result['ticks'] = result['ticks'] * step    # counter
+    result['vm'] = result['vm'] * (step/60)     # gauge
+    result['rss'] = result['rss'] * (step/60)   # gauge
+    result['in'] = result['in'] * step          # counter
+    result['out'] = result['out'] * step        # counter
+    result['disk'] = result['disk'] * (step/60) # gauge
         
     return result
     
