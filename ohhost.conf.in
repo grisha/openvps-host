@@ -21,7 +21,7 @@ VSERVERS_ROOT = '/vservers'
 BACKUP = '/backup'
 
 # Ip or address of the peer server to receive backups.
-# PEERIP = '@PEERIP@'
+PEERIP = '@PEERIP@'
 
 # The organization name for the SSL certs. This is your company name
 # and other info.

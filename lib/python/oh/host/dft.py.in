@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.8 2004/09/18 03:46:04 grisha Exp $
+# $Id: dft.py.in,v 1.9 2004/09/22 23:52:19 grisha Exp $
 
 """ Configuration Defaults
 
@@ -36,6 +36,9 @@ CONFIG_DIR = os.path.join(PREFIX, 'etc')
 
 # Configuration file
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'ohhost.conf')
+
+# Miscellaneous dir
+MISC_DIR = os.path.join(PREFIX, 'oh/misc')
 
 # used below for values that must come from the config file
 NOVAL = 'NO VALUE SET - edit %s' % CONFIG_FILE
@@ -68,10 +71,13 @@ VAR_DB_OH = '/var/db/oh'
 BACKUP = NOVAL
 
 # Peer ip (the server to which we backup)
-PEERIP='@PEERIP@'
+PEERIP = '127.0.0.1'
 
 # DSA key that allows login to peer as ohbackup
-OHB_DSA_KEY='@prefix@/etc/ohbackup_dsa'
+OHB_DSA_KEY = '@prefix@/etc/ohbackup_dsa'
+
+# User used to login to remote server for backup
+BACKUP_USER = 'ohbackup'
 
 # default inodes per vserever allowed
 INODES_LIM = 1000000
@@ -136,6 +142,12 @@ COMMAND_CAPS = {
     'MOUNT_BIND': ['/usr/libexec/oh/mount', ['CAP_SYS_ADMIN']],
     'UMOUNT': ['/usr/libexec/oh/umount', ['CAP_SYS_ADMIN']],
     }
+
+# The username used for the commands above
+OHD_USER = '@OHD_USER@'
+
+# The port on which sshd listens for these commands
+OHD_PORT = '@OHD_PORT@'
 
 # services we want enabled (everything else is disabled)
 FEDORA_C1_SRVCS =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.4 2004/09/18 03:07:05 grisha Exp $
+# $Id: Makefile.in,v 1.5 2004/09/22 23:52:19 grisha Exp $
 
 INSTALL=@INSTALL@
 CHKCONFIG=/sbin/chkconfig
@@ -32,64 +32,64 @@ install:
 	$(INSTALL) ohresources $(DESTDIR)$(INITD)/ohresources
 	$(INSTALL) ohd $(DESTDIR)$(INITD)/ohd
 	$(INSTALL) ohfixproc $(DESTDIR)$(INITD)/ohfixproc
-	if test -z "$(DESTDIR)"; then \
-		$(MAKE) vserver_srv; \
-		$(MAKE) services; \
-		$(MAKE) fix_sshd; \
-		$(MAKE) fix_named; \
-	fi
+# 	if test -z "$(DESTDIR)"; then \
+# 		$(MAKE) vserver_srv; \
+# 		$(MAKE) services; \
+# 		$(MAKE) fix_sshd; \
+# 		$(MAKE) fix_named; \
+# 	fi
 
-services:
-	@echo
-	@echo "Disabling most services:"
-	@cd $(INITD); \
-	for serv in `ls`; do \
-		case $$serv in \
-			*.bak|*~|functions|killall|halt|single) \
-				;; \
-			*) \
-				echo -n " $$serv"; \
-				$(CHKCONFIG) --level 2345 $$serv off; \
-				;; \
-		esac;  \
-	done;        
-	@echo
-	@echo "Enabling services we need:"
-	@for serv in network sshd syslog atd random iptables crond anacron httpd named vservers ohresources ohd ohfixproc; do \
-		echo -n " $$serv"; \
-		chkconfig $$serv on; \
-	done;
-	@echo
+# services:
+# 	@echo
+# 	@echo "Disabling most services:"
+# 	@cd $(INITD); \
+# 	for serv in `ls`; do \
+# 		case $$serv in \
+# 			*.bak|*~|functions|killall|halt|single) \
+# 				;; \
+# 			*) \
+# 				echo -n " $$serv"; \
+# 				$(CHKCONFIG) --level 2345 $$serv off; \
+# 				;; \
+# 		esac;  \
+# 	done;        
+# 	@echo
+# 	@echo "Enabling services we need:"
+# 	@for serv in network sshd syslog atd random iptables crond anacron httpd named vservers ohresources ohd ohfixproc; do \
+# 		echo -n " $$serv"; \
+# 		chkconfig $$serv on; \
+# 	done;
+# 	@echo
 
-fix_sshd:
-	@echo "Trying to force sshd to listen to the first IP on eth0 only:"
-	@firstip=`ifconfig | grep inet | head -n 1 | awk '{print $$2}' | awk -F: '{print $$2}'`; \
-	echo "  $$firstip"; \
-	sed s/\#ListenAddress.*/"ListenAddress $$firstip"/g $(SSHD_CONFIG) > $(SSHD_CONFIG).ohnew; \
-	cp $(SSHD_CONFIG).ohnew $(SSHD_CONFIG); rm $(SSHD_CONFIG).ohnew; \
-	echo "done"; \
-	echo "REMEMBER to restart sshd.";
+# fix_sshd:
+# 	@echo "Trying to force sshd to listen to the first IP on eth0 only:"
+# 	@firstip=`ifconfig | grep inet | head -n 1 | awk '{print $$2}' | awk -F: '{print $$2}'`; \
+# 	echo "  $$firstip"; \
+# 	sed s/\#ListenAddress.*/"ListenAddress $$firstip"/g $(SSHD_CONFIG) > $(SSHD_CONFIG).ohnew; \
+# 	cp $(SSHD_CONFIG).ohnew $(SSHD_CONFIG); rm $(SSHD_CONFIG).ohnew; \
+# 	echo "done"; \
+# 	echo "REMEMBER to restart sshd.";
 
 #	service sshd restart;
 
-fix_named:
-	@echo "Trying to force named to listen to the first IP on eth0 only:"
-	@firstip=`ifconfig | grep inet | head -n 1 | awk '{print $$2}' | awk -F: '{print $$2}'`; \
-	echo "  $$firstip"; \
-	if test -z "`grep listen-on $(NAMED_CONFIG)`"; then \
-		sed /options/s:$$:"\\n        listen-on {$$firstip; 127.0.0.1;};":g $(NAMED_CONFIG) > $(NAMED_CONFIG).ohnew; \
-		cp $(NAMED_CONFIG).ohnew $(NAMED_CONFIG); rm $(NAMED_CONFIG).ohnew; \
-		echo "done"; \
-		service named restart; \
-	else \
-		echo "listen-on already set in $(NAMED_CONFIG), not touching it"; \
-	fi;
+# fix_named:
+# 	@echo "Trying to force named to listen to the first IP on eth0 only:"
+# 	@firstip=`ifconfig | grep inet | head -n 1 | awk '{print $$2}' | awk -F: '{print $$2}'`; \
+# 	echo "  $$firstip"; \
+# 	if test -z "`grep listen-on $(NAMED_CONFIG)`"; then \
+# 		sed /options/s:$$:"\\n        listen-on {$$firstip; 127.0.0.1;};":g $(NAMED_CONFIG) > $(NAMED_CONFIG).ohnew; \
+# 		cp $(NAMED_CONFIG).ohnew $(NAMED_CONFIG); rm $(NAMED_CONFIG).ohnew; \
+# 		echo "done"; \
+# 		service named restart; \
+# 	else \
+# 		echo "listen-on already set in $(NAMED_CONFIG), not touching it"; \
+# 	fi;
 
 
 # util-vserver seems to put sysv scripts into /usr/local/etc/init.d
 # where chkconfig cannot see it
-vserver_srv:
-	@if test ! -e $(INITD)/vservers; then \
-		echo "Installing vservers service"; \
-		cp /usr/local/etc/init.d/vservers $(INITD)/vservers; \
-	fi;
+# vserver_srv:
+# 	@if test ! -e $(INITD)/vservers; then \
+# 		echo "Installing vservers service"; \
+# 		cp /usr/local/etc/init.d/vservers $(INITD)/vservers; \
+# 	fi;

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.7 2004/08/05 21:51:40 grisha Exp $
+# $Id: configure.in,v 1.8 2004/09/22 23:52:19 grisha Exp $
 
 AC_INIT
 
@@ -126,45 +126,51 @@ if test -z "$NAMED"; then
   AC_MSG_ERROR([not found. Please install bind])
 fi
 
-# check for --with-peer
-AC_SUBST(PEERIP)
-PEERIP=""
-AC_MSG_CHECKING(for --with-peer)
-AC_ARG_WITH(peer, [--with-peer=HOST     IP of the peer host for backups],
-[
-  AC_MSG_RESULT([$withval, good])
-  PEERIP=$withval
-],
-[
-  # no peer, attempt to guess:
-  # if last number of eth1 ip is odd, then +1
-  # else -1
+dnl # check for --with-peer
+dnl AC_SUBST(PEERIP)
+dnl PEERIP=""
+dnl AC_MSG_CHECKING(for --with-peer)
+dnl AC_ARG_WITH(peer, [--with-peer=HOST     IP of the peer host for backups],
+dnl [
+dnl   AC_MSG_RESULT([$withval, good])
+dnl   PEERIP=$withval
+dnl ],
+dnl [
+dnl   # no peer, attempt to guess:
+dnl   # if last number of eth1 ip is odd, then +1
+dnl   # else -1
 
-  # extract IP of eth1
-  ip=`grep IPADDR /etc/sysconfig/network-scripts/ifcfg-eth1 | sed -e "s/.*=//g"`
-  if test -z "$ip"; then
-    AC_MSG_ERROR([Unable to guess peer ip, please specify it manually with --with-peer])
-  fi
+dnl   # extract IP of eth1
+dnl   ip=`grep IPADDR /etc/sysconfig/network-scripts/ifcfg-eth1 | sed -e "s/.*=//g"`
+dnl   if test -z "$ip"; then
+dnl     AC_MSG_ERROR([Unable to guess peer ip, please specify it manually with --with-peer])
+dnl   fi
 
-  # do the math
-  PEERIP=`echo $ip | awk '{ x=substr($0,length($0),1); \
-                                if (x%2) \
-				  print substr($0, 1, length($0)-1) x+1; \
-                                else \
-				  print substr($0, 1, length($0)-1) x-1; \
-                          }'`
+dnl   # do the math
+dnl   PEERIP=`echo $ip | awk '{ x=substr($0,length($0),1); \
+dnl                                 if (x%2) \
+dnl 				  print substr($0, 1, length($0)-1) x+1; \
+dnl                                 else \
+dnl 				  print substr($0, 1, length($0)-1) x-1; \
+dnl                           }'`
 
-  AC_MSG_RESULT([No, but your ip is $ip, so your peer ip is (guessed) $PEERIP])    
-])
+dnl   AC_MSG_RESULT([No, but your ip is $ip, so your peer ip is (guessed) $PEERIP])    
+dnl ])
 
 # base backup time on the PEERIP. If it ends with 01, backups will be
 # at 1, 02 @ 1:10, 03 @ 1:20, 07 @ 2:00, etc.
 AC_SUBST(BACKUP_TIME)
 BACKUP_TIME=`echo $PEERIP | awk '{x=substr($0, length($0)-1)-1; print x*10%60 " " int(x*10/60)}'`
 
+AC_SUBST(OHD_USER)
+AC_SUBST(OHD_PORT)
+OHD_USER="ohd"
+OHD_PORT="1012"
+
 # final output
 
 AC_OUTPUT(Makefile scripts/Makefile src/Makefile rhinit/Makefile \
 		   rhinit/ohd crontab/Makefile crontab/openhosting \
 		   src/ohchkpwd/Makefile www/Makefile www/conf/Makefile \
-		   lib/python/oh/host/dft.py ohhost.conf ohd/Makefile)
+		   lib/python/oh/host/dft.py ohhost.conf ohd/Makefile \
+		   ohd/common.h ohd/sshd_config)

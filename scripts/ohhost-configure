@@ -1,0 +1,362 @@
+#!/usr/bin/python
+
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: ohhost-configure,v 1.1 2004/09/22 23:52:19 grisha Exp $
+
+#
+#This script initially sets up the system.
+#
+
+# first we need to read the config, but this is rather easy:
+
+from oh.host import cfg
+import os
+import shutil
+import pwd
+import commands
+import sys
+
+# then we need to ask our questions:
+
+def get_vservers_root():
+
+    prompt = 'Please enter the location of vservers [%s]:' % cfg.VSERVERS_ROOT
+
+    s = raw_input(prompt)
+    if not s:
+        return cfg.VSERVERS_ROOT
+    while not os.path.isdir(s):
+        print '%s must be a valid directory' % s
+        s = raw_input(prompt)
+        if not s:
+            return cfg.VSERVERS_ROOT
+
+    cfg.VSERVERS_ROOT = s
+    return s
+
+def get_backup():
+
+    prompt = 'Please enter the directory for backups [%s]:' % cfg.BACKUP
+
+    s = raw_input(prompt)
+    if not s:
+        return cfg.BACKUP
+    
+    while not os.path.isdir(s):
+        print '%s must be a valid directory' % s
+        s = raw_input(prompt)
+        if not s:
+            return cfg.BACKUP
+
+    cfg.BACKUP = s
+    return s
+
+def get_peerip():
+
+    prompt = 'Please enter the IP of the peer server (for backups) [%s]:' % cfg.PEERIP
+    s = raw_input(prompt)
+    if not s:
+        return cfg.PEERIP
+
+    cfg.PEERIP = s
+    return s
+
+def get_ssl_org_country():
+
+    prompt = 'Please enter your country (for SSL certs) [%s]:' % cfg.SSL_ORG_COUNTRY
+    s = raw_input(prompt)
+    if not s:
+        return cfg.SSL_ORG_COUNTRY
+
+    cfg.SSL_ORG_COUNTRY = s
+    return s
+
+def get_ssl_org_state():
+
+    prompt = 'Please enter your state (for SSL certs) [%s]:' % cfg.SSL_ORG_STATE
+    s = raw_input(prompt)
+    if not s:
+        return cfg.SSL_ORG_STATE
+
+    cfg.SSL_ORG_STATE = s
+    return s
+
+def get_ssl_org_name():
+
+    prompt = 'Please enter your org name (for SSL certs) [%s]:' % cfg.SSL_ORG_NAME
+    s = raw_input(prompt)
+    if not s:
+        return cfg.SSL_ORG_NAME
+
+    cfg.SSL_ORG_NAME = s
+    return s
+
+def save_config(params):
+
+    # first we need to read it
+    lines = open(cfg.CONFIG_FILE).readlines()
+
+    for param in params.keys():
+        saved = 0
+        for n in range(len(lines)):
+            if lines[n].startswith(param):
+                lines[n] = '%s = %s\n' % (param, `params[param]`)
+                saved = 1
+        if not saved:
+            lines.append('%s = %s\n' % (param, `params[param]`))
+
+    backup = cfg.CONFIG_FILE+'.orig'
+    print 'Saving config to %s, original one renamed to %s' % \
+          (cfg.CONFIG_FILE, backup)
+    shutil.copy(cfg.CONFIG_FILE, backup)
+    open(cfg.CONFIG_FILE, 'w').writelines(lines)
+    
+def run_cmd(cmd):
+
+    print cmd
+
+    pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
+    s = pipe.read(1)
+    while s:
+        sys.stdout.write(s); sys.stdout.flush()
+        s = pipe.read(1)
+    pipe.close()
+
+def add_backup_user():
+
+    try:
+        pwd.getpwnam(cfg.BACKUP_USER)
+        print 'User %s already exists, not creating.' % cfg.BACKUP_USER
+        return
+
+    except KeyError:
+        print 'Adding user %s' % cfg.BACKUP_USER
+
+        cmd = "/usr/sbin/adduser -c 'OpenVPS Backup User' -d %s %s" % \
+              (cfg.BACKUP, cfg.BACKUP_USER)
+        run_cmd(cmd)
+
+        sshdir = os.path.join(cfg.BACKUP, '.ssh')
+        if not os.path.exists(sshdir):
+            os.mkdir(sshdir, 0700)
+            commands.getoutput('chown %s %s' % (sshdir, cfg.BACKUP_USER))
+        if not os.path.exists(sshdir+'/authorized_keys'):
+            os.mknod(sshdir+'/authorized_keys')
+            commands.getoutput('chown %s %s' % (sshdir+'/authorized_keys', cfg.BACKUP_USER))
+            os.chmod(sshdir+'/authorized_keys', 0600)
+
+            
+def plant_peer_key():
+
+
+    if not os.path.exists(cfg.OHB_DSA_KEY):
+        print 'Generating DSA key for backups...'
+        cmd = 'ssh-keygen -t dsa -N "" -f %s' % cfg.OHB_DSA_KEY
+        run_cmd(cmd)
+
+    if cfg.PEERIP != '127.0.0.1':
+        print
+        print "Now we are going to try to copy %s.pub to the peer server, you will be prompted for a password" % cfg.OHB_DSA_KEY
+        print "If this fails (e.g. peer server is not yet set up), then"
+        print "REMEMBER to paste the contents of %s.pub into %s/.ssh/authorized_keys on %s" \
+              % (cfg.OHB_DSA_KEY, cfg.BACKUP, cfg.PEERIP)
+        print "also remember to ssh to %s at least once to get it into known_hosts." % cfg.PEERIP
+        print
+        s = raw_input("Should we try this now? [y]")
+        if not s or s == 'y':
+            cmd = 'cat %s.pub | ssh -v %s "cat >> %s/.ssh/authorized_keys"' \
+                  % (cfg.OHB_DSA_KEY, cfg.PEERIP, cfg.BACKUP)
+            run_cmd(cmd)
+    else:
+            cmd = 'cat %s.pub >> %s/.ssh/authorized_keys' \
+                  % (cfg.OHB_DSA_KEY, cfg.BACKUP)
+            run_cmd(cmd)
+
+def fix_sems():
+
+    s = commands.getoutput('grep kernel.sem /etc/sysctl.conf')
+    if not s:
+        print 'Increasing the number of available semaphores.'
+        commands.getoutput('sysctl -w kernel.sem="250 256000 32 1024"')
+        commands.getoutput('echo "kernel.sem = 250 256000 32 1024" >> /etc/sysctl.conf')
+
+def vserver_service():
+
+    if not os.path.exists('/etc/init.d/vservers'):
+        print 'Installing vservers service'
+        shutil.copy('/usr/local/etc/init.d/vservers', '/etc/init.d/vservers')
+
+def fix_services():
+
+    print 'Disabling most services:'
+    print '    ',
+
+    srvs = os.listdir('/etc/init.d')
+    for srv in srvs:
+        if srv not in ['functions', 'killall', 'halt', 'single'] and \
+               (not srv.endswith('~') or srv.endswith('.bak')):
+            print srv,
+            commands.getoutput('/sbin/chkconfig --level2345 %s off' % srv)
+            
+    print '\nEnabling services we need:'
+    print '    ',
+
+    for srv in ['network', 'sshd', 'syslog', 'atd', 'random', 'iptables',
+                'crond', 'anacron', 'httpd', 'named', 'vservers', 'ohresources',
+                'ohd', 'ohfixproc']:
+        print srv,
+        commands.getoutput('/sbin/chkconfig %s on' % srv)
+
+    print
+
+def fix_sshd():
+
+    print 'Forcing sshd to listen to the first IP on eth0 and loopback only'
+    ip = commands.getoutput("ifconfig | grep inet | head -n 1 | awk '{print $2}' | awk -F: '{print $2}'")
+    print '    ', ip
+
+    shutil.copy('/etc/ssh/sshd_config', '/etc/ssh/sshd_config.orig')
+    lines = open('/etc/ssh/sshd_config').readlines()
+    set = 0
+    for n in range(len(lines)):
+        if lines[n].strip().lower().find('listenaddress') > -1:
+            if not set:
+                lines[n] = 'ListenAddress %s\nListenAddress 127.0.0.1\n' % ip
+                set = 1
+            else:
+                lines[n] = '#'+lines[n]
+
+    open('/etc/ssh/sshd_config', 'w').writelines(lines)
+
+    s = raw_input('Can I restart sshd now? [n]')
+    if s == 'y':
+        run_cmd('service sshd restart')
+    else:
+        print '\nREMEMBER to restart sshd!'
+
+def fix_named():
+
+    print 'Trying to force named to listen on the first IP on eth0 only'
+    ip = commands.getoutput("ifconfig | grep inet | head -n 1 | awk '{print $2}' | awk -F: '{print $2}'")
+
+    shutil.copy('/etc/named.conf', '/etc/named.conf.orig')
+    lines = open('/etc/named.conf').readlines()
+
+    for n in range(len(lines)):
+        if lines[n].strip().startswith('options'):
+            lines[n].append('listen-on {%s; 127.0.0.1;};\n' % ip)
+        if lines[n].strip().startswith('listen-on'):
+            lines[n] = '// '+lines[n]
+
+    open('/etc/named.conf', 'w').writelines(lines)
+
+def fix_httpd():
+
+    print 'Configuring httpd to listen on port 1011'
+    ip = commands.getoutput("ifconfig | grep inet | head -n 1 | awk '{print $2}' | awk -F: '{print $2}'")
+
+    shutil.copy('/etc/httpd/conf/httpd.conf', '/etc/httpd/conf/httpd.conf.orig')
+    lines = open('/etc/httpd/conf/httpd.conf').readlines()
+
+    set = 0
+    for n in range(len(lines)):
+        if lines[n].strip().lower().startswith('listen'):
+            if not set:
+                lines[n] = 'Listen 1011\n'
+                set = 1
+            else:
+                lines[n] = '#'+lines[n]
+
+    open('/etc/httpd/conf/httpd.conf', 'w').writelines(lines)
+
+    shutil.copy('/etc/httpd/conf.d/ssl.conf', '/etc/httpd/conf.d/ssl.conf.orig')
+    lines = open('/etc/httpd/conf.d/ssl.conf').readlines()
+
+    set = 0
+    for n in range(len(lines)):
+        if lines[n].strip().lower().startswith('listen'):
+            if not set:
+                lines[n] = 'Listen %s:443\n' % ip
+                set = 1
+            else:
+                lines[n] = '#'+lines[n]
+
+    open('/etc/httpd/conf.d/ssl.conf', 'w').writelines(lines)
+
+def add_ohd_user():
+
+    try:
+        pwd.getpwnam(cfg.OHD_USER)
+        print 'User %s already exists, not creating.' % cfg.OHD_USER
+        return
+
+    except KeyError:
+        print 'Adding user %s' % cfg.OHD_USER
+
+        cmd = "/usr/sbin/adduser -c 'OpenVPS Priv Exec User' %s" % cfg.OHD_USER
+        run_cmd(cmd)
+
+        sshdir = os.path.join('/home', cfg.OHD_USER, '.ssh')
+        if not os.path.exists(sshdir):
+            os.mkdir(sshdir, 0700)
+            commands.getoutput('chown %s %s' % (sshdir, cfg.OHD_USER))
+        if not os.path.exists(sshdir+'/authorized_keys'):
+            os.mknod(sshdir+'/authorized_keys')
+            commands.getoutput('chown %s %s' % (sshdir+'/authorized_keys', cfg.OHD_USER))
+            os.chmod(sshdir+'/authorized_keys', 0600)
+
+        # add to sudoers
+        s = commands.getoutput('grep ohd /etc/sudoers')
+        if s:
+            print 'Not adding %s to sudoers because it appears to be there already' % cfg.OHD_USER
+        else:
+            print 'Adding %s to sudoers' % cfg.OHD_USER
+            ohdexec = os.path.join(cfg.MISC_DIR, 'ohdexec')
+            open('/etc/sudoers', 'a').write("\nohd     ALL= NOPASSWD: %s\n" % ohdexec)
+
+        
+def main():
+
+    params = {}
+
+    params['VSERVERS_ROOT'] = get_vservers_root()
+    params['BACKUP'] = get_backup()
+    params['PEERIP'] = get_peerip()
+    params['SSL_ORG_COUNTRY'] = get_ssl_org_country()
+    params['SSL_ORG_STATE'] = get_ssl_org_state()
+    params['SSL_ORG_NAME'] = get_ssl_org_name()
+
+    #save_config(params)
+    #fix_sems()
+    #vserver_service()
+    #fix_services()
+    fix_sshd()
+    #fix_named()
+    #fix_httpd()
+    #add_ohd_user()
+    #add_backup_user()
+    #plant_peer_key()
+
+    print params
+
+    print "DONE"
+
+
+
+main()
+

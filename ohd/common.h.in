@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * $Id: common.h,v 1.2 2004/05/25 17:17:44 grisha Exp $
+ * $Id: common.h.in,v 1.1 2004/09/22 23:52:19 grisha Exp $
  * 
  */
 
 static const char copyright[] = "Copyright 2004 OpenHosting, Inc.";
 
-#define SSH_USER "ohd"
-#define SSH_PORT "1012"
+#define SSH_USER "@OHD_USER@"
+#define SSH_PORT "@OHD_PORT@"
 #define SSH_HOST "127.0.0.1"
 #define AUTH_KEY  "/etc/ohd_key"
 
