@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.17 2004/12/03 20:01:27 grisha Exp $
+# $Id: vsutil.py,v 1.18 2005/01/03 21:07:11 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -23,6 +23,7 @@ import commands
 import struct
 import fcntl
 import sys
+import tempfile
 
 import cfg
 from oh.common import util
@@ -258,6 +259,36 @@ def set_file_xid(path, xid):
     """ Set xid of a file """
     
     vserver.set_file_xid(path, xid)
+
+def unify(src, dst):
+    """ Unify destination and source """
+
+    # NOTE: at this point it is assumed files are unifiable
+
+    # get a temp file name
+    dir = os.path.split(src)[0]
+    tmp_handle, tmp_path = tempfile.mkstemp(dir=dir)
+    os.close(tmp_handle)
+
+    # rename the destination, in case we need to back out
+    os.rename(dst, tmp_path)
+
+    # link source to destination
+    try:
+        os.link(src, dst)
+    except:
+        # back out
+        print 'Could not link %s -> %s, backing out' % (src, dst)
+        try:
+            if os.path.exists(dst):
+                os.unlink(dst)
+            os.rename(tmp_path, dst)
+        except:
+            print 'Could not back out!!! the destination file is still there as', tmp_file
+            raise exceptions.OSError
+
+    # done, remove the temp file
+    os.unlink(tmp_path)
 
 #
 # XXX These are obsolete with vs 1.9.x and up
