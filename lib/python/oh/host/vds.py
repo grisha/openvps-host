@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.34 2004/11/04 18:18:28 grisha Exp $
+# $Id: vds.py,v 1.35 2004/11/07 05:11:10 grisha Exp $
 
 """ VDS related functions """
 
@@ -27,6 +27,10 @@ import commands
 import tempfile
 import time
 import urllib
+import types
+
+# python-rpm
+import rpm
 
 # oh modules
 import cfg
@@ -157,7 +161,7 @@ def resolve_packages(pkglist, distroot='.'):
 
         else:
             # non-specific package, resolve it
-            result.append(pkgdict[pkg])
+            result.append(os.path.join(distroot, pkgdict[pkg]))
 
     return result
                 
@@ -1070,7 +1074,100 @@ def clone(source, dest, pace=cfg.PACE[0]):
     print 'Devices:'.ljust(20), devs
 
 
+
 def fixflags(refroot, pace=cfg.PACE[0]):
+
+    # This routine sets immutable-unlink flags on all files,
+    # except those that are marked as config (or mentioned at all)
+    # in rpms
+
+    # this will strip trailing slashes
+    refroot = os.path.normpath(refroot)
+
+    print 'Fixing flags in %s ... (this will take a while)' % refroot
+
+    # pace counter
+    p = 0
+
+    # list all rpms
+    # (rpmlint is a good place to look at Python code when it comes
+    #  to completely undocumented rpm-python)
+
+    ts = rpm.TransactionSet(refroot)
+    rpms  = [item[1][rpm.RPMTAG_NAME] for item in ts.IDTXload()]
+
+    # this will prevent some warnings related to chroot
+    os.chdir(cfg.VSERVERS_ROOT)
+
+    for name in rpms:
+
+        # list files in the rpm
+        it = ts.dbMatch('name', name)
+
+        hdr = it.next()
+
+        # this creates a list of file in an rpm. the implementation
+        # is borrowed from rpmlint package, i don't really understand
+        # how it works, but it does.
+
+        files = hdr[rpm.RPMTAG_OLDFILENAMES]
+        if files == None:
+            basenames = hdr[rpm.RPMTAG_BASENAMES]
+            if basenames:
+                dirnames = hdr[rpm.RPMTAG_DIRNAMES]
+                dirindexes = hdr[rpm.RPMTAG_DIRINDEXES]
+                files=[]
+                if type(dirindexes) == types.IntType:
+                    files.append(dirnames[dirindexes] + basenames[0])
+                else:
+                    for idx in range(0, len(dirindexes)):
+                        files.append(dirnames[dirindexes[idx]] + basenames[idx])
+
+        # now step through those files
+
+        for idx in xrange(len(files)):
+                                                                                                             
+            # do we need a pacing sleep?
+            if pace and p >= pace:
+                sys.stdout.write('.'); sys.stdout.flush()
+                time.sleep(cfg.PACE[1])
+                p = 0
+            else:
+                p += 1
+
+            flags = hdr[rpm.RPMTAG_FILEFLAGS][idx]
+    
+            if not flags & rpm.RPMFILE_CONFIG:
+                # (if not a config file)
+
+                file = files[idx]
+
+                # check against our cloning rules
+                c, t, s = match_path(file)
+    
+                if c or t or s:
+                    # skip it
+                    continue
+                else:
+                    abspath = os.path.join(refroot, file[1:])
+                    
+                    if (os.path.exists(abspath) 
+                        and (not os.path.islink(abspath)) 
+                        and (not os.path.isdir(abspath))):
+                        # (do not make symlinks and dirs immutable)
+
+                        vsutil.set_file_immutable_unlink(abspath)
+
+                        # NOTE that under no circumstances we *unset* the flag. This
+                        # is because e.g. usr/libexec/oh stuff must be iunlink, but
+                        # is not in an rpm.
+                        # reldst is the way it would look relative to refroot
+
+    print 'Done.'
+
+
+
+def OLD_fixflags(refroot, pace=cfg.PACE[0]):
 
     # This routine sets immutable-unlink flags on all files,
     # except those that are marked as config (or mentioned at all)
@@ -1127,71 +1224,79 @@ def addip(vserver, ip):
     vsutil.add_vserver_ip(vserver, ip)
     vserver_iptables_rule(ip)
 
-rpm_cache = {}
+def rpm_which_package(ts, root, file):
 
-def rpm_which_package(root, file):
+    # just like rpm -qf file
 
-    # find out which package owns file
-    cmd = "%s %s rpm -qf '%s'" % (cfg.CHROOT, root, file)
-    s = commands.getoutput(cmd)
+    it = ts.dbMatch('basenames', file)
 
-    if 'not owned by any package' in s:
+    try:
+        hdr = it.next()
+    except StopIteration:
         return None
-    else:
-        return s
 
+    #return hdr[rpm.RPMTAG_NAME]
+    return hdr
 
-# now find out which files are in this package
-def rpm_list_files(root, pkg):
+def rpm_list_files(hdr):
 
-    files = {}
-    
-    cmd = '%s %s rpm -ql --dump %s' % (cfg.CHROOT, root, pkg)
-    pipe = os.popen('{ ' + cmd + '; } ', 'r')
+    # list files in an RPM.
 
-    line = pipe.readline()
-    while line:
-        if 'is not installed' in line:
-            return {}
+    files=hdr[rpm.RPMTAG_OLDFILENAMES]
 
-        try:
-            path, size, mtime, md5, mode, owner, group, isconfig, isdoc, rdev, symlink = \
-                  line.split()
-        except ValueError:
-            # directories do not have md5
-            path, size, mtime, mode, owner, group, isconfig, isdoc, rdev, symlink = \
-                  line.split()
+    if files == None:
 
-        # at this point isconf is all we care about, but more can be added
-        files[path] = {'pkg':pkg, 'isconfig':int(isconfig)}
+        basenames = hdr[rpm.RPMTAG_BASENAMES]
 
-        line = pipe.readline()
+        if basenames:
 
-    sts = pipe.close()                            
+            dirnames = hdr[rpm.RPMTAG_DIRNAMES]
+            dirindexes = hdr[rpm.RPMTAG_DIRINDEXES]
 
-    return files
+            files=[]
+
+            if type(dirindexes) == types.IntType:
+                files.append(dirnames[dirindexes] + basenames[0])
+            else:
+                for idx in range(0, len(dirindexes)):
+
+                    files.append(dirnames[dirindexes[idx]] + basenames[idx])
+
+    # now stick in a dict
+    result = {}
+    for idx in xrange(len(files)):
+        flags = hdr[rpm.RPMTAG_FILEFLAGS][idx]
+        result[files[idx]] = {'isconfig': flags & rpm.RPMFILE_CONFIG}
+
+    return result
+
+rpm_cache = {}
 
 def rpm_file_isconfig(root, file):
 
     global rpm_cache
 
-    if file not in rpm_cache:
-        pkg = rpm_which_package(root, file)
-        if not pkg:
+    ts = rpm.TransactionSet(root)
+
+    if not rpm_cache.has_key(file):
+        
+        hdr = rpm_which_package(ts, root, file)
+        if not hdr:
             # assume it's config if not found, this will
             # make sure it is copied, not linked
-            rpm_cache[file] = {'pkg':None, 'isconfig':1}
+            rpm_cache[file] = {'isconfig':1}
         else:
-            rpm_cache.update(rpm_list_files(root, pkg))
+            rpm_cache.update(rpm_list_files(hdr))
 
-            # it's possible that rpm thinks a package is of an rpm
-            # but --dump won't list it... XXX why?
+            # it's possible that which_package thinks a package is of an rpm
+            # but then it's not actually there
             if file not in rpm_cache:
-                rpm_cache[file] = {'pkg':None, 'isconfig':1}
+                rpm_cache[file] = {'isconfig':1}
+
+    ts = None
 
     return rpm_cache[file]['isconfig']
 
 def is_config(root, file):
     return rpm_file_isconfig(root, file)
-
 

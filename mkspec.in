@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.5 2004/10/13 21:36:43 grisha Exp $
+# $Id: mkspec.in,v 1.6 2004/11/07 05:11:10 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -30,7 +30,7 @@ echo "License: ASL 2.0"
 echo "Group: OpenVPS"
 echo "URL: http://www.openvps.org/"
 echo "Vendor: OpenHosting, Inc."
-echo "Requires: python openvps-common httpd mod_python mod_ssl bind bind-chroot rrdtool util-vserver"
+echo "Requires: python openvps-common httpd mod_python mod_ssl bind bind-chroot rrdtool util-vserver rpm-python"
 echo "Source0: %{name}-%{version}.tgz"
 echo "BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot"
 echo "BuildPrereq: python-devel httpd-devel"
@@ -70,6 +70,7 @@ echo "%config(noreplace) %{_sysconfdir}/httpd/conf.d/*.conf"
 echo "%config(noreplace) %{_sysconfdir}/*.conf"
 echo "%config(noreplace) %{_sysconfdir}/ssh/sshd_config_ohd"
 echo "%{_libdir}/@PYTHON@/site-packages/oh"
+echo "%{_libdir}/@PYTHON@/site-packages"
 echo "/etc/init.d/ohd"
 echo "/etc/init.d/ohfixproc"
 echo "/etc/init.d/ohresources"

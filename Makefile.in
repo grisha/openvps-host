@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.13 2004/10/04 17:33:00 grisha Exp $
+# $Id: Makefile.in,v 1.14 2004/11/07 05:11:10 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -36,6 +36,7 @@ install:
 	fi
 	cd scripts && $(MAKE) install
 	@$(MAKE) install_py_lib
+	@$(MAKE) install_vspython
 	cd rhinit && $(MAKE) install
 	cd crontab && $(MAKE) install
 	cd src && $(MAKE) install
@@ -53,6 +54,13 @@ install_py_lib:
 		cd lib/python && @PYTHON@ setup.py install; \
 	else \
 		cd lib/python && @PYTHON@ setup.py install --root $(DESTDIR); \
+	fi
+
+install_vspython:
+	if test -z "$(DESTDIR)"; then \
+		cd vspython && @PYTHON@ setup.py install; \
+	else \
+		cd vspython && @PYTHON@ setup.py install --root $(DESTDIR); \
 	fi
 
 clean:

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.12 2004/10/18 23:14:47 grisha Exp $
+# $Id: vsutil.py,v 1.13 2004/11/07 05:11:10 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -25,8 +25,9 @@ import fcntl
 import sys
 
 import cfg
-
 from oh.common import util
+
+import vserver
 
 def is_vserver_kernel():
     """ Are we running on a VServer kernel? """
@@ -241,24 +242,13 @@ def set_file_immutable_unlink(path):
     """ Sets the ext2 immutable-unlink flag. This is the special
         flag that only exists in a vserver kernel."""
 
-    # unfortunately this can only be done via command-line
-    # XXX unless we make a python binding for vserver, that is.
-
-    cmd = "%s --iunlink '%s'" % (os.path.join(cfg.VSERVER_PREFIX, 'sbin/setattr'), path)
-    s, o = commands.getstatusoutput(cmd)
-    if s:
-        print s
-        raise 'Error running %s' % `cmd`
+    return vserver.set_file_attr(path, {'immutable':True, 'iunlink':True})
 
 def is_file_immutable_unlink(path):
     """ Check wither the iunlink flag is set """
 
-    cmd = "%s '%s'" % (os.path.join(cfg.VSERVER_PREFIX, 'sbin/showattr'), path)
-    s, o = commands.getstatusoutput(cmd)
-    if s:
-        print s
-        raise 'Error running %s' % `cmd`
-    return o[4:6] == 'UI'
+    x = vserver.get_file_attr(path)
+    return x.has_key('iunlink') and x.has_key('immutable') and x['iunlink'] and x['immutable']
 
 #
 # XXX These are obsolete with vs 1.9.x and up
