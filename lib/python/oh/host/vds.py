@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.16 2004/10/01 20:09:45 grisha Exp $
+# $Id: vds.py,v 1.17 2004/10/04 19:23:05 grisha Exp $
 
 """ VDS related functions """
 
@@ -26,6 +26,7 @@ import re
 import commands
 import tempfile
 import time
+import urllib
 
 # oh modules
 import cfg
@@ -79,6 +80,62 @@ def ref_make_devs(root):
     open(hdv1, 'w')
     os.chmod(hdv1, 0644)
 
+def resolve_packages(pkglist):
+
+    # XXX for whatever reason we were having a difficult time with passing urls
+    # to rpm -i (as if it's http implementation is buggy - in some setups with proxy
+    # it just wouldn't work)
+
+    # This walks through the list, looking for entries beginning with 'http:', downloads
+    # them to a temporary location (cfg.RPM_CACHE)
+
+    # for other packages it finds the matching version of an rpm in the current dir
+
+    if not os.path.exists(cfg.RPM_CACHE):
+        print 'Creating directory', cfg.RPM_CACHE
+        os.mkdir(cfg.RPM_CACHE)
+
+    # read current dir into a dict keyed by the beginning of a file
+    
+    files = os.listdir('.')
+    files.sort()
+    pkgdict = {}
+    for f in files:
+        # everythin but the last two dash separated parts
+        name = '-'.join(f.split('-')[:-2])
+        pkgdict[name] = f
+
+    # go throught the list
+
+    result = []
+
+    for pkg in pkglist:
+        
+        if pkg.startswith('http://') or pkg.startswith('https://'):
+            # remote package, get it
+
+            basename = os.path.split(pkg)[1]
+
+            cache_file = os.path.join(cfg.RPM_CACHE, basename)
+            if not os.path.exists(cache_file):
+                print 'Retrieveing %s -> %s' % (pkg, cache_file)
+                f = urllib.urlopen(pkg)
+                s = f.read()
+                open(os.path.join(cfg.RPM_CACHE, basename), 'wb').write(s)
+            else:
+                print 'Cached copy of %s exists as %s, not retrieving' % (basename, cache_file)
+                
+            result.append(cache_file)
+
+        elif pkg.endswith('.rpm'):
+            # local, specific package
+            result.append(pkg)
+        else:
+            # local non-specific package, resolve it
+            result.append(pkgdict[pkg])
+
+    return result
+                
 def ref_install_pkgs(root, distroot):
 
     print 'Installing packages from %s' % distroot
@@ -101,7 +158,7 @@ def ref_install_pkgs(root, distroot):
         os.chdir(distroot)
         
         print "Installing base packages STEP I..."
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_BASE_I))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_BASE_I)))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -113,8 +170,7 @@ def ref_install_pkgs(root, distroot):
         os.mkdir(os.path.join(root, 'usr', 'src', 'redhat'))
 
         print "Installing packages STEP II..."
-        #cmd = 'rpm --root %s -Uvh --nodeps %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS['ADDL']))
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_BASE_II))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_BASE_II)))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -126,8 +182,7 @@ def ref_install_pkgs(root, distroot):
         if cfg.FEDORA_C1_PKGS_ADDL:
         
             print "Installing additional packages..."
-            #cmd = 'rpm --root %s -Uvh --nodeps %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS['ADDL']))
-            cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_ADDL))
+            cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_ADDL)))
             pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
             s = pipe.read(1)
             while s:
@@ -190,11 +245,12 @@ def ref_fix_halt(refroot):
     """ Replace halt with a simpler version so the
     server stops cleanly, also copy in vreboot """
 
-    fname = 'vreboot'
-    src = os.path.join(cfg.VSERVER_LIB, fname)
-    dst = os.path.join(refroot, 'sbin', fname)
-    print 'Copying %s to %s' % (src, dst)
-    shutil.copy(src, dst)
+    # XXX in alpha utils this is gone
+    #fname = 'vreboot'
+    #src = os.path.join(cfg.VSERVER_LIB, fname)
+    #dst = os.path.join(refroot, 'sbin', fname)
+    #print 'Copying %s to %s' % (src, dst)
+    #shutil.copy(src, dst)
 
     fname = os.path.join(refroot, 'etc', 'init.d', 'halt')
     print 'Writing %s' % fname
