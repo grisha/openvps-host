@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.49 2005/01/06 21:54:39 grisha Exp $
+# $Id: vds.py,v 1.50 2005/01/10 20:16:26 grisha Exp $
 
 """ VDS related functions """
 
@@ -1252,7 +1252,6 @@ def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
 
     # write the password to the new file descriptor so openssl can read it
     os.write(fd_w, cfg.DUMP_SECRET+'\n')
-    os.close(fd_w)
 
     # cpio will be fed the list of files to archive. the output is compressed using
     # bzip2, then encrypted with openssl using blowfish
@@ -1320,6 +1319,7 @@ def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
                         continue
             pipe.write(src+'\n')
 
+    os.close(fd_w)
     pipe.close()
 
 def restore(dumpfile, refserver):
@@ -1411,7 +1411,6 @@ def restore(dumpfile, refserver):
 
     # write the password to the new file descriptor so openssl can read it
     os.write(fd_w, cfg.DUMP_SECRET+'\n')
-    os.close(fd_w)
 
     # note that we specify 'u' in cpio here for unconditionl,
     # i.e. don't worry about overwriting newer files with older
@@ -1424,11 +1423,10 @@ def restore(dumpfile, refserver):
     pipe = os.popen(cmd, 'r', 0)
     s = pipe.read(1)
     while s:
-        if s == '\n':
-            sys.stdout.write('.'); sys.stdout.flush()
-        #sys.stdout.write(s); sys.stdout.flush()
+        sys.stdout.write(s); sys.stdout.flush()
         s = pipe.read(1)
     pipe.close()
+    os.close(fd_w)
 
     ## lastly fix xids
     fixxids(os.path.join(cfg.VSERVERS_ROOT, vserver_name), context)
