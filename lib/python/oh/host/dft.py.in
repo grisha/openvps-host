@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.30 2004/11/22 20:43:41 grisha Exp $
+# $Id: dft.py.in,v 1.31 2004/11/22 22:42:35 grisha Exp $
 
 """ Configuration Defaults
 
@@ -831,7 +831,7 @@ FEDORA_C2_PKGS_BASE_II = [
     'http://www.openvps.org/dist/misc/mirror/perl-Net-SSLeay-1.23-0.rhfc1.dag.i386.rpm',
     'http://www.openvps.org/dist/misc/mirror/proftpd-1.2.9-7.i386.rpm',
     'http://www.openvps.org/dist/misc/oh-bind-9.2.4-2.i386.rpm',
-    'http://www.openvps.org/dist/misc/webmin-1.160-1_OH.noarch.rpm',
+    'http://www.openvps.org/dist/misc/webmin-1.170-1_OH.noarch.rpm',
     'httpd-devel',
     'krb5-devel',
     'libc-client',
