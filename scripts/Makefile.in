@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.7 2004/09/28 15:41:00 grisha Exp $
+# $Id: Makefile.in,v 1.8 2004/09/28 15:48:51 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -34,7 +34,6 @@ distclean: clean
 	rm -f Makefile
 
 install: 
-	$(INSTALL) -m 0550 ohd_child $(DESTDIR)$(SBINDIR)/ohd_child
 	$(INSTALL) -m 0550 ohdisk $(DESTDIR)$(SBINDIR)/ohdisk
 	$(INSTALL) -m 0550 ohbwidth $(DESTDIR)$(SBINDIR)/ohbwidth
 	$(INSTALL) -m 0550 ohbackup $(DESTDIR)$(SBINDIR)/ohbackup
