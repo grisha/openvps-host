@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.17 2004/10/04 19:23:05 grisha Exp $
+# $Id: vds.py,v 1.18 2004/10/05 20:08:40 grisha Exp $
 
 """ VDS related functions """
 
@@ -320,8 +320,7 @@ def ref_make_libexec_oh(refroot):
 
         shutil.move(os.path.join(refroot, path), dest_path)
 
-        if not vsutil.is_file_immutable_link(dest_path):
-            vsutil.set_file_immutable_link(dest_path)
+        vsutil.set_file_immutable_unlink(dest_path)
 
         # now place our custom in their path
         dest_path = os.path.join(refroot, path)
@@ -332,8 +331,7 @@ def ref_make_libexec_oh(refroot):
         cmd = 'chmod 04755 %s' % dest_path
         commands.getoutput(cmd)
 
-        if not vsutil.is_file_immutable_link(dest_path):
-            vsutil.set_file_immutable_link(dest_path)
+        vsutil.set_file_immutable_unlink(dest_path)
 
 def ref_make_i18n(refroot):
 
@@ -361,6 +359,9 @@ def buildref(refroot, distroot):
     # enable shadow (I wonder why it isn't by default)
     cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, refroot)
     s = commands.getoutput(cmd)
+
+    # set flags
+    fixflags(refroot)
 
 def vserver_add_user(root, userid, passwd):
     """ Add a user. This method will guess whether
@@ -701,10 +702,8 @@ def vserver_fixup_libexec_oh(root):
     png = os.path.join(root, 'usr/libexec/oh/ping')
     tr = os.path.join(root, 'usr/libexec/oh/traceroute')
 
-    if not vsutil.is_file_immutable_link(png):
-        vsutil.set_file_immutable_link(png)
-    if not vsutil.is_file_immutable_link(tr):
-        vsutil.set_file_immutable_link(tr)
+    vsutil.set_file_immutable_unlink(png)
+    vsutil.set_file_immutable_unlink(tr)
 
 def vserver_make_symlink(root, xid):
     
@@ -797,7 +796,7 @@ def copyown(src, dst):
     else:
         os.lchown(dst, st.st_uid, st.st_gid)
 
-bytes, lins, dirs, syms, touchs, copys, devs = 0, 0, 0, 0, 0, 0, 0
+bytes, lins, drs, syms, touchs, copys, devs = 0, 0, 0, 0, 0, 0, 0
 
 def copy(src, dst, link=1, touch=0):
     """Copy a file, a directory or a link.
@@ -806,7 +805,7 @@ def copy(src, dst, link=1, touch=0):
     not the contents are copied (useful for logfiles).
     """
 
-    global bytes, lins, dirs, syms, touchs, copys, devs
+    global bytes, lins, drs, syms, touchs, copys, devs
     
     if os.path.islink(src):
 
@@ -827,7 +826,7 @@ def copy(src, dst, link=1, touch=0):
             os.mkdir(dst)
             copyown(src, dst)
             shutil.copystat(src, dst)
-        dirs += 1
+        drs += 1
 
     elif os.path.isfile(src):
 
@@ -845,11 +844,17 @@ def copy(src, dst, link=1, touch=0):
             if DRYRUN:
                 print 'ln %s %s' % (src, dst)
             else:
-                os.link(src, dst)
-                if not vsutil.is_file_immutable_link(dst):
-                    vsutil.set_file_immutable_link(dst)
-
-            lins += 1
+                if vsutil.is_file_immutable_unlink(src):
+                    os.link(src, dst)
+                    lins += 1
+                else:
+                    # since it is not iunlink, copy it anyway
+                    print 'Warning: not hardlinking %s because it is not iunlink' % src
+                    shutil.copy(src, dst)
+                    copyown(src, dst)
+                    shutil.copystat(src, dst)
+                    bytes += os.path.getsize(dst)
+                    copys += 1
             
         else:
 
@@ -910,6 +915,7 @@ def clone(source, dest, pace=1000):
                 p += 1
 
             src = os.path.join(root, file)
+
             # reldst is they way it would look inside vserver
             reldst = os.path.join(max(root[len(source):], '/'), file)
             dst = os.path.join(dest, reldst[1:])
@@ -921,6 +927,60 @@ def clone(source, dest, pace=1000):
             if not s:
                 link = not c and not is_config(source, reldst)
                 copy(src, dst, link=link, touch=t)
+
+    print 'Done.'
+
+    global bytes, lins, drs, syms, touchs, copys, devs
+    print 'Bytes copied:'.ljust(20), bytes
+    print 'Links created:'.ljust(20), lins
+    print 'Dirs copied:'.ljust(20), drs
+    print 'Symlinks copied:'.ljust(20), syms
+    print 'Touched files:'.ljust(20), touchs
+    print 'Copied files:'.ljust(20), copys
+    print 'Devices:'.ljust(20), devs
+
+
+def fixflags(refroot, pace=1000):
+
+    # This routine sets immutable-unlink flags on all files,
+    # except those that are marked as config (or mentioned at all)
+    # in rpms
+
+    # this will strip trailing slashes
+    refroot = os.path.normpath(refroot)
+
+    print 'Fixing flags in %s ... (this will take a while)' % refroot
+
+    # pace counter
+    p = 0
+
+    # this will prevent some warnings related to chroot
+    os.chdir(cfg.VSERVERS_ROOT)
+    
+    for root, dirs, files in os.walk(refroot):
+
+#        print root, dirs, files
+
+        for file in files + dirs:
+
+            # do we need a pacing sleep?
+            if pace and p >= pace:
+                sys.stdout.write('.'); sys.stdout.flush()
+                time.sleep(1)
+                p = 0
+            else:
+                p += 1
+
+            abspath = os.path.join(root, file)
+
+            # reldst is the way it would look relative to refroot
+            reldst = os.path.join(max(root[len(refroot):], '/'), file)
+            
+            if not is_config(refroot, reldst):
+                vsutil.set_file_immutable_unlink(abspath)
+            # NOTE that under no circumstances we *unset* the flag. This
+            # is because e.g. usr/libexec/oh stuff must be iunlink, but
+            # is not in an rpm.
 
     print 'Done.'
 

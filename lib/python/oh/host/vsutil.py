@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.4 2004/05/25 17:17:44 grisha Exp $
+# $Id: vsutil.py,v 1.5 2004/10/05 20:08:40 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -84,7 +84,7 @@ def get_vserver_info_by_ip(ip):
 def guess_vserver_device():
     """ Guess which device is the one mounting our vservers partition """
 
-    s = commands.getoutput('/bin/mount | /bin/grep tagctx | /usr/bin/head -n 1')
+    s = commands.getoutput('/bin/mount | /bin/grep tagxid | /usr/bin/head -n 1')
     device = s.split()[0]
 
     return device
@@ -131,7 +131,40 @@ def read_shadow(vserver):
         
     return users
 
-def is_file_immutable_link(path):
+def set_file_immutable_unlink(path):
+    """ Sets the ext2 immutable-unlink flag. This is the special
+        flag that only exists in a vserver kernel."""
+
+    # unfortunately this can only be done via command-line
+    # XXX unless we make a python binding for vserver, that is.
+
+    cmd = "setattr --iunlink '%s'" % path
+    s = commands.getoutput(cmd)
+    if s:
+        raise `s`
+
+def is_file_immutable_unlink(path):
+    """ Check wither the iunlink flag is set """
+
+    cmd = "showattr '%s'" % path
+    s = commands.getoutput(cmd)
+    return s[4:6] == 'UI'
+
+#
+# XXX These are obsolete with vs 1.9.x and up
+#
+
+def set_file_immutable_link_legacy(path):
+    """ Sets the ext2 immutable flag. This is the special
+        flag that only exists in a vserver kernel."""
+
+    f = open(path)
+    # 0x00008010 is EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL
+    rec = struct.pack('L', 0x00008010)
+    # 0x40046602 is EXT2_IOC_SETFLAGS
+    fcntl.ioctl(f.fileno(), 0x40046602, rec)
+
+def is_file_immutable_link_legacy(path):
     """ Does this file have immutable_file and immutable_link
         flags set, which would mean it is a safe bet that it
         cannot be modified from within a vserver """
@@ -149,14 +182,4 @@ def is_file_immutable_link(path):
     
     # 0x00008010 is EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL
     return flags & 0x00008010 == 0x00008010
-
-def set_file_immutable_link(path):
-    """ Sets the ext2 immutable flag. This is the special
-        flag that only exists in a vserver kernel."""
-
-    f = open(path)
-    # 0x00008010 is EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL
-    rec = struct.pack('L', 0x00008010)
-    # 0x40046602 is EXT2_IOC_SETFLAGS
-    fcntl.ioctl(f.fileno(), 0x40046602, rec)
 

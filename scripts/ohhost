@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost,v 1.4 2004/10/04 15:28:54 grisha Exp $
+# $Id: ohhost,v 1.5 2004/10/05 20:08:40 grisha Exp $
 
 
 """
@@ -85,6 +85,18 @@ def cmd_customize():
 
     vds.customize(name, fqdn, ip, xid, userid, passwd, disklim, dns)
 
+def cmd_fixflags():
+
+    parser = OptionParser(usage="%prog fixflags <refroot>\n"
+                          "  Set the right immutable flags on a reference server")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 1:
+        parser.error("Must specify <refroot>")
+
+    refroot = args[0]
+
+    vds.fixflags(refroot)
 
 ########
 
