@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.8 2004/09/29 16:49:35 grisha Exp $
+# $Id: ohhost-configure,v 1.9 2004/09/29 18:06:20 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -189,7 +189,7 @@ def plant_peer_key():
             if not os.path.exists('/root/.ssh'):
                 os.mkdir('/root/.ssh', 0700)
             key = open('/etc/ssh/ssh_host_rsa_key.pub').read()
-            open('/root/.ssh/known_hosts', 'a').write('\n127.0.0.1 ssh-rsa %s' % key)
+            open('/root/.ssh/known_hosts', 'a').write('\n127.0.0.1 %s' % key)
 
 def fix_sems():
 
