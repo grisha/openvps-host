@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.11 2005/02/09 20:04:04 grisha Exp $
+# $Id: panel.py,v 1.12 2005/02/09 22:24:30 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -110,7 +110,13 @@ def handler(req):
         return pubkey(req)
 
     elif parts[1] == 'stats':
-        return stats(req)
+
+        if len(parts) != 4:
+            return error(req, 'request not understood')
+
+        name, command = parts[2:]
+
+        return stats(req, name, command)
 
     else:
         return error(req, 'request not understood')
@@ -404,7 +410,7 @@ def start(req, name, params):
     # our proxypass proxy
     util.redirect(req, 'status')
 
-def stats(req):
+def stats(req, name, command):
 
     # we need some fancy way of specifying parameters here....
 
