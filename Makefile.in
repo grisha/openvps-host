@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.12 2004/10/04 17:03:34 grisha Exp $
+# $Id: Makefile.in,v 1.13 2004/10/04 17:33:00 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -78,6 +78,7 @@ rpm: spec
 	PROPERNAME="openvps-host-$$VERSION" ; \
 	OURDIR=`pwd` ; \
 	cd .. ; \
+	rm /var/tmp/$$PROPERNAME; \
 	ln -sf $$OURDIR /var/tmp/$$PROPERNAME; \
 	cd /var/tmp ; \
 	tar -czv --exclude CVS -f $$PROPERNAME.tgz $$PROPERNAME/. ; \

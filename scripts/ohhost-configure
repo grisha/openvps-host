@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.10 2004/10/04 15:28:54 grisha Exp $
+# $Id: ohhost-configure,v 1.11 2004/10/04 17:33:00 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -319,6 +319,17 @@ def fix_httpd():
 
     open('/etc/httpd/conf.d/ssl.conf', 'w').writelines(lines)
 
+def vproc_unhide():
+
+    if not os.path.exists('/etc/init.d/vprocunhide') and \
+       os.path.exists('/usr/local/etc/init.d/vprocunhide'):
+        print 'Adding the vprocunhide service'
+        cmd = 'ln -s /usr/local/etc/init.d/vprocunhide /etc/init.d/vprocunhide'
+        run_cmd(cmd)
+    cmd = 'chkconfig vprocunhide on'
+    run_cmd(cmd)
+    run_cmd('/etc/init.d/vprocunhide')
+
 def add_ohd_user():
 
     try:
@@ -350,7 +361,6 @@ def add_ohd_user():
             ohdexec = os.path.join(cfg.MISC_DIR, 'ohdexec')
             open('/etc/sudoers', 'a').write("\nohd     ALL= NOPASSWD: %s\n" % ohdexec)
 
-
 def main():
 
     params = {}
@@ -369,6 +379,7 @@ def main():
     fix_sshd()
     fix_named()
     fix_httpd()
+    vproc_unhide()
     add_ohd_user()
     add_backup_user()
     plant_peer_key()
