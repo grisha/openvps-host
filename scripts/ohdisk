@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohdisk,v 1.7 2004/10/07 21:58:16 grisha Exp $
+# $Id: ohdisk,v 1.8 2005/01/05 23:02:24 grisha Exp $
 
 """
 This script periodically collects data about vservers disk
@@ -50,30 +50,6 @@ def list_vserver_xids():
 
     return xids
 
-def get_disk_limits(xid):
-
-    r = {}
-
-    cmd = '%s -x %s %s' % (cfg.VDLIMIT, xid, cfg.VSERVERS_ROOT)
-
-    s =  commands.getoutput(cmd)
-
-    lines = s.splitlines()
-    for line in lines:
-
-        if line == 'vc_get_dlimit: No such process':
-            continue
-
-        key, val = line.split(': ')
-
-        if val == '0,0,0,0,0':
-            return None
-
-        r['b_used'], r['b_total'], r['i_used'], r['i_total'], r['root'] = \
-                     val.split(',')
-
-    return r
-
 # are we on a vserver kernel?
 if not vsutil.is_vserver_kernel():
     sys.exit()
@@ -83,7 +59,7 @@ xids = list_vserver_xids()
 
 for xid in xids:
 
-    dl = get_disk_limits(xid)
+    dl = vsutil.get_disk_limits(xid)
     if dl:
 
         # XXX begin workaround

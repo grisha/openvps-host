@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.18 2005/01/03 21:07:11 grisha Exp $
+# $Id: vsutil.py,v 1.19 2005/01/05 23:02:24 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -48,7 +48,7 @@ def get_vserver_config(name):
 
     # We do not take a 'generic' approach and simply read everything
     # in the directory, but look for specific files and ignore others. This
-    # is because the sematics of each parameter are to complex to be generic, e.g.
+    # is because the sematics of each parameter are too complex to be generic, e.g.
     # in the interfaces directory, the alphabetical order of the directory determins
     # the order in which they are turned up.
 
@@ -259,6 +259,30 @@ def set_file_xid(path, xid):
     """ Set xid of a file """
     
     vserver.set_file_xid(path, xid)
+
+def get_disk_limits(xid):
+
+    r = {}
+
+    cmd = '%s -x %s %s' % (cfg.VDLIMIT, xid, cfg.VSERVERS_ROOT)
+
+    s =  commands.getoutput(cmd)
+
+    lines = s.splitlines()
+    for line in lines:
+
+        if line == 'vc_get_dlimit: No such process':
+            continue
+
+        key, val = line.split(': ')
+
+        if val == '0,0,0,0,0':
+            return None
+
+        r['b_used'], r['b_total'], r['i_used'], r['i_total'], r['root'] = \
+                     val.split(',')
+
+    return r
 
 def unify(src, dst):
     """ Unify destination and source """

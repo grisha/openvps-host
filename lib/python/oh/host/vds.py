@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.46 2005/01/05 18:56:30 grisha Exp $
+# $Id: vds.py,v 1.47 2005/01/05 23:02:24 grisha Exp $
 
 """ VDS related functions """
 
@@ -28,6 +28,7 @@ import tempfile
 import time
 import urllib
 import types
+import hmac
 
 # python-rpm
 import rpm
@@ -1182,9 +1183,6 @@ def unify(source, dest, pace=cfg.PACE[0]):
 
 def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
 
-    # XXX we need add the remaining components, namely,
-    # /etc/vservers/xxxx and the RRD(s)
-
     # Save the difference between reference and the server in an
     # archive The archive is encrypted. This is because you have to
     # trust it before you try restoring it. It is also better for any
@@ -1202,6 +1200,46 @@ def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
     # this will prevent some warnings
     os.chdir(cfg.VSERVERS_ROOT)
 
+    # first we need a header. for now the header format is:
+    # "openvps-dump|Fedora Core release 2 (Tettnang)|2004010101|userid|ctxid|ip|hmac"
+    # where the fields are:
+    # * \0openvps-dump (constant) (the \0 makes it apear like a binary file to less)
+    # * /etc/fedora-release from reference server
+    # * /etc/openvps-release from reference (default to YYYYMMDDHHMMSS
+    # * name of vserver
+    # * context id of vserver
+    # * ips in format dev:ip/mask,dev:ip/mask
+    # * current disk limits (the argument to -S of vdlim)
+    # * hmac of the preceeding string
+
+    config = vsutil.get_vserver_config(vserver_name)
+
+    header = ['\0openvps-dump']
+    header.append(open(os.path.join(refserver, 'etc/fedora-release')).read().strip())
+    if os.path.exists(os.path.join(refserver, 'etc/openvps-release')):
+        header.append(open(os.path.join(refserver, 'etc/openvps-release')).read().strip())
+    else:
+        header.append(time.strftime('%Y%m%d%H%M%S', time.localtime()))
+    header.append(vserver_name)
+    header.append(config['context'])
+    header.append(','.join(['%s:%s/%s' % (i['dev'], i['ip'], i['mask']) for i in config['interfaces']]))
+
+    dl = vsutil.get_disk_limits(config['context'])
+    if dl:
+        header.append('%s,%s,%s,%s,%s' % (dl['b_used'], dl['b_total'], dl['i_used'], dl['i_total'], dl['root']))
+    else:
+        print 'Wargning: no disk limits for xid %s' % config['context']
+        header.append('None')
+
+    # turn it into string
+    header = '|'.join(header)
+
+    # sign it
+    digest = hmac.new(cfg.DUMP_SECRET, header).hexdigest()
+
+    # now write to our file
+    open(outfile, 'w').write('%s|%s|\0' % (header, digest))
+    
     # open a pipe to cpio
     fd_r, fd_w = os.pipe()
 
@@ -1211,8 +1249,20 @@ def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
 
     # cpio will be fed the list of files to archive. the output is compressed using
     # bzip2, then encrypted with openssl using blowfish
-    cmd = '/bin/cpio -oHcrc | /usr/bin/bzip2 | /usr/bin/openssl bf -salt -pass fd:%d > %s' % (fd_r, outfile)
+    cmd = '/bin/cpio -oHcrc | /usr/bin/bzip2 | /usr/bin/openssl bf -salt -pass fd:%d >> %s' % (fd_r, outfile)
     pipe = os.popen(cmd, 'w', 0)
+
+    # the first things to go into the archive should be the config and rrd
+    
+    # config
+    cfg_dir = os.path.join(cfg.ETC_VSERVERS, vserver_name)
+    cmd = '/usr/bin/find %s -print' % cfg_dir
+    cfg_files = commands.getoutput(cmd)
+    pipe.write(cfg_files+'\n')
+
+    # the rrd
+    rrd_path = os.path.join(cfg.VAR_DB_OH, vserver_name+'.rrd')
+    pipe.write(rrd_path+'\n')
     
     #print source, dest
     for root, dirs, files in os.walk(vserver, topdown=False):
@@ -1263,21 +1313,101 @@ def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
                         continue
             pipe.write(src+'\n')
 
-    # now we need /etc/vservers dir
-    cfg_dir = os.path.join(cfg.ETC_VSERVERS, vserver_name)
-    cmd = '/usr/bin/find %s -print' % cfg_dir
-    cfg_files = commands.output(cmd).splitlines()
-
-    for cfg_file in cfg_files:
-        pipe.write(cfg_file+'\n')
-
-    # XXX last, but not the least - the RRD
-
-    # XXX what about disk limits? Seems like our notion of limits may
-    # have to be redone - perhaps they should be save in /etc? Don't
-    # really like this idea... how about just a small temp file?
-
     pipe.close()
+
+def restore(dumpfile):
+
+    # this is quite simply the reverse of dump
+
+    # first let's check the sig
+
+    # XXX is 4096 enough?
+    header = open(dumpfile).read(4096)
+
+    if header[:len('\openvps-dump')] != '\0openvps-dump':
+        print '%s is not an openvps-dump file, aborting.' % dumpfile
+        return
+
+    # this would need to be adjusted if we alter the header
+    h_len = 8 # including the sig
+
+    header, junk = header.split('|\0', 1)
+
+    # remember the offset
+    offset = len(header)+2
+
+    header = header.split('|', h_len)
+    if len(header) < h_len:
+        print 'Bad header, %s may be corrupt, aborting.' % dumpfile
+        return
+
+    header, stored_digest = '|'.join(header[:-1]), header[-1]
+    digest = hmac.new(cfg.DUMP_SECRET, header).hexdigest()
+    if stored_digest != digest:
+        print 'The header signature in %s is bad, check your DUMP_SECRET value, aborting.' % dumpfile
+        return
+
+    # split it back now
+    header = header.split('|')
+
+    ## now do some sanity checking: make sure xid, name and ips aren't in use
+    abort = 0
+    
+    vss = vsutil.list_vservers()
+
+    # check name
+    vserver_name = header[3]
+    if vss.has_key(vserver_name):
+        print 'New vserver "%s" already exists.' % vserver_name
+        abort = 1
+
+    # check xid
+    context = header[4]
+    for vs in vss.keys():
+        if vss[vs]['context'] == context:
+            print 'New vserver "%s" wants xid %s, but it is in use by "%s".' \
+                  % (vserver_name, context, vs)
+            abort = 1
+
+    # check ips
+    ips = header[5].split(',')
+    ips = [ip.split(':')[1].split('/')[0] for ip in ips]
+    for vs in vss.keys():
+        for ifc in vss[vs]['interfaces']:
+            if ifc['ip'] in ips:
+                print 'New vserver "%s" wants ip %s, but it is in use by "%s".' \
+                      % (vserver_name, ifc['ip'], vs)
+                abort = 1
+
+    if abort:
+        print 'Aborting.'
+        return
+
+    ## at this point it should be safe to restore
+
+    ##### ZZZ XXXX first it needs to be cloned, but we skip this step
+
+    fd_r, fd_w = os.pipe()
+
+    # write the password to the new file descriptor so openssl can read it
+    os.write(fd_w, cfg.DUMP_SECRET)
+    os.close(fd_w)
+
+    # cpio will be fed the list of files to archive. the output is compressed using
+    # bzip2, then encrypted with openssl using blowfish
+    cmd = 'tail -c +%d %s | /usr/bin/openssl bf -salt -pass fd:%d -d | /usr/bin/bzip2 -d | /bin/cpio -idvtHcrc' \
+          % (offset, dumpfile, fd_r)
+    cmd = 'dd if=%s bs=1 skip=%d obs=1024 | /usr/bin/openssl bf -d -salt -pass fd:%d | /usr/bin/bzip2 -d > /var/tmp/dog.cpio' \
+          % (dumpfile, offset, fd_r)
+    print cmd
+    #cmd = '/bin/cpio -oHcrc | /usr/bin/bzip2 | /usr/bin/openssl bf -salt -pass fd:%d >> %s' % (fd_r, outfile)
+    pipe = os.popen(cmd, 'r', 0)
+    s = pipe.read(1)
+    while s:
+        sys.stdout.write(s); sys.stdout.flush()
+        s = pipe.read(1)
+    pipe.close()
+
 
 def fixflags(refroot):
 
