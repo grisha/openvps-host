@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.11 2004/06/09 19:39:14 grisha Exp $
+# $Id: vds.py,v 1.12 2004/06/09 19:49:46 grisha Exp $
 
 """ VDS related functions """
 
@@ -710,6 +710,8 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
     vserver_make_hosts(root, hostname, ip)
 
     search = '.'.join(hostname.split('.')[1:])
+    if '.' not in search:
+        search = hostname
     vserver_make_resolv_conf(root, dns, search=search)
 
     vserver_config_sendmail(root, hostname)
