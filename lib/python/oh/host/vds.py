@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.27 2004/10/15 21:55:13 grisha Exp $
+# $Id: vds.py,v 1.28 2004/10/16 01:09:47 grisha Exp $
 
 """ VDS related functions """
 
@@ -638,6 +638,10 @@ def vserver_make_ssl_cert(root, hostname):
                                            os.path.join(root, 'usr/share/ssl/certs/ipop3d.pem')))
     commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
                                            os.path.join(root, 'etc/webmin/miniserv.pem')))
+    commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
+                                           os.path.join(root, 'usr/share/ssl/certs/dovecot.pem')))
+    commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
+                                           os.path.join(root, 'usr/share/ssl/private/dovecot.pem')))
     s = commands.getoutput('rm -rf %s' % d)
     print s
     open(os.path.join(root, 'etc/httpd/conf/ssl.crt/.ohcert'), 'w').write('')

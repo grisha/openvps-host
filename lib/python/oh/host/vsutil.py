@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.9 2004/10/15 21:35:38 grisha Exp $
+# $Id: vsutil.py,v 1.10 2004/10/16 01:09:47 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -174,20 +174,6 @@ def list_vservers():
 
     return result
 
-## XXX this does not appear to be used anywhere
-# def get_vserver_info_by_ip(ip):
-
-#     """ get vserver information based on ip """
-
-#     vservers = list_vservers()
-
-#     result = None
-#     for vserver in vservers:
-#         if vservers[vserver]['IPROOT'] == ip:
-#             result = vservers[vserver]
-
-#     return result
-
 def guess_vserver_device():
     """ Guess which device is the one mounting our vservers partition """
 
@@ -195,25 +181,6 @@ def guess_vserver_device():
     device = s.split()[0]
 
     return device
-
-## XXX does not appear to be used
-# def running_vservers():
-
-#     result = {}
-
-#     s = commands.getoutput(cfg.VSERVER_STAT)
-
-#     lines = s.splitlines()
-#     for line in lines:
-
-#         fields = line.split()
-#         if fields[0] in ['CTX', '0']:
-#             continue
-
-#         xid, name = fields[0], fields[7]
-#         result[xid] = name
-        
-#     return result
 
 def check_passwd(vserver, userid, passwd):
     """ Check password for a user on a vserver """
@@ -226,19 +193,6 @@ def check_passwd(vserver, userid, passwd):
     sts = pipe.close()
                
     return not sts
-
-## XXX does not appear to be used
-# def read_shadow(vserver):
-#     """ Read shadow file """
-
-#     users = {}
-    
-#     shadow = os.path.join(cfg.VSERVERS_ROOT, 'etc', 'shadow')
-#     for line in open(shadow):
-#         uid, pwhash = line.split(':', 2)
-#         users[uid] = pwhash
-        
-#     return users
 
 def set_file_immutable_unlink(path):
     """ Sets the ext2 immutable-unlink flag. This is the special

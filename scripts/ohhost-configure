@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.17 2004/10/15 21:35:38 grisha Exp $
+# $Id: ohhost-configure,v 1.18 2004/10/16 01:09:47 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -274,7 +274,7 @@ def fix_services():
         if srv not in ['functions', 'killall', 'halt', 'single'] and \
                (not srv.endswith('~') or srv.endswith('.bak') or srv.startswith('#')):
             print srv,
-            commands.getoutput('/sbin/chkconfig --level2345 %s off' % srv)
+            commands.getoutput('/sbin/chkconfig --level 012345 %s off' % srv)
             
     print '\nEnabling services we need:'
     print '    ',
