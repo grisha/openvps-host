@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.4 2005/01/20 19:49:34 grisha Exp $
+# $Id: vsutil.py,v 1.5 2005/01/20 22:43:47 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -127,6 +127,11 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
 
     # ccapabilities
     open(os.path.join(dirname, 'ccapabilities'), 'w').write('mount\n')
+
+    # rlimits
+    os.mkdir(os.path.join(dirname, 'rlimits'))
+    for limit in cfg.RLIMITS.keys():
+        open(os.path.join(dirname, 'rlimits', limit), 'w').write('%s\n' % cfg.RLIMITS[limit])
 
     # run
     os.symlink('/var/run/vservers/%s' % name, os.path.join(dirname, 'run'))
