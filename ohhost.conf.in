@@ -26,7 +26,15 @@ BACKUP = '/backup'
 
 PRIMARY_IP='10.10.10.10'
 
-# Ip or address of the peer server to receive backups.
+# Our back-end IP address if any. If your server has two nics, then
+# it's highly recommended to have a back-end network for backups and
+# other inter-server communication.
+
+BACKEND_IP = None
+
+# Ip address of the peer server to receive backups. If you don't have
+# a back-end network and a peer server, just use 127.0.0.1.
+
 PEERIP = '127.0.0.1'
 
 # The organization name for the SSL certs. This is your company name
