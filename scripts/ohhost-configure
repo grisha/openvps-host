@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.26 2004/12/03 01:34:51 grisha Exp $
+# $Id: ohhost-configure,v 1.27 2004/12/03 03:13:53 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -129,8 +129,8 @@ def get_util_vserver_prefix():
 
 def get_primary_ip():
 
-    print 'Trying to figure out the primary ip...',
-    ip = commands.getoutput("ifconfig | grep inet | head -n 1 | awk '{print $2}' | awk -F: '{print $2}'")
+    print 'Trying to figure out the primary ip (assuming eth0)...',
+    ip = commands.getoutput("ifconfig eth0 | grep inet | head -n 1 | awk '{print $2}' | awk -F: '{print $2}'")
     print '    ', ip
 
     cfg.PRIMARY_IP = ip
