@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.7 2004/05/25 17:56:57 grisha Exp $
+# $Id: vds.py,v 1.8 2004/05/25 19:59:38 grisha Exp $
 
 """ VDS related functions """
 
@@ -251,19 +251,37 @@ def ref_make_libexec_oh(refroot):
 
     print 'Copying ping and traceroute there'
 
-    shutil.move(os.path.join(refroot, 'bin/ping'), os.path.join(dir, 'ping'))
-    shutil.move(os.path.join(refroot, 'usr/sbin/traceroute'),
-                os.path.join(dir, 'traceroute'))
+    # move the originals into libexec/oh
 
-    shutil.copy(os.path.join(cfg.OH_MISC, 'ping'), os.path.join(refroot, 'bin/ping'))
-    shutil.copy(os.path.join(cfg.OH_MISC, 'traceroute'),
-                os.path.join(refroot, 'usr/sbin/traceroute'))
+    png = os.path.join(dir, 'ping')
+    tr = os.path.join(dir, 'traceroute')
+
+    shutil.move(os.path.join(refroot, 'bin/ping'), png)
+    shutil.move(os.path.join(refroot, 'bin/traceroute'), tr)
+
+    if not vsutil.is_file_immutable_link(png):
+        vsutil.set_file_immutable_link(png)
+    if not vsutil.is_file_immutable_link(tr):
+        vsutil.set_file_immutable_link(tr)
+
+    # now place our custom in their path
+
+    png = os.path.join(refroot, 'bin/ping')
+    tr = os.path.join(refroot, 'bin/traceroute')
+
+    shutil.copy(os.path.join(cfg.OH_MISC, 'ping'), png)
+    shutil.copy(os.path.join(cfg.OH_MISC, 'traceroute'), tr)
 
     # why can't I do setuid with os.chmod?
-    cmd = 'chmod 04755 %s' % os.path.join(refroot, 'bin/ping')
+    cmd = 'chmod 04755 %s' % png
     commands.getoutput(cmd)
-    cmd = 'chmod 04755 %s' % os.path.join(refroot, 'usr/sbin/traceroute')
+    cmd = 'chmod 04755 %s' % tr
     commands.getoutput(cmd)
+
+    if not vsutil.is_file_immutable_link(png):
+        vsutil.set_file_immutable_link(png)
+    if not vsutil.is_file_immutable_link(tr):
+        vsutil.set_file_immutable_link(tr)
 
 
 def buildref(refroot, distroot):
@@ -304,7 +322,6 @@ def vserver_add_user(root, userid, passwd):
     cmd = "%s %s /usr/sbin/adduser -c '%s' -G wheel -p '%s' %s" % \
           (cfg.CHROOT, root, comment, passwd, userid)
     s = commands.getoutput(cmd)
-    print s #ZZZ
 
 def vserver_set_user_passwd(root, userid, passwd):
     """ Sets password for uerid. This method will guess whether
@@ -616,6 +633,22 @@ def vserver_ohd_key(root, name):
 
     open(ohdkeys, 'a+').write(s)
 
+def vserver_fixup_libexec_oh(root):
+
+    # This sets the right permissions for the files in
+    # usr/libexec/oh
+
+    print 'Setting flags in usr/libexec/oh'
+
+    png = os.path.join(root, 'usr/libexec/oh/ping')
+    tr = os.path.join(root, 'usr/libexec/oh/traceroute')
+
+    if not vsutil.is_file_immutable_link(png):
+        vsutil.set_file_immutable_link(png)
+    if not vsutil.is_file_immutable_link(tr):
+        vsutil.set_file_immutable_link(tr)
+
+
 def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
 
     # first make a configuration
@@ -643,6 +676,7 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
     vserver_webmin_passwd(root)
     vserver_disable_pam_limits(root)
     vserver_ohd_key(root, name)
+    vserver_fixup_libexec_oh(root)
     
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""
