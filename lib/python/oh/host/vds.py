@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.9 2004/06/09 18:46:41 grisha Exp $
+# $Id: vds.py,v 1.10 2004/06/09 19:34:37 grisha Exp $
 
 """ VDS related functions """
 
@@ -661,6 +661,35 @@ def vserver_fixup_libexec_oh(root):
     if not vsutil.is_file_immutable_link(tr):
         vsutil.set_file_immutable_link(tr)
 
+def vserver_make_symlink(root, xid):
+    
+    # to hide the actual name of the vserver from other vservers (they
+    # can see it by looking at mounts in /proc/mount), the directory
+    # in which the vserver resides is renamed to the context_id rather
+    # than the vserver name, which in trun becomes a symlink. This way
+    # the /proc/mount shows stuff from which it is impossible to
+    # discern the vserver name. (Note that from ctx 0 you will still
+    # the symlink names, but from within a vserver you won't).
+
+    root = os.path.normpath(root) # strip trailing /
+    base = os.path.split(root)[0]
+
+    newname = os.path.join(base, xid)
+
+    print 'Renaming/symlinking %s -> %s' % (root, newname)
+
+    os.rename(root, newname)
+    os.symlink(newname, root)
+
+def vserver_vroot_perms():
+
+    # set perms on VSERVERS_ROOT
+    # ...better safe than sorry...
+
+    print 'Doing chmod 0000 %s, just in case' % cfg.VSERVERS_ROOT
+
+    os.chmod(cfg.VSERVERS_ROOT, 0)
+
 
 def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
 
@@ -690,6 +719,8 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
     vserver_disable_pam_limits(root)
     vserver_ohd_key(root, name)
     vserver_fixup_libexec_oh(root)
+    vserver_make_symlink(root, xid)
+    vserver_vroot_perms()
     
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""
@@ -808,7 +839,7 @@ def clone(source, dest, pace=1000):
     # this will prevent some warnings
     os.chdir(cfg.VSERVERS_ROOT)
     
-#    print source, dest
+    #print source, dest
     copy(source, dest)
 
     for root, dirs, files in os.walk(source):
