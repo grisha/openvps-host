@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.37 2004/11/15 17:44:23 grisha Exp $
+# $Id: vds.py,v 1.38 2004/11/15 18:47:43 grisha Exp $
 
 """ VDS related functions """
 
@@ -1176,7 +1176,7 @@ def fixflags(refroot):
     print 'Done.'
 
 
-def fixxids(root, xid, pace=cfg.PACE[0]):
+def fixxids(vsroot, xid, pace=cfg.PACE[0]):
 
     # walk the root, and set all non-iunlink files to xid xid.  this
     # means that when a non iunlink file is deleted, the proper amount
@@ -1184,12 +1184,12 @@ def fixxids(root, xid, pace=cfg.PACE[0]):
 
     xid = int(xid)
 
-    print 'Fixing xids in %s for xid %d... (this may take a while)' % (root, xid)
+    print 'Fixing xids in %s for xid %d... (this may take a while)' % (vsroot, xid)
 
     p = 0
     t, x = 0, 0
 
-    for root, dirs, files in os.walk(root):
+    for root, dirs, files in os.walk(vsroot):
 
         for file in files + dirs:
 
