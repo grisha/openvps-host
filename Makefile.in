@@ -14,14 +14,14 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.9 2004/09/22 23:52:19 grisha Exp $
+# $Id: Makefile.in,v 1.10 2004/09/27 14:34:12 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
 MISC=@prefix@/oh/misc
 VARDB=/var/db/oh
 BACKUP=/backup
-CONFIG=@prefix@/etc/ohhost.conf
+CONFIG=/etc/ohhost.conf
 VERSION=version.txt
 
 all:
@@ -33,9 +33,6 @@ install:
 	$(INSTALL) -d $(DESTDIR)$(MISC)
 	@if test ! -e $(DESTDIR)$(VARDB) ; then \
 		$(INSTALL) -d $(DESTDIR)$(VARDB); \
-# 		if test -z "$(DESTDIR)"; then \
-# 			touch $(DESTDIR)$(BACKUP)/level0; \
-# 		fi ; \
 	fi
 	cd scripts && $(MAKE) install
 	@$(MAKE) install_py_lib

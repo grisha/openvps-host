@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.4 2004/09/22 23:52:19 grisha Exp $
+# $Id: Makefile.in,v 1.5 2004/09/27 14:34:13 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -42,6 +42,7 @@ install:
 	$(INSTALL) -m 0550 ohhost $(DESTDIR)$(SBINDIR)/ohhost
 	$(INSTALL) -m 0550 ping $(DESTDIR)$(MISC)/ping
 	$(INSTALL) -m 0550 traceroute $(DESTDIR)$(MISC)/traceroute
+	$(INSTALL) -m 0550 ohhost-configure $(DESTDIR)$(SBINDIR)/ohhost-configure
 # 	if test -z "$(DESTDIR)"; then \
 # 		$(MAKE) peer_key ; \
 # 	fi

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.9 2004/09/22 23:52:19 grisha Exp $
+# $Id: dft.py.in,v 1.10 2004/09/27 14:34:13 grisha Exp $
 
 """ Configuration Defaults
 
@@ -32,7 +32,7 @@ PREFIX = '@prefix@'
 OH_DIR = os.path.join(PREFIX, 'oh')
 
 # Configuration directory
-CONFIG_DIR = os.path.join(PREFIX, 'etc')
+CONFIG_DIR = '/etc'
 
 # Configuration file
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'ohhost.conf')

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 
 #
 # Copyright 2004 OpenHosting, Inc.
@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.1 2004/09/22 23:52:19 grisha Exp $
+# $Id: ohhost-configure,v 1.2 2004/09/27 14:34:13 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -163,7 +163,6 @@ def add_backup_user():
             
 def plant_peer_key():
 
-
     if not os.path.exists(cfg.OHB_DSA_KEY):
         print 'Generating DSA key for backups...'
         cmd = 'ssh-keygen -t dsa -N "" -f %s' % cfg.OHB_DSA_KEY
@@ -259,7 +258,7 @@ def fix_named():
 
     for n in range(len(lines)):
         if lines[n].strip().startswith('options'):
-            lines[n].append('listen-on {%s; 127.0.0.1;};\n' % ip)
+            lines[n] = lines[n]+'\n    listen-on {%s; 127.0.0.1;};\n' % ip
         if lines[n].strip().startswith('listen-on'):
             lines[n] = '// '+lines[n]
 
@@ -329,6 +328,12 @@ def add_ohd_user():
             ohdexec = os.path.join(cfg.MISC_DIR, 'ohdexec')
             open('/etc/sudoers', 'a').write("\nohd     ALL= NOPASSWD: %s\n" % ohdexec)
 
+
+def build_ref():
+
+    print """ We are now going to build the reference server. In order
+    to build the reference server, we need all Fedora RPMs available
+    in some directory. """
         
 def main():
 
@@ -341,22 +346,26 @@ def main():
     params['SSL_ORG_STATE'] = get_ssl_org_state()
     params['SSL_ORG_NAME'] = get_ssl_org_name()
 
-    #save_config(params)
-    #fix_sems()
-    #vserver_service()
-    #fix_services()
+    save_config(params)
+    fix_sems()
+    vserver_service()
+    fix_services()
     fix_sshd()
-    #fix_named()
-    #fix_httpd()
-    #add_ohd_user()
-    #add_backup_user()
-    #plant_peer_key()
+    fix_named()
+    fix_httpd()
+    add_ohd_user()
+    add_backup_user()
+    plant_peer_key()
 
-    print params
-
-    print "DONE"
-
-
+    print "We are *almost* done now. The last remaining step"
+    print "is to build a reference server. To this we first need a"
+    print "directory that contains all the rpms from the distribution"
+    print "CDs (i.e. everything in the RPMS directory. You can do this"
+    print "by either copying them to a local directory, or perhaps"
+    print "making them available via NFS. Once you have that setup, do"
+    print
+    print "ohhost buildref /vservers/REF /location/of/rpms"
+    print
 
 main()
 
