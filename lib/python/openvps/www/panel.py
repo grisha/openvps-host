@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.26 2005/02/28 17:43:42 grisha Exp $
+# $Id: panel.py,v 1.27 2005/03/02 15:43:33 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -294,8 +294,24 @@ def login(req, vserver_name, message=''):
         else:
              message = 'invalid login or password'   
 
+    # if we got here, either it's not a POST or login failed
+
+    # it's possible that some qargs were passed in
+
+    qargs = util.parse_qs(req.args)
+    if qargs.has_key('m'):
+        if not message:
+            if qargs['m'][0] == '1':
+                message = 'please log in'
+            elif qargs['m'][0] == '2':
+                message = 'session time-out, please log in again'
+    if qargs.has_key('url'):
+        url = qargs['url'][0]
+    else:
+        url = req.uri
+
     body_tmpl = _tmpl_path('login_body.html')
-    body_vars = {'message':message, 'url':req.uri}
+    body_vars = {'message':message, 'url':url}
 
     vars = {'global_menu': '', 
             'body':psp.PSP(req, body_tmpl, vars=body_vars),
