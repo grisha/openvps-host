@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: ohhost,v 1.2 2004/05/28 01:44:24 grisha Exp $
 
 
 """
@@ -73,7 +73,7 @@ def cmd_buildref():
 def cmd_customize():
 
     parser = OptionParser(usage="%prog customize <name> <fqdn> <ip> <xid> <userid> <passwd> <disklim> <dns>\n"
-                          "  Customize named <name> with <fqdn> <ip> <xid> <userid> <passwd> <disklim> <dns>")
+                          "  Customize name <name> with <fqdn> <ip> <xid> <userid> <passwd> <disklim> <dns>")
 
     (options, args) = parser.parse_args(sys.argv[2:])
     if len(args) != 8:
