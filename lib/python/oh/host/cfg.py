@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: cfg.py,v 1.4 2005/01/11 21:42:32 grisha Exp $
+# $Id: cfg.py,v 1.5 2005/01/11 22:27:40 grisha Exp $
 
 """ This module contains our configuration """
 
@@ -104,6 +104,11 @@ except:
 
 from dft import *
 locals().update(load_file(CONFIG_FILE))
+
+# some dynamic vals
+VSERVER_LIB = os.path.join(VSERVER_PREFIX, 'lib/util-vserver')
+VSERVER_STAT = os.path.join(VSERVER_PREFIX, 'sbin/vserver-stat')
+VSERVER = os.path.join(VSERVER_PREFIX, 'sbin/vserver')
 
 # replace CLONE_RULES with a compiled version,
 # the result should be a tuple of (copy, touch, skip)

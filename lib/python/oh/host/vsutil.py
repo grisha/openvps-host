@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.19 2005/01/05 23:02:24 grisha Exp $
+# $Id: vsutil.py,v 1.20 2005/01/11 22:27:40 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -313,6 +313,43 @@ def unify(src, dst):
 
     # done, remove the temp file
     os.unlink(tmp_path)
+
+# the following function can be called from apache, in which case
+# they'll be run via the suid ovwrapper, which will make sure the
+# caller belongs to the apache group
+
+def is_running(vserver):
+
+    if os.getuid() == 0:
+        # run directly
+        s = commands.getoutput(cfg.VSERVER_STAT)
+    else:
+        s = commands.getoutput('%s vserver-stat' % cfg.OVWRAPPER)
+
+    lines = s.splitlines()
+    for line in lines:
+        if line.startswith('CTX'):
+            continue
+        if vserver == line.split()[7]:
+            return True
+        
+    return False
+
+def start(vserver):
+
+    if os.getuid() == 0:
+        # run directly
+        return commands.getoutput('%s %s start' % (cfg.VSERVER, vserver))
+    else:
+        return commands.getoutput('%s vserver-start %s' % (cfg.OVWRAPPER, vserver))
+
+def stop(vserver):
+
+    if os.getuid() == 0:
+        # run directly
+        return commands.getoutput('%s %s stop' % (cfg.VSERVER, vserver))
+    else:
+        return commands.getoutput('%s vserver-stop %s' % (cfg.OVWRAPPER, vserver))
 
 #
 # XXX These are obsolete with vs 1.9.x and up

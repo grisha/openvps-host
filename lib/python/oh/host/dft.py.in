@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.39 2005/01/11 21:42:32 grisha Exp $
+# $Id: dft.py.in,v 1.40 2005/01/11 22:27:40 grisha Exp $
 
 """ Configuration Defaults
 
@@ -62,9 +62,12 @@ OVWRAPPER = os.path.join(PREFIX, 'sbin', 'ovwrapper')
 # Location of vservers config and lib
 ETC_VSERVERS = '/etc/vservers'  # overriden by openvps.conf
 VSERVER_PREFIX = '/usr/local'   # overriden by openvps.conf
-VSERVER_LIB = os.path.join(VSERVER_PREFIX, 'lib/util-vserver')
-VSERVER_STAT = os.path.join(VSERVER_PREFIX, 'sbin/vserver-stat')
-VSERVER = os.path.join(VSERVER_PREFIX, 'sbin/vserver')
+
+# the following is in cfg.py
+#VSERVER_LIB = os.path.join(VSERVER_PREFIX, 'lib/util-vserver')
+#VSERVER_STAT = os.path.join(VSERVER_PREFIX, 'sbin/vserver-stat')
+#VSERVER = os.path.join(VSERVER_PREFIX, 'sbin/vserver')
+
 
 # Location of context disk limit tool (vdlimit)
 VDLIMIT = os.path.join('@VDLIMIT_DIR@', 'vdlimit')
