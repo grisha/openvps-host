@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.26 2004/10/15 21:35:38 grisha Exp $
+# $Id: vds.py,v 1.27 2004/10/15 21:55:13 grisha Exp $
 
 """ VDS related functions """
 
@@ -511,7 +511,7 @@ def vserver_config_sendmail(root, hostname):
         
     open(fname, 'w').writelines(lines)
 
-def vserver_enable_pops(root):
+def vserver_enable_imaps(root):
 
     # tell dovecot to listen to imaps and pops only
 
@@ -524,9 +524,9 @@ def vserver_enable_pops(root):
     set = 0
     lines = open(file).readlines()
     for n in range(len(lines)):
-        stripped = line[n].strip()
+        stripped = lines[n].strip()
         if stripped.find('protocols') != -1:
-            line[n] = protos
+            lines[n] = protos
             set = 1
 
     if not set:
@@ -748,7 +748,7 @@ def vserver_fixup_libexec_oh(root):
     for file in ['traceroute', 'mount', 'umount']:
 
         path = os.path.join(root, 'usr/libexec/oh/', file)
-        vsutil.set_file_immutable_unlink(file)
+        vsutil.set_file_immutable_unlink(path)
 
 def vserver_immutable_modules(root):
 
