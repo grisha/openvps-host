@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
+# $Id: vds.py,v 1.2 2005/02/01 20:16:37 grisha Exp $
 
 """ VDS related functions """
 
@@ -472,6 +472,23 @@ def vserver_add_user(root, userid, passwd):
           (cfg.CHROOT, root, comment, passwd, userid)
     s = commands.getoutput(cmd)
 
+def vserver_enable_sudo(root):
+    """ Enable sudoing for anyone in the wheel group """
+
+    print 'Enblish sudo access for wheel group'
+
+    sudoers = os.path.join(root, 'etc/sudoers')
+
+    lines = open(sudoers).readlines()
+
+    for n in range(len(lines)):
+        if lines[n].startswith('# %wheel') and 'NOPASSWD' not in lines[n]:
+            lines[n] = lines[n][2:]
+            break
+
+    open(sudoers, 'w').writelines(lines)
+    
+
 def vserver_set_user_passwd(root, userid, passwd):
     """ Sets password for uerid. This method will guess whether
     the password is already md5 hashed or not (in which
@@ -888,6 +905,7 @@ def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
     root = os.path.join(cfg.VSERVERS_ROOT, name)
     
     vserver_add_user(root, userid, passwd)
+    vserver_enable_sudo(root)
     vserver_set_user_passwd(root, 'root', passwd)
     vserver_make_hosts(root, hostname, ip)
 
