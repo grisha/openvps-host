@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.8 2005/02/09 20:04:04 grisha Exp $
+# $Id: openvps-configure,v 1.9 2005/02/09 21:35:43 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -457,24 +457,31 @@ def fix_named():
 
 def fix_httpd():
 
-    print 'Configuring httpd to listen on port 1011'
+    print 'Configuring httpd to listen only on SSL'
 
+    # httpd.conf
     shutil.copy('/etc/httpd/conf/httpd.conf', '/etc/httpd/conf/httpd.conf.orig')
     lines = open('/etc/httpd/conf/httpd.conf').readlines()
 
-    set = 0
     for n in range(len(lines)):
         if lines[n].strip().lower().startswith('listen'):
-            if not set:
-                lines[n] = 'Listen 1011\n'
-                set = 1
-            else:
-                lines[n] = '#'+lines[n]
+            lines[n] = '#'+lines[n]
 
     open('/etc/httpd/conf/httpd.conf', 'w').writelines(lines)
 
+    # ssl.conf
     shutil.copy('/etc/httpd/conf.d/ssl.conf', '/etc/httpd/conf.d/ssl.conf.orig')
     lines = open('/etc/httpd/conf.d/ssl.conf').readlines()
+
+    for n in range(len(lines)):
+        if lines[n].strip().lower().startswith('listen'):
+            lines[n] = '#'+lines[n]
+
+    open('/etc/httpd/conf.d/ssl.conf', 'w').writelines(lines)
+
+    # openvps.conf
+    shutil.copy('/etc/httpd/conf.d/openvps.conf', '/etc/httpd/conf.d/openvps.conf.orig')
+    lines = open('/etc/httpd/conf.d/openvps.conf').readlines()
 
     set = 0
     for n in range(len(lines)):
@@ -485,13 +492,7 @@ def fix_httpd():
             else:
                 lines[n] = '#'+lines[n]
 
-    open('/etc/httpd/conf.d/ssl.conf', 'w').writelines(lines)
-
-    lines = open('/etc/httpd/conf.d/openvps.conf').readlines()
-
-    for n in range(len(lines)):
-
-        if lines[n].lower().startswith('<VirtualHost'):
+        if lines[n].lower().startswith('<virtualhost'):
             lines[n] = '<VirtualHost %s:443>\n' % cfg.PRIMARY_IP
         
     open('/etc/httpd/conf.d/openvps.conf', 'w').writelines(lines)

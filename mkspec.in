@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.18 2005/02/05 05:26:36 grisha Exp $
+# $Id: mkspec.in,v 1.19 2005/02/09 21:35:43 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -92,6 +92,7 @@ echo "/usr/sbin/openvps-mon"
 echo "/usr/sbin/pace"
 echo "/usr/sbin/ovwrapper"
 echo "/usr/sbin/ovgenkey"
+echo "/usr/sbin/ovcheckproc"
 echo "%dir /var/db/oh"
 echo "%dir /var/db/openvps"
 echo "%dir /var/db/openvps/vsmon"

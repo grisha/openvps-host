@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps.conf.in,v 1.4 2005/02/09 20:04:04 grisha Exp $
+# $Id: openvps.conf.in,v 1.5 2005/02/09 21:35:43 grisha Exp $
 
 <IfModule !mod_python.c>
   LoadModule python_module modules/mod_python.so
@@ -36,6 +36,8 @@
   </Directory>
 
 </IfModule>
+
+Listen 127.0.0.1:443
 
 <VirtualHost 127.0.0.1:443>
 
