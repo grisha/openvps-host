@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.15 2004/09/28 01:42:54 grisha Exp $
+# $Id: vds.py,v 1.16 2004/10/01 20:09:45 grisha Exp $
 
 """ VDS related functions """
 
@@ -260,15 +260,15 @@ def ref_make_libexec_oh(refroot):
                              ('bin/umount', 'umount'),]:
 
         # move the originals into libexec/oh
-        dest_path = os.path.join(libexec_dir, src)
+        dest_path = os.path.join(libexec_dir, short_name)
 
-        shutil.move(os.path.join(refroot, short_name), dest_path)
+        shutil.move(os.path.join(refroot, path), dest_path)
 
         if not vsutil.is_file_immutable_link(dest_path):
             vsutil.set_file_immutable_link(dest_path)
 
         # now place our custom in their path
-        dest_path = os.path.join(refroot, 'bin/ping')
+        dest_path = os.path.join(refroot, path)
 
         shutil.copy(os.path.join(cfg.OH_MISC, short_name), dest_path)
 
