@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.29 2005/03/08 18:23:07 grisha Exp $
+# $Id: panel.py,v 1.30 2005/04/02 02:12:30 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -68,16 +68,19 @@ def check_authen(req, vserver_name):
     try:
         cookies = Cookie.get_cookies(req, Class=RSASignedCookie.RSASignedCookie,
                                      secret=_get_pub_key())
-    except RSASignedCookie.RSACookieError:
+    except RSASignedCookie.RSASignError:
         cookies = None
         
     if not cookies or not cookies.has_key('openvps-user'):
         login(req, vserver_name, message='please log in')
     else:
-        login_time, userid = cookies['openvps-user'].value.split(':', 1)
-        if (time.time() - int(login_time)) > TIMEOUT:
-            login(req, vserver_name, message='session time-out, please log in again')
-            return None
+        try:
+            login_time, userid = cookies['openvps-user'].value.split(':', 1)
+            if (time.time() - int(login_time)) > TIMEOUT:
+                login(req, vserver_name, message='session time-out, please log in again')
+                return None
+        except:
+            login(req, vserver_name, message='please log in')
 
         return userid
 
@@ -192,7 +195,7 @@ def _base_url(req, ssl=0):
 
     return os.path.split(base)[0]
 
-def _navigation_map(req):
+def _navigation_map(req, vps):
 
     # tag, Text, link, icon_url, submenu
 
@@ -204,18 +207,21 @@ def _navigation_map(req):
 
     global_menu = [("status", "Status", "status", None, []),
                    ("stats", "Stats", "stats", None, stats),
+                   # note that /billing is expected to be on a different
+                   # server, so no submenu here
+                   ("account", "Account", "/billing?vps=%s" % vps, None, []),
                    ]
 
     return global_menu
 
-def _global_menu(req, location):
+def _global_menu(req, vps, location):
 
     if ':' in location:
         hlight, s_hlight = location.split(':')
     else:
         hlight, s_hlight = location, ''
 
-    menu_items = _navigation_map(req)
+    menu_items = _navigation_map(req, vps)
 
     m = psp.PSP(req, _tmpl_path('global_menu.html'),
                 vars={'menu_items':menu_items,
@@ -358,7 +364,7 @@ def status(req, name, params):
     body_tmpl = _tmpl_path('status_body.html')
     body_vars = {'status':status}
 
-    vars = {'global_menu': _global_menu(req, location),
+    vars = {'global_menu': _global_menu(req, name, location),
             'body':psp.PSP(req, body_tmpl, vars=body_vars),
             'name':name}
             
@@ -413,7 +419,7 @@ def traffic(req, name, params):
     data = _load_rrd_data(rrd, ['in', 'out'])
     body_vars = {'data':data}
 
-    vars = {'global_menu': _global_menu(req, location),
+    vars = {'global_menu': _global_menu(req, name, location),
             'body':psp.PSP(req, body_tmpl, vars=body_vars),
             'name':name}
             
@@ -533,7 +539,7 @@ def cpu(req, name, params):
 
         body_vars = {'data':data}
 
-        vars = {'global_menu': _global_menu(req, location),
+        vars = {'global_menu': _global_menu(req, name, location),
                 'body':psp.PSP(req, body_tmpl, vars=body_vars),
                 'name':name}
 
@@ -612,7 +618,7 @@ def bwidth(req, name, params):
 
         body_vars = {'data':data}
 
-        vars = {'global_menu': _global_menu(req, location),
+        vars = {'global_menu': _global_menu(req, name, location),
                 'body':psp.PSP(req, body_tmpl, vars=body_vars),
                 'name':name}
 
@@ -688,7 +694,7 @@ def disk(req, name, params):
 
         body_vars = {'data':data}
 
-        vars = {'global_menu': _global_menu(req, location),
+        vars = {'global_menu': _global_menu(req, name, location),
                 'body':psp.PSP(req, body_tmpl, vars=body_vars),
                 'name':name}
 
@@ -768,7 +774,7 @@ def mem(req, name, params):
 
         body_vars = {'data':data}
 
-        vars = {'global_menu': _global_menu(req, location),
+        vars = {'global_menu': _global_menu(req, name, location),
                 'body':psp.PSP(req, body_tmpl, vars=body_vars),
                 'name':name}
 
