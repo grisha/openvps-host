@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.29 2004/10/16 05:05:19 grisha Exp $
+# $Id: vds.py,v 1.30 2004/10/18 23:14:47 grisha Exp $
 
 """ VDS related functions """
 
@@ -298,8 +298,12 @@ def ref_fix_halt(refroot):
             '/sbin/killall5 -15\n'
             'sleep 5\n'
             'echo "Sending all processes the KILL signal..."\n'
-            '/sbin/killall5 -9\n'
-            '\n/sbin/halt -w\n')
+            '/sbin/killall5 -9\n\n'
+            r"mount |  awk '!/( \/ |^\/dev\/root|^\/dev\/ram| \/proc )/ { print $3 }' | \ "
+            '\nwhile read line; do\n'
+            '    umount -f $line\n'
+            'done\n'
+            '\n/sbin/reboot -n\n')
     f.close()
 
 def ref_fix_syslog(refroot):
@@ -489,7 +493,8 @@ def vserver_config_sendmail(root, hostname):
 
     f = open(fname, 'w')
     f.write('\n%s\n' % fqdn)
-    f.write('%s\n' % domain)
+    if '.' in domain:
+        f.write('%s\n' % domain)
     f.close()
 
     # up the load average so that sendmail does not refuse connections
@@ -826,7 +831,7 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns=cfg.PRIMARY_
     vserver_make_motd(root)
     vserver_fix_services(root)
     vserver_disk_limit(root, xid, disklim)
-    vserver_bwidth_acct(name, ip)
+    vserver_bwidth_acct(name)
     vserver_iptables_rule(ip)
     vserver_make_ssl_cert(root, hostname)
     vserver_add_http_proxy(root)

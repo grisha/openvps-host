@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.11 2004/10/16 05:05:19 grisha Exp $
+# $Id: vsutil.py,v 1.12 2004/10/18 23:14:47 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -107,6 +107,13 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
     # flags
     open(os.path.join(dirname, 'flags'), 'w').write(cfg.DFT_FLAGS)
 
+    # schedule
+    f = open(os.path.join(dirname, 'schedule'), 'w')
+    for k in ['fill-rate', 'interval', 'tokens', 'tokens-min', 'tokens-max']:
+        f.write('%d\n' % cfg.DFT_SCHED[k])
+    f.write('0\n') # obsolete cpu mask
+    f.close()
+
     # uts
     os.mkdir(os.path.join(dirname, 'uts'))
 
@@ -143,6 +150,9 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
     os.mkdir(os.path.join(dirname, 'apps'))
     os.mkdir(os.path.join(dirname, 'apps', 'init'))
     open(os.path.join(dirname, 'apps', 'init', 'mark'), 'w').write('default\n')
+
+    # apps/init/style (we want real init)
+    open(os.path.join(dirname, 'apps', 'init', 'style'), 'w').write('plain\n')
 
     print 'Done'
 

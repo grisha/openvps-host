@@ -74,10 +74,8 @@ VSERVER_PREFIX = '/usr/local'
 #      </html>
 #      """ # keep emacs happy "
 
-# Default ulimits. Note that this is per pocess, not per vserver, so
-# it doesn't really mean much.
+# Default nice.
 
-# DFT_ULIMIT = '-HS -u 1000 -v 500000'
 # DFT_NICE = '9' # not as nice as default (10), but nice
 
 # services we want enabled on new vservers (everything else is

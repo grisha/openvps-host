@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.21 2004/10/16 01:09:47 grisha Exp $
+# $Id: dft.py.in,v 1.22 2004/10/18 23:14:47 grisha Exp $
 
 """ Configuration Defaults
 
@@ -127,13 +127,23 @@ INDEX_HTML = """
       </html>
       """ # keep emacs happy "
 
-# Default ulimits. Note that this is per pocess, not per vserver,
-# so it doesn't really mean much.
-DFT_ULIMIT = '-HS -u 1000 -v 500000'
+# Default nice.
 DFT_NICE = '9' # not as nice as default (10), but nice
 
 # Vserver flags
-DFT_FLAGS = 'lock\nhide_netif\nvirt_uptime\n'
+DFT_FLAGS = 'lock\nhide_netif\nvirt_uptime\nsched_hard\nfakeinit\n'
+
+# Scheduler parameters. This only has effect when the sched_hard flag
+# is set. Every <interval> (in jiffies ~10ms), a <fill-rate> tokens is
+# added to the token bucket. At each timer tick a running process
+# consumes a token (to start python is ~16 tokens). If the bucket gets
+# empty, the conext is placed on hold queue until <min-tokens> is in
+# the bucket. A bucket can accumulate up to <max-token> tokens.
+DFT_SCHED = {'fill-rate': 30,
+             'interval': 100,
+             'tokens': 10000,
+             'tokens-min': 30,
+             'tokens-max':10000}
 
 # Device on which vservers get their IPs
 DFT_DEVICE = 'eth0'
@@ -526,6 +536,10 @@ FEDORA_C2_PKGS_BASE_II = [
     'lvm2',
     'xorg-x11-Mesa-libGL',
     'mod_perl',
+    'mod_python',
+    'emacs-common',
+    'libungif',
+    'Xaw3d',
     'http://www.openvps.org/dist/misc/mirror/perl-Net-SSLeay-1.23-0.rhfc1.dag.i386.rpm',
     'http://www.openvps.org/dist/misc/mirror/proftpd-1.2.9-7.i386.rpm',
     'http://www.openvps.org/dist/misc/webmin-1.160-1_OH.noarch.rpm',
