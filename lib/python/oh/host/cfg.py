@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: cfg.py,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: cfg.py,v 1.2 2004/12/23 19:12:04 grisha Exp $
 
 """ This module contains our configuration """
 
@@ -78,6 +78,12 @@ def compile_clone_rules(rules):
         skip_exp = re.compile(skip_exp)
 
     return copy_exp, touch_exp, skip_exp
+
+# First read a common config, if any:
+try:
+    from oh.common.cfg import *
+except:
+    pass
 
 # This is where the default config is read
 # and overlayed by the config in the config_file

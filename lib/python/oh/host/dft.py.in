@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.36 2004/12/22 21:12:48 grisha Exp $
+# $Id: dft.py.in,v 1.37 2004/12/23 19:12:04 grisha Exp $
 
 """ Configuration Defaults
 
@@ -92,7 +92,6 @@ DEFAULT_DOMAIN = 'domain.tld'
 # default receiver of the mon heartbeats
 MON_SECRET = 'Please change me!'
 MON_TARGET_IP = '127.0.0.1'
-MON_TARGET_PORT = 2004
 MON_PID_FILE = '/var/run/openvps-mon.pid'
 
 # When cloning a reference server, these rules dictate
@@ -622,53 +621,6 @@ HOME=/
 22 4 * * 0 root rndsleep 1200 && run-parts /etc/cron.weekly
 42 4 1 * * root rndsleep 1200 && run-parts /etc/cron.monthly
 """
-
-
-# These are the definitions of the data points that the monitor agent
-# collects and sends out. The definitions and the order here need to
-# match those on the receiving end becuase the receiver will create an
-# RRD database based on this defintion. On the host side only the
-# 'name' and the order of elements matter.
-
-HB = 300 # default heart beat
-
-# (name, rrd_type, hbeat, min, max)
-MON_DATA_DEF = [('hostname', None, None, None, None),
-                ('cpu_loadavg1', 'gauge', HB, 0, None),
-                ('nprocs', 'gauge', HB, 0, None),
-                ('mem_MemTotal', 'gauge', 86400, 0, None),
-                ('mem_MemFree', 'gauge', HB, 0, None),
-                ('mem_Cached', 'gauge', HB, 0, None),
-                ('mem_Active', 'gauge', HB, 0, None), 
-                ('mem_SwapTotal', 'gauge', 86400, 0, None),
-                ('mem_SwapFree', 'gauge', HB, 0, None),
-                ('forks', 'gauge', HB, 1, None),
-                ('net_eth0_rx_bytes', 'counter', HB, 0, 0xFFFFFF00L),
-                ('net_eth0_tx_bytes', 'counter', HB, 0, 0xFFFFFF00L),
-                ('net_eth0_packets', 'counter', HB, 0, 0xFFFFFF00L),
-                ('net_eth0_errors', 'counter', HB, 0, 0xFFFFFF00L),
-                ('net_eth0_drop', 'counter', HB, 0, 0xFFFFFF00L),
-                ('net_eth1_rx_bytes', 'counter', HB, 0, 0xFFFFFF00L),
-                ('net_eth1_tx_bytes', 'counter', HB, 0, 0xFFFFFF00L),
-                ('net_eth1_packets', 'counter', HB, 0, 0xFFFFFF00L),
-                ('net_eth1_errors', 'counter', HB, 0, 0xFFFFFF00L),
-                ('net_eth1_drop', 'counter', HB, 0, 0xFFFFFF00L),
-                ('disk_root_used', 'gauge', HB, 0, None),
-                ('disk_var_used', 'gauge', HB, 0, None),
-                ('disk_tmp_used', 'gauge', HB, 0, None),
-                ('disk_backup_used', 'gauge', HB, 0, None),
-                ('disk_vservers_used', 'gauge', HB, 0, None),
-                ('disk_root_free', 'gauge', HB, 0, None),
-                ('disk_var_free', 'gauge', HB, 0, None),
-                ('disk_tmp_free', 'gauge', HB, 0, None),
-                ('disk_backup_free', 'gauge', HB, 0, None),
-                ('disk_vservers_free', 'gauge', HB, 0, None),
-                ('disk_a_reads', 'counter', HB, 0, 0xFFFFFF00L),
-                ('disk_a_writes', 'counter', HB, 0, 0xFFFFFF00L),
-                ('disk_b_reads', 'counter', HB, 0, 0xFFFFFF00L),
-                ('disk_b_writes', 'counter', HB, 0, 0xFFFFFF00L),
-                ]
-
 
 
 # makes emacs go into python mode
