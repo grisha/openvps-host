@@ -2,7 +2,7 @@
   <h4>Bandwidth Utilization Statistics  (1 gigabyte is 1073741824 bytes)</h4>
 
   <p>
-  <table style="float: left;">
+  <table style="float: left; white-space: nowrap; font-size: 90%;">
     <tr>
       <th></th><th>input</th><th>output</th><th>total</th>
     </tr>
@@ -14,6 +14,7 @@ GB = 1073741824.0  # bytes in gigabyte
 for d in data:
     # begin
     year, month, step, b_in, b_out = d
+    step, b_in, b_out = int(step), long(b_in), long(b_out)
 %>
     <tr>
       <td><%="%s %d" % (month, year) %></td>
