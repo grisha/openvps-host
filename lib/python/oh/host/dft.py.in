@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.37 2004/12/23 19:12:04 grisha Exp $
+# $Id: dft.py.in,v 1.38 2005/01/04 22:57:25 grisha Exp $
 
 """ Configuration Defaults
 
@@ -93,6 +93,9 @@ DEFAULT_DOMAIN = 'domain.tld'
 MON_SECRET = 'Please change me!'
 MON_TARGET_IP = '127.0.0.1'
 MON_PID_FILE = '/var/run/openvps-mon.pid'
+
+# secret for backup files (openvps dump)
+DUMP_SECRET = 'Please change me too!'
 
 # When cloning a reference server, these rules dictate
 # what is done. Default action is to hardlink, unless

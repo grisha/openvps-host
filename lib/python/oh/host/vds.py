@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.44 2005/01/03 22:13:29 grisha Exp $
+# $Id: vds.py,v 1.45 2005/01/04 22:57:25 grisha Exp $
 
 """ VDS related functions """
 
@@ -1178,6 +1178,101 @@ def unify(source, dest, pace=cfg.PACE[0]):
 
     print 'Files unified:'.ljust(20), lins
     print 'Bytes saved:'.ljust(20), bytes
+
+
+def dump(vserver, refserver, pace=cfg.PACE[0]):
+
+    # save the difference between reference and the server in an archive
+
+
+    # so we walk the filesystem, if links is 1+, then get the inode,
+    # compare with reference, if matches, we don't care for this
+    # file. if we do care for this file, then we need to pipe its name
+    # to cpio so that it can archive it... the archive should be bzip2
+    # compressed for coolness. this will be an interesting use of
+    # pipes...
+
+    # ok, the next thing we need to do is to encrypt the output. the
+    # reasons are twofold - if we're going to be storing
+    # outside-vserver files such as rrd's and /etc stuff, we need to
+    # know that this file can be trusted at restore time. the second
+    # reason is that it's best that the customer data is encrypted
+    # anyway.
+
+    # openssl seems like the best way to encrypt/decrypt:
+    # cat XX | openssl bf -salt -pass pass:hello > XXX
+    # cat XXX | openssl bf -salt -pass pass:hello -d > XXXX
+
+
+    # pace counter
+    p = 0
+
+    # this will also strip trailing slashes
+    vserver, refserver = os.path.abspath(vserver), os.path.abspath(refserver)
+
+    print 'Dumping %s in reference to %s ... (this will take a while)' % (vserver, refserver)
+
+    # this will prevent some warnings
+    os.chdir(cfg.VSERVERS_ROOT)
+
+
+    # open a pipe to cpio
+
+    # XXX now need to figure out how to feed via a file descriptor in Python
+
+    cmd = '/bin/cpio -oHcrc | /usr/bin/bzip2 | /usr/bin/openssl bf -salt -pass pass:qweqwekweqw > /var/tmp/BLEH2'
+    pipe = os.popen(cmd, 'w', 0)
+    
+    #print source, dest
+
+    for root, dirs, files in os.walk(vserver):
+
+        for file in files + dirs:
+
+            if pace and p >= pace:
+                sys.stdout.write('.'); sys.stdout.flush()
+                time.sleep(cfg.PACE[1])
+                p = 0
+            else:
+                p += 1
+
+            src = os.path.join(root, file)
+
+            # reldst is they way it would look inside vserver
+            reldst = os.path.join(max(root[len(vserver):], '/'), file)
+            dst = os.path.join(refserver, reldst[1:])
+
+            if os.path.exists(dst):
+
+                if os.path.islink(dst) or os.path.isdir(dst) or not os.path.isfile(dst):
+                    
+                    # their mere existence is sufficient, since these
+                    # are never unified. but we need to make sure they
+                    # are not skipped (copy means they will be there
+                    # after cloning, touch doesn't apply here)
+                    
+                    c, t, s = match_path(file)
+
+                    if not s:
+                        continue
+                else:
+
+                    # this is a regular file that exists in both
+                    # reference and our server, let's compare inodes
+
+                    src_stat = os.lstat(src)
+                    dst_stat = os.lstat(dst)
+
+                    if src_stat.st_ino == dst_stat.st_ino:
+                        
+                        # inodes match, this is a unified file, no
+                        # reason to back it up
+
+                        continue
+
+            print src
+            pipe.write(src+'\n')
+    pipe.close()
 
 def fixflags(refroot):
 

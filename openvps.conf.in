@@ -37,6 +37,13 @@ BACKEND_IP = None
 
 PEERIP = '127.0.0.1'
 
+# default receiver of the mon heartbeats
+MON_SECRET = 'Please change me!'
+MON_TARGET_IP = '127.0.0.1'
+
+# secret for backup files (openvps dump)
+DUMP_SECRET = 'Please change me too!'
+
 # The organization name for the SSL certs. This is your company name
 # and other info.
 

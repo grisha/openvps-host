@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.4 2004/12/30 20:34:00 grisha Exp $
+# $Id: openvps-configure,v 1.5 2005/01/04 22:57:25 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -201,6 +201,9 @@ def save_config(params):
           (cfg.CONFIG_FILE, backup)
     shutil.copy(cfg.CONFIG_FILE, backup)
     open(cfg.CONFIG_FILE, 'w').writelines(lines)
+
+    # just in case
+    os.chmod(cfg.CONFIG_FILE, 0600)
     
 def run_cmd(cmd):
 
