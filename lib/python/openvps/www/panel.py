@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.4 2005/01/14 17:04:18 grisha Exp $
+# $Id: panel.py,v 1.5 2005/01/14 23:12:13 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -254,7 +254,9 @@ def stop(req, name, params):
         vsutil.stop(name)
         time.sleep(3)
 
-    util.redirect(req, _base_url(req)+'/status')
+    # note - this redirect is relative because absolute won't work with
+    # our proxypass proxy
+    util.redirect(req, 'status')
 
 def start(req, name, params):
 
@@ -265,4 +267,6 @@ def start(req, name, params):
         vsutil.start(name)
         time.sleep(3)
 
-    util.redirect(req, _base_url(req)+'/status')
+    # note - this redirect is relative because absolute won't work with
+    # our proxypass proxy
+    util.redirect(req, 'status')
