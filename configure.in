@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.5 2004/05/21 03:38:43 grisha Exp $
+# $Id: configure.in,v 1.6 2004/06/09 21:38:34 grisha Exp $
 
 AC_INIT
 
@@ -119,6 +119,12 @@ else
   AC_MSG_RESULT([$VS, looks like a vserver kernel.])
 fi
 
+# check for bind
+
+AC_PATH_PROG(NAMED, named)
+if test -z "$NAMED"; then
+  AC_MSG_ERROR([not found. Please install bind])
+fi
 
 # final output
 
