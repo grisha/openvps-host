@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.31 2004/10/25 20:43:18 grisha Exp $
+# $Id: vds.py,v 1.32 2004/10/27 02:35:00 grisha Exp $
 
 """ VDS related functions """
 
@@ -789,31 +789,31 @@ def vserver_immutable_modules(root):
     print s
 
 
-## def vserver_make_symlink(root, xid):
+def vserver_make_symlink(root, xid):
     
-##     # to hide the actual name of the vserver from other vservers (they
-##     # can see it by looking at mounts in /proc/mount), the directory
-##     # in which the vserver resides is renamed to the context_id rather
-##     # than the vserver name, which in trun becomes a symlink. This way
-##     # the /proc/mount shows stuff from which it is impossible to
-##     # discern the vserver name. (Note that from ctx 0 you will still
-##     # the symlink names, but from within a vserver you won't).
+    # to hide the actual name of the vserver from other vservers (they
+    # can see it by looking at mounts in /proc/mount), the directory
+    # in which the vserver resides is renamed to the context_id rather
+    # than the vserver name, which in trun becomes a symlink. This way
+    # the /proc/mount shows stuff from which it is impossible to
+    # discern the vserver name. (Note that from ctx 0 you will still
+    # the symlink names, but from within a vserver you won't).
 
-##     root = os.path.normpath(root) # strip trailing /
+    root = os.path.normpath(root) # strip trailing /
 
-##     if not os.path.islink(root):
+    if not os.path.islink(root):
     
-##         base = os.path.split(root)[0]
+        base = os.path.split(root)[0]
 
-##         newname = os.path.join(base, xid)
+        newname = os.path.join(base, xid)
 
-##         print 'Renaming/symlinking %s -> %s' % (root, newname)
+        print 'Renaming/symlinking %s -> %s' % (root, newname)
 
-##         os.rename(root, newname)
-##         os.symlink(os.path.basename(newname), root)
+        os.rename(root, newname)
+        os.symlink(os.path.basename(newname), root)
 
-##     else:
-##         print '%s already a symlink, leaving it alone' % root
+    else:
+        print '%s already a symlink, leaving it alone' % root
 
 def vserver_vroot_perms():
 
@@ -860,7 +860,7 @@ def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
     vserver_ohd_key(root, name)
     vserver_fixup_libexec_oh(root)
     vserver_immutable_modules(root)
-##    vserver_make_symlink(root, xid) # <- not relevant in 1.9.x
+    vserver_make_symlink(root, xid)
     vserver_vroot_perms()
 
     # ZZZ vsched

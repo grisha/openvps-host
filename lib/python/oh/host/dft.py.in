@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.23 2004/10/25 20:43:18 grisha Exp $
+# $Id: dft.py.in,v 1.24 2004/10/27 02:35:00 grisha Exp $
 
 """ Configuration Defaults
 
@@ -143,11 +143,12 @@ DFT_FLAGS = 'lock\nhide_netif\nvirt_uptime\nsched_hard\nfakeinit\n'
 # consumes a token (to start python is ~16 tokens). If the bucket gets
 # empty, the conext is placed on hold queue until <min-tokens> is in
 # the bucket. A bucket can accumulate up to <max-token> tokens.
+# Another important tip from Sam Vilain: fr / int * 100 = % cpu
 DFT_SCHED = {'fill-rate': 30,
              'interval': 100,
-             'tokens': 10000,
+             'tokens': 1000,
              'tokens-min': 30,
-             'tokens-max':10000}
+             'tokens-max':1000}
 
 # Device on which vservers get their IPs
 DFT_DEVICE = 'eth0'
