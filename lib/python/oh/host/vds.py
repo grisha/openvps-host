@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.20 2004/10/06 22:00:36 grisha Exp $
+# $Id: vds.py,v 1.21 2004/10/07 21:58:15 grisha Exp $
 
 """ VDS related functions """
 
@@ -399,54 +399,6 @@ def vserver_set_user_passwd(root, userid, passwd):
           (cfg.CHROOT, root, passwd, userid)
     s = commands.getoutput(cmd)
     
-def make_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
-
-    """
-    Looking at the new config, we need at least:
-
-    bcapabilities  (not sure that it is needed)
-    context
-    flags - lock hide_netif (virt_uptime, sched_?)
-    uts
-      nodename - hostname
-    nice - 9
-    run -> /var/run/vservers/zzz
-    run.rev ???
-    vdir -> /vservers/zzz
-    interfaces
-      iface
-        bcast 172.20.20.255
-        ip 172.20.20.20
-        mask 255.255.255.0
-        name ???
-    fstab
-     none                    /dev/pts                devpts  gid=5,mode=620  0 0
-     none                    /proc                   proc    defaults        0 0
-     
-
-    """
-
-
-
-    fname = os.path.join(cfg.ETC_VSERVERS, '%s.conf' % name)
-    print 'Making config file %s' % fname
-
-    if not hostname:
-        hostname = name
-
-    # make a primitive vserver config
-    s = 'IPROOT=%s\n' % ip
-    s += 'IPROOTMASK=255.255.255.255\n'
-    s += 'IPROOTBCAST=%s\n' % ip
-    s += 'IPROOTDEV=%s\n' % dev
-    s += 'S_HOSTNAME=%s\n' % hostname
-    s += 'ONBOOT=yes\n'
-    s += "#ULIMIT='%s'\n" % cfg.DFT_ULIMIT
-    s += 'S_CONTEXT=%s\n' % xid
-    s += 'S_NICE=%s\n' % cfg.DFT_NICE
-
-    open(fname, 'w').write(s)
-
 def vserver_make_hosts(root, hostname, ip):
 
     fname = os.path.join(root, 'etc', 'hosts')
@@ -482,6 +434,19 @@ def vserver_make_motd(root):
     f = open(fname, 'w')
     f.write(cfg.MOTD)
     f.close()
+
+def vserver_fixup_rc(root):
+
+    # /etc/rc.d/rc needs to end with true
+
+    rc = os.path.join(root, 'etc/rc.d/rc')
+    lines = open(rc).readlines()
+    if not lines[-1] == 'true\n':
+        print 'Appending true to %s' % rc
+        lines.append('true\n')
+        open(rc, 'w').writelines(lines)
+    else:
+        print 'Not appending true to %s as it is already there' % rc
 
 def vserver_config_sendmail(root, hostname):
 
@@ -766,7 +731,7 @@ def vserver_vroot_perms():
 def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
 
     # first make a configuration
-    make_vserver_config(name, ip, xid, hostname=hostname)
+    vsutil.save_vserver_config(name, ip, xid, hostname=hostname)
 
     root = os.path.join(cfg.VSERVERS_ROOT, name)
     
@@ -779,6 +744,7 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
         search = hostname
     vserver_make_resolv_conf(root, dns, search=search)
 
+    vserver_fixup_rc(root)
     vserver_config_sendmail(root, hostname)
     vserver_enable_imaps(root)
     vserver_stub_www_index_page(root)

@@ -30,6 +30,9 @@ SSL_ORG_COUNTRY = "US"
 SSL_ORG_STATE = "Virginia"
 SSL_ORG_NAME = "Some Company, Inc."
 
+# Where is util-vserver?
+VSERVER_PREFIX = '/usr/local'
+
 # Location of the directory that stores data about vservers such as
 # disk and bandwidth utilization
 

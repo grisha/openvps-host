@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohbwidth,v 1.4 2004/10/04 15:28:54 grisha Exp $
+# $Id: ohbwidth,v 1.5 2004/10/07 21:58:16 grisha Exp $
 
 """
 This script periodically collects data about vserver
@@ -27,9 +27,12 @@ with RRDTool
 import commands
 import os
 import sys
+from syslog import syslog, openlog
 
 from oh.host import cfg
 from oh.host import vsutil
+
+openlog('ohbwidth')
 
 def iptables_info():
 
@@ -74,19 +77,41 @@ if not vsutil.is_vserver_kernel():
 input, output = iptables_info()
 ips = list_vserver_ips()
 
-for server in ips:
+vservers = vsutil.list_vservers()
 
-    i = input.get(ips[server], 'U')
-    o = output.get(ips[server], 'U')
+for server in vservers:
 
-    rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % server)
+    if vservers[server]['interfaces']:
 
-    if os.path.exists(rrd):
+        i, o = 0, 0
+            
+        for ifc in vservers[server]['interfaces']:
 
-        cmd = '%s update %s N:%s:%s' % (cfg.RRDTOOL, rrd, i, o)
-        s = commands.getoutput(cmd)
+            ip = ifc['ip']
+            
+            if input.has_key(ip):
+                i += int(input[ip])
+            else:
+                syslog('WARNING: No iptables INPUT rule exist for ip %s of %s' % (ip, server))
+                continue
+            
+            if output.has_key(ip):
+                o += int(output[ip])
+            else:
+                syslog('WARNING: No iptables OUTPUT rule exist for ip %s of %s' % (ip, server))
+                continue
 
+        # now update rrd
 
+        rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % server)
+
+        if os.path.exists(rrd):
+
+            cmd = '%s update %s N:%s:%s' % (cfg.RRDTOOL, rrd, i, o)
+            s = commands.getoutput(cmd)
+
+        else:
+            syslog('WARNING: No rrd (%s) exists for %s' % (rrd, server))
 
 
 ###

@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohdisk,v 1.6 2004/10/05 21:08:34 grisha Exp $
+# $Id: ohdisk,v 1.7 2004/10/07 21:58:16 grisha Exp $
 
 """
 This script periodically collects data about vservers disk
@@ -44,7 +44,7 @@ def list_vserver_xids():
     xids = []
 
     for vserver in vservers:
-        xid = vservers[vserver].get('S_CONTEXT', None)
+        xid = vservers[vserver].get('context', None)
         if xid:
             xids.append(xid)
 

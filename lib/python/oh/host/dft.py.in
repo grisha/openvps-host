@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.13 2004/10/06 22:00:36 grisha Exp $
+# $Id: dft.py.in,v 1.14 2004/10/07 21:58:15 grisha Exp $
 
 """ Configuration Defaults
 
@@ -131,6 +131,12 @@ INDEX_HTML = """
 # so it doesn't really mean much.
 DFT_ULIMIT = '-HS -u 1000 -v 500000'
 DFT_NICE = '9' # not as nice as default (10), but nice
+
+# Vserver flags
+DFT_FLAGS = 'lock\nhide_netif\nvirt_uptime\n'
+
+# Device on which vservers get their IPs
+DFT_DEVICE = 'eth0'
 
 # Which "commands" are allowed to run with elevated capabilities and
 # what are those caps. The path is absolute inside a vserver.
