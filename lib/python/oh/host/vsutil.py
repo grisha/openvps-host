@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.14 2004/11/15 17:44:23 grisha Exp $
+# $Id: vsutil.py,v 1.15 2004/12/02 03:27:47 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -140,7 +140,8 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
     # interfaces
     os.mkdir(os.path.join(dirname, 'interfaces'))
 
-    add_vserver_ip(name, ip)
+    # add the ip (mask must be /32, or they will end up grouped)
+    add_vserver_ip(name, ip, cfg.DFT_DEVICE, '255.255.255.255')
 
     # fstab
     open(os.path.join(dirname, 'fstab'), 'w').writelines([
@@ -157,7 +158,7 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
 
     print 'Done'
 
-def add_vserver_ip(name, ip):
+def add_vserver_ip(name, ip, dev, mask):
 
     # what is the next interface number?
     conf = get_vserver_config(name)
@@ -177,20 +178,20 @@ def add_vserver_ip(name, ip):
     # now write it
     dirname = os.path.join(cfg.ETC_VSERVERS, name)
     
-    # interface 0
+    # interface 
     os.mkdir(os.path.join(dirname, 'interfaces', next))
 
-    # interface 0 ip
+    # interface ip
     open(os.path.join(dirname, 'interfaces', next, 'ip'), 'w').write(ip+'\n')
 
-    # interface 0 mask (yes, it *must* be /32, or they will end up grouped)
-    open(os.path.join(dirname, 'interfaces', next, 'mask'), 'w').write('255.255.255.255\n')
+    # interface  mask 
+    open(os.path.join(dirname, 'interfaces', next, 'mask'), 'w').write(mask+'\n')
 
-    # interface 0 name
+    # interface  name
     open(os.path.join(dirname, 'interfaces', next, 'name'), 'w').write(name+next+'\n')
 
-    # interface 0 dev
-    open(os.path.join(dirname, 'interfaces', next, 'dev'), 'w').write(cfg.DFT_DEVICE+'\n')
+    # interface  dev
+    open(os.path.join(dirname, 'interfaces', next, 'dev'), 'w').write(dev+'\n')
 
 def list_vservers():
     """ Return a dictionary of vservers """
