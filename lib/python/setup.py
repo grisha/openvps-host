@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 
-# $Id: setup.py,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: setup.py,v 1.2 2004/12/24 00:38:48 grisha Exp $
 
 from distutils.core import setup, Extension
 
-VER = '0.1'
+VER = open('../../version.txt').read().strip()
 
 import sys
 
