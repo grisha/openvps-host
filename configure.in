@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.22 2005/01/20 19:49:34 grisha Exp $
+# $Id: configure.in,v 1.23 2005/02/17 04:05:45 grisha Exp $
 
 AC_INIT
 
@@ -84,14 +84,15 @@ else
 fi
 
 # check for vdlimit
+AC_SUBST(VDLIMIT)
+AC_CHECKING(whether vdlimit is available)
+AC_PATH_PROG(VDLIMIT, vdlimit)
+if test -n "$VDLIMIT"; then
+  AC_MSG_RESULT([found $VDLIMIT, nice.])
+fi
 
-AC_SUBST(VDLIMIT_DIR)
-VDLIMIT_DIR=/usr/local/vdlimit-0.01
-AC_MSG_CHECKING(for vdlimit in $VDLIMIT_DIR)
-if test -x "$VDLIMIT_DIR/vdlimit"; then
-  AC_MSG_RESULT([found, excellent.])
-else
-  AC_MSG_ERROR([vdlimit not found. You need to place vdlimit in $VDLIMIT_DIR])
+if test -z "$VDLIMIT"; then
+  AC_MSG_ERROR([vdlimit not found. You need to place vdlimit in your path.])
 fi
 
 # check for rrdtool
