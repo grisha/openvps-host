@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.12 2005/01/12 21:24:43 grisha Exp $
+# $Id: Makefile.in,v 1.13 2005/01/20 19:49:34 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -26,9 +26,9 @@ distclean: clean
 	rm -f Makefile
 
 install: 
-	$(INSTALL) -m 0550 ohdisk $(DESTDIR)$(SBINDIR)/ohdisk
+	$(INSTALL) -m 0550 ovdisk $(DESTDIR)$(SBINDIR)/ovdisk
 	$(INSTALL) -m 0550 ohbwidth $(DESTDIR)$(SBINDIR)/ohbwidth
-	$(INSTALL) -m 0550 ohbackup $(DESTDIR)$(SBINDIR)/ohbackup
+	$(INSTALL) -m 0550 ovbackup $(DESTDIR)$(SBINDIR)/ovbackup
 	$(INSTALL) -m 0550 openvps $(DESTDIR)$(SBINDIR)/openvps
 	$(INSTALL) -m 0550 openvps-configure $(DESTDIR)$(SBINDIR)/openvps-configure
 	$(INSTALL) -m 0550 openvps-mon $(DESTDIR)$(SBINDIR)/openvps-mon

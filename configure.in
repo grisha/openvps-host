@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.21 2005/01/13 23:40:33 grisha Exp $
+# $Id: configure.in,v 1.22 2005/01/20 19:49:34 grisha Exp $
 
 AC_INIT
 
@@ -140,7 +140,7 @@ OHD_PORT="1012"
 
 AC_OUTPUT(Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec \
 		   rhinit/ohd rhinit/openvps-mon crontab/Makefile crontab/openvps \
-		   src/ohchkpwd/Makefile www/Makefile www/conf/Makefile \
+		   src/ovchkpwd/Makefile www/Makefile www/conf/Makefile \
 		   lib/python/openvps/host/dft.py openvps.conf ohd/Makefile \
 		   ohd/common.h ohd/sshd_config src/pace/Makefile \
 		   src/wrapper/wrapper.h src/wrapper/Makefile www/templates/Makefile \

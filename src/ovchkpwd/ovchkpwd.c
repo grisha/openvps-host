@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * $Id: ohchkpwd.c,v 1.2 2004/12/03 20:01:27 grisha Exp $
+ * $Id: ovchkpwd.c,v 1.1 2005/01/20 19:49:34 grisha Exp $
  * 
  * This file is based on unix_chkpwd.c by Andrew G. Morgan, the
  * Copyright for which is at the bottom of this file.

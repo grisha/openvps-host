@@ -14,27 +14,27 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.3 2005/01/11 21:42:32 grisha Exp $
+# $Id: Makefile.in,v 1.4 2005/01/20 19:49:34 grisha Exp $
 
 all:
-	@cd ohchkpwd && $(MAKE)
+	@cd ovchkpwd && $(MAKE)
 	@cd pace && $(MAKE)
 	@cd wrapper && $(MAKE)
 
 install:
-	@cd ohchkpwd && $(MAKE) install
+	@cd ovchkpwd && $(MAKE) install
 	@cd pace && $(MAKE) install
 	@cd wrapper && $(MAKE) install
 
 clean:
 	rm -rf $(OBJS) core *~ .libs *.o *.slo *.lo *.la
-	@cd ohchkpwd && $(MAKE) clean
+	@cd ovchkpwd && $(MAKE) clean
 	@cd pace && $(MAKE) clean
 	@cd wrapper && $(MAKE) clean
 
 distclean: clean
 	rm -f Makefile
-	@cd ohchkpwd && $(MAKE) distclean
+	@cd ovchkpwd && $(MAKE) distclean
 	@cd pace && $(MAKE) distclean
 	@cd wrapper && $(MAKE) distclean
 

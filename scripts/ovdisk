@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohdisk,v 1.9 2005/01/12 21:24:43 grisha Exp $
+# $Id: ovdisk,v 1.1 2005/01/20 19:49:34 grisha Exp $
 
 """
 This script periodically collects data about vservers disk

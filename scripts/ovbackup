@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohbackup,v 1.8 2005/01/12 21:24:43 grisha Exp $
+# $Id: ovbackup,v 1.1 2005/01/20 19:49:34 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""

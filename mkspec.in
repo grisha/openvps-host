@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.15 2005/01/13 23:40:33 grisha Exp $
+# $Id: mkspec.in,v 1.16 2005/01/20 19:49:34 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -59,6 +59,9 @@ echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/usr/openvps/misc"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/usr/openvps/templates"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/usr/openvps/images"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/oh"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/openvps"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/openvps/vsmon"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/openvps/disklimits"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/%{_libdir}/@PYTHON@/site-packages/oh"
 echo 'make install DESTDIR=$RPM_BUILD_ROOT'
 
@@ -74,18 +77,21 @@ echo "%config(noreplace) %{_sysconfdir}/*.conf"
 echo "%config(noreplace) %{_sysconfdir}/ssh/sshd_config_ohd"
 echo "%{_libdir}/@PYTHON@/site-packages"
 echo "/etc/init.d/ohd"
-echo "/etc/init.d/ohfixproc"
-echo "/etc/init.d/ohresources"
+echo "/etc/init.d/ovfixproc"
+echo "/etc/init.d/ovresources"
 echo "/etc/init.d/openvps-mon"
-echo "/etc/oh-release"
+echo "/etc/openvps-release"
 echo "/usr/openvps"
-echo "/usr/sbin/ohbackup"
+echo "/usr/sbin/ovbackup"
 echo "/usr/sbin/ohbwidth"
-echo "/usr/sbin/ohchkpwd"
-echo "/usr/sbin/ohdisk"
+echo "/usr/sbin/ovchkpwd"
+echo "/usr/sbin/ovdisk"
 echo "/usr/sbin/openvps"
 echo "/usr/sbin/openvps-configure"
 echo "/usr/sbin/openvps-mon"
 echo "/usr/sbin/pace"
 echo "/usr/sbin/ovwrapper"
 echo "%dir /var/db/oh"
+echo "%dir /var/db/openvps"
+echo "%dir /var/db/openvps/vsmon"
+echo "%dir /var/db/openvps/disklimits"

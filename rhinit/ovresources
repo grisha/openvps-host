@@ -20,9 +20,9 @@
 # limitations under the License.
 #
 
-# $Id: ohresources,v 1.4 2005/01/12 21:24:43 grisha Exp $
+# $Id: ovresources,v 1.1 2005/01/20 19:49:34 grisha Exp $
 
-DISKLIMITS=/var/db/oh/disklimits
+DISKLIMITS=`python -c 'from openvps.host import cfg; print cfg.VAR_DB_OPENVPS'`/disklimits/disklimits
 
 # See how we were called.
 case "$1" in

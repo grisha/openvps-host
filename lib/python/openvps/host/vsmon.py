@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.1 2005/01/19 18:08:04 grisha Exp $
+# $Id: vsmon.py,v 1.2 2005/01/20 19:49:34 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -177,7 +177,7 @@ def bandwidth(server, input, output, vservers):
 
 
 def _rrd_exists(server):
-    path = os.path.join(cfg.VAR_DB_OH, '%s-vsmon.rrd' % server)
+    path = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon', '%s.rrd' % server)
     return os.path.exists(path)
 
 def _DS(name, dst, hbeat, min='U', max='U'):
@@ -188,7 +188,7 @@ def _RRA(cf, xff, steps, rows):
 
 def _create_rrd(server):
 
-    path = os.path.join(cfg.VAR_DB_OH, '%s-vsmon.rrd' % server)
+    path = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon', '%s.rrd' % server)
 
     args = [path, '-s', '60']
 
@@ -230,7 +230,7 @@ def update_rrd(server, data):
         if k[1]:
             vals.append('%s' % data[k[0]])
 
-    path = os.path.join(cfg.VAR_DB_OH, '%s-vsmon.rrd' % server)
+    path = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon', '%s.rrd' % server)
     args = [path, '-t'] + [':'.join(tmpl)] + [':'.join(vals)]
 
     log(`args`)

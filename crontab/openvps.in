@@ -14,13 +14,13 @@
 # limitations under the License.
 #
 #
-# $Id: openvps.in,v 1.1 2004/10/15 21:35:38 grisha Exp $
+# $Id: openvps.in,v 1.2 2005/01/20 19:49:34 grisha Exp $
 #
-* * * * * root @prefix@/sbin/ohdisk > /var/db/oh/disklimits
-0 * * * * root @prefix@/sbin/ohdisk > /var/db/oh/disklimits.hour
-0 0 * * * root @prefix@/sbin/ohdisk > /var/db/oh/disklimits.day
-0 0 * * 0 root @prefix@/sbin/ohdisk > /var/db/oh/disklimits.week
-0 0 1 * * root @prefix@/sbin/ohdisk > /var/db/oh/disklimits.month
+* * * * * root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits
+0 * * * * root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits.hour
+0 0 * * * root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits.day
+0 0 * * 0 root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits.week
+0 0 1 * * root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits.month
 * * * * * root @prefix@/sbin/ohbwidth
 #
-30 3 * * * root /bin/nice @prefix@/sbin/ohbackup
+30 3 * * * root /bin/nice @prefix@/sbin/ovbackup

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.3 2005/01/19 18:08:04 grisha Exp $
+# $Id: dft.py.in,v 1.4 2005/01/20 19:49:34 grisha Exp $
 
 """ Configuration Defaults
 
@@ -51,11 +51,11 @@ NOVAL = 'NO VALUE SET - edit %s' % CONFIG_FILE
 OH_MISC = os.path.join(OH_DIR, 'misc')
 
 # Version
-VERSION = open('/etc/oh-release').read().strip()
+VERSION = open('/etc/openvps-release').read().strip()
 
 # Location of ohchkpwd script used by the web interface panel to
 # verify vserver account passwords
-OHCHKPWD = os.path.join(PREFIX, 'sbin', 'ohchkpwd')
+OVCHKPWD = os.path.join(PREFIX, 'sbin', 'ovchkpwd')
 
 # Location of ovwrapper to allow us to do special stuff
 # DO NOT change this in the config, since the ovwrapper is used
@@ -79,7 +79,10 @@ VDLIMIT = os.path.join('@VDLIMIT_DIR@', 'vdlimit')
 VSERVERS_ROOT = NOVAL
 
 # Location of the vservers database
+# /var/db/oh will be obsoleted eventually
 VAR_DB_OH = '/var/db/oh'
+# this is the new location
+VAR_DB_OPENVPS = '/var/db/openvps'
 
 # Location of the backups partition
 BACKUP = NOVAL

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.3 2005/01/14 17:04:17 grisha Exp $
+# $Id: vsutil.py,v 1.4 2005/01/20 19:49:34 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -235,7 +235,7 @@ def check_passwd(vserver, userid, passwd):
 
     vpath = os.path.join(cfg.VSERVERS_ROOT, vserver)
 
-    cmd = '%s %s' % (cfg.OHCHKPWD, vpath)
+    cmd = '%s %s' % (cfg.OVCHKPWD, vpath)
     pipe = os.popen(cmd, 'w')
     pipe.write('%s:%s' % (userid, passwd))
     sts = pipe.close()
