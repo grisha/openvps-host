@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.12 2005/02/09 22:24:30 grisha Exp $
+# $Id: panel.py,v 1.13 2005/02/10 20:17:17 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -29,7 +29,7 @@ import binascii
 from mod_python import apache, psp, util, Cookie
 
 from openvps.common import rrdutil, crypto, RSASignedCookie
-from openvps.host import cfg, vsutil
+from openvps.host import cfg, vsutil, vsmon
 
 ALLOWED_COMMANDS = ['index',
                     'day_graph',
@@ -291,7 +291,7 @@ def logout(req, name, params):
 def pubkey(req):
 
     req.context_type = 'text/plain'
-    req.write(binascii.hexlify(_get_pub_key()))
+    req.write(crypto.rsa2str((_get_pub_key())))
 
     return apache.OK
 
@@ -412,8 +412,26 @@ def start(req, name, params):
 
 def stats(req, name, command):
 
-    # we need some fancy way of specifying parameters here....
+    # we expect two commands:
+    #   sum
+    #   list
+    # and two [optional] - start and end
 
-    req.write('stats here')
+    start, end = None, None
+
+    if req.args:
+        qs = util.parse_qs(req.args)
+        if qs.has_key('start'):
+            start = qs['start'][0]
+        if qs.has_key('end'):
+            end = qs['end'][0]
+
+    result = vsmon.report_sum(name, start, end)
+
+    lj = 15
+    req.write('%s%s\n' % ('name:'.ljust(15), name))
+    for s in ['start', 'end', 'step', 'steps', 'ticks',
+              'vm', 'rss', 'in', 'out', 'disk']:
+        req.write('%s%s\n' % ((s+':').ljust(lj), result[s]))
 
     return apache.OK

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.7 2005/01/31 18:23:22 grisha Exp $
+# $Id: vsmon.py,v 1.8 2005/02/10 20:17:17 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -288,5 +288,56 @@ def collect_stats():
 
     return
 
+def _sum_none(header, row, names):
+    # add up elements of list counting none as zero
 
+    result = 0L
+    for name in names:
+        n = list(header).index(name)
+        if row[n]:
+            result += row[n]
+            
+    return result
+        
+
+def report_sum(name, start=None, end=None):
+
+    # fetch data from our RRD's
+
+    rrdargs = [os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon', name+'.rrd'), 'AVERAGE']
+
+    if start:
+        rrdargs.append('--start')
+        rrdargs.append(start)
+    if end:
+        rrdargs.append('--end')
+        rrdargs.append(end)
+
+    header, rows = RRD.fetch(*rrdargs)
+
+    STEP = 60
+    result = {'start':rows[0][0],
+              'end': rows[-1][0],
+              'step': round((rows[-1][0]-rows[0][0])/len(rows)),
+              'steps': len(rows),
+              'ticks':0,
+              'vm':0,
+              'rss':0,
+              'in':0,
+              'out':0,
+              'disk':0,
+              }
+
+    for row in rows:
+        
+        ticks = _sum_none(header, row, ['vs_uticks', 'vs_sticks', 'vs_hticks'])
+        result['ticks'] += ticks*STEP
+        result['vm'] += _sum_none(header, row, ['vs_vm'])
+        result['rss'] += _sum_none(header, row, ['vs_rss'])
+        result['in'] += _sum_none(header, row, ['vs_in'])
+        result['out'] += _sum_none(header, row, ['vs_out'])
+        result['disk'] += _sum_none(header, row, ['vs_disk_b_used'])
+        
+    return result
+    
 
