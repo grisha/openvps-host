@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.4 2004/09/28 15:33:21 grisha Exp $
+# $Id: ohhost-configure,v 1.5 2004/09/28 19:09:07 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -154,11 +154,10 @@ def add_backup_user():
         sshdir = os.path.join(cfg.BACKUP, '.ssh')
         if not os.path.exists(sshdir):
             os.mkdir(sshdir, 0700)
-            commands.getoutput('chown %s %s' % (sshdir, cfg.BACKUP_USER))
         if not os.path.exists(sshdir+'/authorized_keys'):
             os.mknod(sshdir+'/authorized_keys')
-            commands.getoutput('chown %s %s' % (sshdir+'/authorized_keys', cfg.BACKUP_USER))
-            os.chmod(sshdir+'/authorized_keys', 0600)
+        commands.getoutput('chown -R %s %s' % (cfg.BACKUP_USER, cfg.BACKUP))
+        os.chmod(sshdir+'/authorized_keys', 0600)
 
             
 def plant_peer_key():
@@ -275,9 +274,9 @@ def fix_named():
 
     if not set:
         # if options section never encountered, append it
-        lines.append(['options {\n',
-                      '    listen-on {%s; 127.0.0.1;};\n' % ip,
-                      '};\n'])
+        lines = lines + ['options {\n',
+                         '    listen-on {%s; 127.0.0.1;};\n' % ip,
+                         '};\n']
 
     open(conf, 'w').writelines(lines)
 
@@ -346,12 +345,6 @@ def add_ohd_user():
             open('/etc/sudoers', 'a').write("\nohd     ALL= NOPASSWD: %s\n" % ohdexec)
 
 
-def build_ref():
-
-    print """ We are now going to build the reference server. In order
-    to build the reference server, we need all Fedora RPMs available
-    in some directory. """
-        
 def main():
 
     params = {}

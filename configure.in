@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.8 2004/09/22 23:52:19 grisha Exp $
+# $Id: configure.in,v 1.9 2004/09/28 19:09:07 grisha Exp $
 
 AC_INIT
 
@@ -157,10 +157,10 @@ dnl                           }'`
 dnl   AC_MSG_RESULT([No, but your ip is $ip, so your peer ip is (guessed) $PEERIP])    
 dnl ])
 
-# base backup time on the PEERIP. If it ends with 01, backups will be
-# at 1, 02 @ 1:10, 03 @ 1:20, 07 @ 2:00, etc.
-AC_SUBST(BACKUP_TIME)
-BACKUP_TIME=`echo $PEERIP | awk '{x=substr($0, length($0)-1)-1; print x*10%60 " " int(x*10/60)}'`
+dnl # base backup time on the PEERIP. If it ends with 01, backups will be
+dnl # at 1, 02 @ 1:10, 03 @ 1:20, 07 @ 2:00, etc.
+dnl AC_SUBST(BACKUP_TIME)
+dnl BACKUP_TIME=`echo $PEERIP | awk '{x=substr($0, length($0)-1)-1; print x*10%60 " " int(x*10/60)}'`
 
 AC_SUBST(OHD_USER)
 AC_SUBST(OHD_PORT)

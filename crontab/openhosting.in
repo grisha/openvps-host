@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 #
-# $Id: openhosting.in,v 1.2 2004/08/05 21:51:40 grisha Exp $
+# $Id: openhosting.in,v 1.3 2004/09/28 19:09:07 grisha Exp $
 #
 * * * * * root @prefix@/sbin/ohdisk > /var/db/oh/disklimits
 0 * * * * root @prefix@/sbin/ohdisk > /var/db/oh/disklimits.hour
@@ -23,4 +23,4 @@
 0 0 1 * * root @prefix@/sbin/ohdisk > /var/db/oh/disklimits.month
 * * * * * root @prefix@/sbin/ohbwidth
 #
-@BACKUP_TIME@ * * * root /bin/nice @prefix@/sbin/ohbackup
+30 3 * * * root /bin/nice @prefix@/sbin/ohbackup
