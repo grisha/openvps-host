@@ -20,9 +20,8 @@
 # limitations under the License.
 #
 
-# $Id: ohfixproc,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: ohfixproc,v 1.2 2004/10/06 16:02:46 grisha Exp $
 
-VPROC=/usr/local/vproc-0.01/vproc
 ETHIF=eth0
 
 # See how we were called.
@@ -32,12 +31,12 @@ case "$1" in
 
 	# hide everything
 	for file in /proc/*; do 
-	    $VPROC -d $file > /dev/null 2>&1
+	    setattr --admin --watch --hide $file > /dev/null 2>&1
 	done
 
 	# unhide only the bare minimum
 	 for file in /proc/{*info,stat,uptime,loadavg,version,net}; do
-	     $VPROC -e $file
+	     setattr --~hide $file
 	 done
 	;;
   stop)
