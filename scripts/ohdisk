@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohdisk,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: ohdisk,v 1.2 2004/06/15 20:31:27 grisha Exp $
 
 """
 This script periodically collects data about vservers disk
@@ -82,6 +82,22 @@ for xid in xids:
 
     dl = get_disk_limits(xid, dev)
     if dl:
+
+        # XXX begin workaround
+        # this is because of an apparent bug in the disklimits
+        # code that somehow does not count inodes correctly
+        if (int(dl['i_total']) - int(dl['i_used'])) < 10000:
+            # less then 10000 inodes left, reset
+            cmd = '%s -x %s -S %s,%s,%s,%s,%s -v %s' % \
+                  (os.path.join(cfg.CQ_TOOLS, 'cqdlim'), xid, 0,
+                   dl['i_total'], dl['b_used'], dl['b_total'], dl['root'],
+                   dev)
+            commands.getoutput(cmd)
+        # end workaround
+
+        # print out the current counters in the form of a readily
+        # usable command (that is then executed on server startup)
+        
         print '%s -x %s -v %s' % \
               (os.path.join(cfg.CQ_TOOLS, 'cqhadd'), xid, dev)
         print '%s -x %s -S %s,%s,%s,%s,%s -v %s' % \
