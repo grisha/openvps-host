@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: cfg.py,v 1.2 2004/12/23 19:12:04 grisha Exp $
+# $Id: cfg.py,v 1.3 2004/12/23 19:51:26 grisha Exp $
 
 """ This module contains our configuration """
 
@@ -22,6 +22,7 @@ import os
 import time
 import pprint
 import re
+import sys
 
 def load_file(path):
     """Load a config file"""
