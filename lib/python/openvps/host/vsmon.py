@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.2 2005/01/20 19:49:34 grisha Exp $
+# $Id: vsmon.py,v 1.3 2005/01/21 19:25:18 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -81,7 +81,7 @@ def limits(xid):
 def sched(xid):
 
     try:
-        s = open('/proc/virtual/%s/limit' % xid).read()
+        s = open('/proc/virtual/%s/sched' % xid).read()
     except IOError:
         return None
 
@@ -233,7 +233,7 @@ def update_rrd(server, data):
     path = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon', '%s.rrd' % server)
     args = [path, '-t'] + [':'.join(tmpl)] + [':'.join(vals)]
 
-    log(`args`)
+    #log(`args`)
     RRD.update(args)    
     
 def collect_stats():
