@@ -203,7 +203,11 @@ FEDORA_C1_PKGS_ADDL = [
     'php-mysql-4.3.3-6.i386.rpm',
     'php-4.3.3-6.i386.rpm',
     'php-imap-4.3.3-6.i386.rpm',
-    'php-pgsql-4.3.3-6.i386.rpm'
+    'php-pgsql-4.3.3-6.i386.rpm',
+    # newer python
+    'http://dev.openhosting.com/dist/misc/mirror/python2.3-2.3.3-2pydotorg.i386.rpm',
+    'http://dev.openhosting.com/dist/misc/mirror/python2.3-devel-2.3.3-2pydotorg.i386.rpm',
+    'http://dev.openhosting.com/dist/misc/mirror/python2.3-tools-2.3.3-2pydotorg.i386.rpm'
     ]
 
 ###

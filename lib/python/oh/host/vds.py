@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.4 2004/04/03 02:00:08 grisha Exp $
+# $Id: vds.py,v 1.5 2004/04/23 22:52:07 grisha Exp $
 
 """ VDS related functions """
 
@@ -233,6 +233,16 @@ def ref_ping_traceroute(refroot):
                 tracert)
     os.chmod(tracert, 0755)
 
+def ref_fix_python(refroot):
+    print 'Making python 2.3 default'
+
+    cmd = 'rm %s' % os.path.join(refroot, 'usr/bin/python')
+    commands.getoutput(cmd)
+
+    cmd = 'ln %s %s' % (os.path.join(refroot, 'usr/bin/python2.3'),
+                        os.path.join(refroot, 'usr/bin/python'))
+    commands.getoutput(cmd)
+
 def buildref(refroot, distroot):
 
     print 'Building a reference server at %s using packages in %s' % \
@@ -246,6 +256,7 @@ def buildref(refroot, distroot):
     ref_fix_halt(refroot)
     ref_fix_syslog(refroot)
     ref_ping_traceroute(refroot)
+    ref_fix_python(refroot)
 
     # enable shadow (I wonder why it isn't by default)
     cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, refroot)
