@@ -2592,7 +2592,7 @@ OHD_PORT="1012"
 
 # final output
 
-                                                                                                                                                                          ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec rhinit/ohd crontab/Makefile crontab/openvps src/ohchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/oh/host/dft.py ohhost.conf ohd/Makefile ohd/common.h ohd/sshd_config src/pace/Makefile"
+                                                                                                                                                                          ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec rhinit/ohd crontab/Makefile crontab/openvps src/ohchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/oh/host/dft.py ohpenvps.conf ohd/Makefile ohd/common.h ohd/sshd_config src/pace/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -3156,7 +3156,7 @@ do
   "www/Makefile" ) CONFIG_FILES="$CONFIG_FILES www/Makefile" ;;
   "www/conf/Makefile" ) CONFIG_FILES="$CONFIG_FILES www/conf/Makefile" ;;
   "lib/python/oh/host/dft.py" ) CONFIG_FILES="$CONFIG_FILES lib/python/oh/host/dft.py" ;;
-  "ohhost.conf" ) CONFIG_FILES="$CONFIG_FILES ohhost.conf" ;;
+  "ohpenvps.conf" ) CONFIG_FILES="$CONFIG_FILES ohpenvps.conf" ;;
   "ohd/Makefile" ) CONFIG_FILES="$CONFIG_FILES ohd/Makefile" ;;
   "ohd/common.h" ) CONFIG_FILES="$CONFIG_FILES ohd/common.h" ;;
   "ohd/sshd_config" ) CONFIG_FILES="$CONFIG_FILES ohd/sshd_config" ;;

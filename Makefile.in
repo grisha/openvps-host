@@ -14,14 +14,14 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.14 2004/11/07 05:11:10 grisha Exp $
+# $Id: Makefile.in,v 1.15 2004/12/22 15:54:50 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
 MISC=@prefix@/oh/misc
 VARDB=/var/db/oh
 BACKUP=/backup
-CONFIG=/etc/ohhost.conf
+CONFIG=/etc/openvps.conf
 VERSION=version.txt
 
 all:
@@ -43,7 +43,7 @@ install:
 	cd www && $(MAKE) install
 	cd ohd && $(MAKE) install
 	@if test ! -e $(DESTDIR)$(CONFIG) ; then \
-		$(INSTALL) ohhost.conf $(DESTDIR)$(CONFIG); \
+		$(INSTALL) openvps.conf $(DESTDIR)$(CONFIG); \
 	else \
 		echo "Not installing $(DESTDIR)$(CONFIG) because it already exists."; \
 	fi

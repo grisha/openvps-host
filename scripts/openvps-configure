@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.28 2004/12/09 18:36:33 grisha Exp $
+# $Id: openvps-configure,v 1.1 2004/12/22 15:54:50 grisha Exp $
 
 #
 #This script initially sets up the system.
