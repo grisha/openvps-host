@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.9 2005/02/09 21:35:43 grisha Exp $
+# $Id: openvps-configure,v 1.10 2005/02/16 20:35:58 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -256,22 +256,22 @@ def plant_peer_key():
         cmd = 'ssh-keygen -t dsa -N "" -f %s' % cfg.OHB_DSA_KEY
         run_cmd(cmd)
 
-    if cfg.PEERIP != '127.0.0.1':
-        print
-        print "Now we are going to try to copy %s.pub to the peer server, you will be prompted for a password" % cfg.OHB_DSA_KEY
-        print "If this fails (e.g. peer server is not yet set up), then"
-        print "REMEMBER to paste the contents of %s.pub into %s/.ssh/authorized_keys on %s" \
-              % (cfg.OHB_DSA_KEY, cfg.BACKUP, cfg.PEERIP)
-        print "also remember to ssh to %s at least once to get it into known_hosts." % cfg.PEERIP
-        print
-        s = raw_input("Should we try this now? [y]")
-        if not s or s == 'y':
-            cmd = 'cat %s.pub | ssh -v %s "cat >> %s/.ssh/authorized_keys"' \
-                  % (cfg.OHB_DSA_KEY, cfg.PEERIP, cfg.BACKUP)
-            run_cmd(cmd)
-    else:
-        # we are the peer
-        pass
+        if cfg.PEERIP != '127.0.0.1':
+            print
+            print "Now we are going to try to copy %s.pub to the peer server, you will be prompted for a password" % cfg.OHB_DSA_KEY
+            print "If this fails (e.g. peer server is not yet set up), then"
+            print "REMEMBER to paste the contents of %s.pub into %s/.ssh/authorized_keys on %s" \
+                  % (cfg.OHB_DSA_KEY, cfg.BACKUP, cfg.PEERIP)
+            print "also remember to ssh to %s at least once to get it into known_hosts." % cfg.PEERIP
+            print
+            s = raw_input("Should we try this now? [y]")
+            if not s or s == 'y':
+                cmd = 'cat %s.pub | ssh -v %s "cat >> %s/.ssh/authorized_keys"' \
+                      % (cfg.OHB_DSA_KEY, cfg.PEERIP, cfg.BACKUP)
+                run_cmd(cmd)
+        else:
+            # we are the peer
+            pass
 
 def fix_sems():
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.8 2005/02/10 20:17:17 grisha Exp $
+# $Id: vsmon.py,v 1.9 2005/02/16 20:35:58 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -219,7 +219,7 @@ def _create_rrd(server):
     # transferred on daily basis? 
         
     args.append(_RRA('AVERAGE', xff=0.5, steps=1, rows=14400))    # 10 days of 1 min
-    args.append(_RRA('AVERAGE', xff=0.5, steps=450, rows=300))    # 93 days of 5 min
+    args.append(_RRA('AVERAGE', xff=0.5, steps=10, rows=13392))    # 93 days of 5 min
     args.append(_RRA('AVERAGE', xff=0.5, steps=43200, rows=120))  # 10 years of 30 days
 
     #log(`args`)
