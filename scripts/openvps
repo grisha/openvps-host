@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.4 2005/01/06 03:52:47 grisha Exp $
+# $Id: openvps,v 1.5 2005/01/06 21:54:39 grisha Exp $
 
 
 """
@@ -194,6 +194,22 @@ def cmd_restore():
 
     vds.restore(dumpfile, refserver)
 
+def cmd_delete():
+
+    parser = OptionParser(usage="%prog delete <vserver>\n"
+                          "  Delete all traces of this vserver. (It's a good idea to dump it prior to this)")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 1:
+        parser.error("Must specify the vserver.")
+
+    vserver = args[0]
+
+    if vserver[0] == '/':
+        parser.error("<vserver> should be just the name, not path")
+
+    vds.delete(vserver)    
+
 ########
 
 import optparse
@@ -212,13 +228,12 @@ def main():
     module = sys.modules[__name__]
     commands = [c[4:] for c in dir(module) if c.startswith("cmd_")]
 
-    parser = OptionParser(usage = "%%prog [-c CONFIG] <command> [command options]\n"                          
+    parser = OptionParser(usage = "%%prog <command> [command options]\n"                          
                           "  Where <command> is one of: %s\n" 
                           "  For help on a specific command, use: %%prog <command> --help\n"
-                          "  CONFIG option in NOT implemented" % " ".join(commands))
-#                          "  CONFIG defaults to %s" % (" ".join(commands), CFG_FILE))
+                          % " ".join(commands))
 
-    parser.add_option("-c", dest="config", help="Config file name", default=CFG_FILE)
+    #parser.add_option("-c", dest="config", help="Config file name", default=CFG_FILE)
 
     # anything after a command is not our argument
     try:

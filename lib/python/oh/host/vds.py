@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.48 2005/01/06 03:52:47 grisha Exp $
+# $Id: vds.py,v 1.49 2005/01/06 21:54:39 grisha Exp $
 
 """ VDS related functions """
 
@@ -1251,7 +1251,7 @@ def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
     fd_r, fd_w = os.pipe()
 
     # write the password to the new file descriptor so openssl can read it
-    os.write(fd_w, cfg.DUMP_SECRET)
+    os.write(fd_w, cfg.DUMP_SECRET+'\n')
     os.close(fd_w)
 
     # cpio will be fed the list of files to archive. the output is compressed using
@@ -1410,7 +1410,7 @@ def restore(dumpfile, refserver):
     fd_r, fd_w = os.pipe()
 
     # write the password to the new file descriptor so openssl can read it
-    os.write(fd_w, cfg.DUMP_SECRET)
+    os.write(fd_w, cfg.DUMP_SECRET+'\n')
     os.close(fd_w)
 
     # note that we specify 'u' in cpio here for unconditionl,
@@ -1424,7 +1424,9 @@ def restore(dumpfile, refserver):
     pipe = os.popen(cmd, 'r', 0)
     s = pipe.read(1)
     while s:
-        sys.stdout.write(s); sys.stdout.flush()
+        if s == '\n':
+            sys.stdout.write('.'); sys.stdout.flush()
+        #sys.stdout.write(s); sys.stdout.flush()
         s = pipe.read(1)
     pipe.close()
 
@@ -1595,6 +1597,57 @@ def fixxids(vsroot, xid, pace=cfg.PACE[0]):
     print 'Done.\n%d xids of a total of %d has been set to %d' % (x, t, xid)
 
 
+def delete(vserver):
+
+    # is it running?
+
+    lines = commands.getoutput('vserver-stat').splitlines()
+    for line in lines:
+        if line.split()[7] == vserver:
+            print 'Vserver "%s" appears to be running, stop it first.' % vserver
+            return
+
+    config = vsutil.get_vserver_config(vserver)
+
+    vserver_path = os.path.join(cfg.VSERVERS_ROOT, vserver)
+    print 'Deleting %s....' % vserver_path
+
+    cmd = 'chattr -iR %s' % os.path.join(vserver_path, 'lib/modules')
+    print cmd
+    commands.getoutput(cmd)
+    
+    cmd = 'rm -rf %s' % vserver_path
+    print cmd
+    commands.getoutput(cmd)
+
+    context_path = os.path.join(cfg.VSERVERS_ROOT, config['context'])
+
+    if os.path.exists(context_path):
+    
+        cmd = 'rm -rf %s' % context_path
+        print cmd
+        commands.getoutput(cmd)
+
+    config_path = os.path.join(cfg.ETC_VSERVERS, vserver)
+    cmd = 'rm -rf %s' % config_path
+    print cmd
+    commands.getoutput(cmd)
+
+    rrd_path = os.path.join(cfg.VAR_DB_OH, vserver+'.rrd')
+    cmd = 'rm %s' % rrd_path
+    print cmd
+    commands.getoutput(cmd)
+
+    # remove disk limits
+    # XXX vdlimit -d doesn't seem to do anything anyway....
+    cmd = '%s -d -x %s' % (cfg.VDLIMIT, config['context'])
+    print cmd
+    commands.getoutput(cmd)
+
+    # remove iptables? It's probably best not to remove iptables
+    # counters, since all that's going to do is disrupt the counter
+    # should you restore the vserver back.
+    # XXX is this true?
 
 def addip(vserver, ip, dev, mask):
 
