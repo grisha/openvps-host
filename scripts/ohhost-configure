@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.21 2004/10/30 02:52:07 grisha Exp $
+# $Id: ohhost-configure,v 1.22 2004/10/30 02:52:35 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -148,7 +148,7 @@ def get_domain_name():
     if not s:
         s = domain
 
-    cfg.VSERVER_DOMAIN = s
+    cfg.DEFAULT_DOMAIN = s
     return s
 
 def save_config(params):
