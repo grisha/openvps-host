@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.18 2005/02/15 22:46:41 grisha Exp $
+# $Id: panel.py,v 1.19 2005/02/16 16:23:19 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -48,7 +48,7 @@ ALLOWED_COMMANDS = ['index',
                     'bwidth',
                     'disk',
                     'cpu',
-                    'rss',
+                    'mem',
                     'start',
                     'stop',
                     'logout']
@@ -197,7 +197,7 @@ def _navigation_map(req):
     stats = [("traffic", "Bandwidth", "traffic", None, []),
              ("disk", "Disk", "disk", None, []),
              ("cpu", "CPU", "cpu", None, []),
-             ("rss", "Memory", "rss", None, []),
+             ("mem", "Memory", "mem", None, []),
              ]
 
     global_menu = [("status", "Status", "status", None, []),
@@ -482,8 +482,8 @@ def cpu(req, name, params):
                   '-c', 'SHADEA#FFFFFF',
                   'DEF:u=%s:vs_uticks:AVERAGE' % rrd,
                   'DEF:s=%s:vs_sticks:AVERAGE' % rrd,
-                  'AREA:s#FF4500:user ticks/sec',
-                  'STACK:u#FF8000:system ticks/sec']
+                  'AREA:s#FF4500:system ticks/sec',
+                  'STACK:u#FFA500:user ticks/sec']
 
         if qargs.has_key('l'):
             args.append('-g')  # no legend
@@ -503,7 +503,7 @@ def cpu(req, name, params):
         body_tmpl = _tmpl_path('cpu_body.html')
 
         rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
-        data = _load_rrd_data(rrd, ['vs_uticks', 'vs_sticks'])
+        data = _load_rrd_data(rrd, ['vs_sticks', 'vs_uticks'])
 
         body_vars = {'data':data}
 
@@ -635,7 +635,8 @@ def disk(req, name, params):
                   '-c', 'SHADEB#FFFFFF',
                   '-c', 'SHADEA#FFFFFF',
                 'DEF:d=%s:vs_disk_b_used:AVERAGE' % rrd,
-                'AREA:d#00FF00:bytes used']
+                'CDEF:db=d,1024,*',
+                'AREA:db#4eee94:bytes used']
 
         if qargs.has_key('l'):
             args.append('-g')  # no legend
@@ -671,7 +672,7 @@ def disk(req, name, params):
         return apache.OK
 
 
-def rss(req, name, params):
+def mem(req, name, params):
 
     if params.startswith('graph'):
 
@@ -706,10 +707,15 @@ def rss(req, name, params):
                   '--title', title,
                   '-w', str(width),
                   '-h', str(height),
+                  '-b', '1024',
                   '-c', 'SHADEB#FFFFFF',
                   '-c', 'SHADEA#FFFFFF',
-                'DEF:d=%s:vs_rss:AVERAGE' % rrd,
-                'AREA:d#4682b4:RSS (Resident Segment Size) in bytes']
+                'DEF:v=%s:vs_vm:AVERAGE' % rrd,
+                'DEF:r=%s:vs_rss:AVERAGE' % rrd,
+                'CDEF:vb=v,1024,*',
+                'CDEF:rb=r,1024,*',
+                'AREA:rb#36648b:RSS (Resident Segment Size) in bytes',
+                'STACK:vb#63b8ff:VM (Virtual Memory Size) in bytes']
 
         if qargs.has_key('l'):
             args.append('-g')  # no legend
@@ -726,10 +732,10 @@ def rss(req, name, params):
 
         location = 'stats:rss'
 
-        body_tmpl = _tmpl_path('rss_body.html')
+        body_tmpl = _tmpl_path('mem_body.html')
 
         rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
-        data = _load_rrd_data(rrd, ['vs_disk_b_used'])
+        data = _load_rrd_data(rrd, ['vs_rss', 'vs_vm'])
 
         body_vars = {'data':data}
 

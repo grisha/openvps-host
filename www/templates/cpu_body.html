@@ -1,23 +1,27 @@
   
 
   
-  <h4>CPU Utilization </h4>
+  <h4>CPU Utilization (1 tick is a CPU millisecond)</h4>
 
   <p>
   <table style="float: left;">
     <tr>
-      <th></th><th>user ticks</th><th>system ticks</th><th>total</th>
+      <th></th><th>system ticks</th><th>user ticks</th><th>total</th>
     </tr>
 
 <%
+
+import locale
+locale.setlocale(locale.LC_ALL, "")
+
 for d in data:
     # begin
 %>
     <tr>
       <td><%="%s %s" % (d[1], d[0]) %></td>
-      <td><%="%d" % int(d[2]) %></td>
-      <td><%="%d" % int(d[3]) %></td>
-      <td><%="%d" % int((d[2]+d[3])) %></td>
+      <td><%="%s" % locale.format("%d", d[2], 3) %></td>
+      <td><%="%s" % locale.format("%d", d[3], 3) %></td>
+      <td><%="%s" % locale.format("%d", (d[2]+d[3]), 3) %></td>
     </tr>
 <%
 # end

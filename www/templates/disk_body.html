@@ -1,21 +1,25 @@
   
 
   
-  <h4>DISK Utilization </h4>
+  <h4>DISK Utilization (1 Disk Token = 1 average KB over 1 minute interval)</h4>
 
   <p>
   <table style="float: left;">
     <tr>
-      <th></th><th>disk used</th></th>
+      <th></th><th>disk tokens used</th></th>
     </tr>
 
 <%
+
+import locale
+locale.setlocale(locale.LC_ALL, "")
+
 for d in data:
     # begin
 %>
     <tr>
       <td><%="%s %s" % (d[1], d[0]) %></td>
-      <td><%="%d" % int(d[2]) %></td>
+      <td><%="%s" % locale.format("%d", int(d[2]/1024), 3) %></td>
     </tr>
 <%
 # end
