@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.25 2004/11/03 22:43:30 grisha Exp $
+# $Id: dft.py.in,v 1.26 2004/11/04 18:18:28 grisha Exp $
 
 """ Configuration Defaults
 
@@ -542,7 +542,6 @@ FEDORA_C2_PKGS_BASE_II = [
     'xorg-x11-Mesa-libGL',
     'mod_perl',
     'mod_python',
-    'emacs-common',
     'libungif',
     'Xaw3d',
     'http://www.openvps.org/dist/misc/mirror/perl-Net-SSLeay-1.23-0.rhfc1.dag.i386.rpm',
@@ -582,7 +581,12 @@ FEDORA_C2_PKGS_BASE_II = [
     'startup-notification',
     'desktop-backgrounds-basic',
     'atk',
-    'xorg-x11-tools'
+    'xorg-x11-tools',
+    'xterm',
+    'vnc-server',
+    # emacs
+    'emacs',
+    'emacs-common',
     ]
 
 FEDORA_C2_PKGS_ADDL = [ ]

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.33 2004/11/03 22:43:30 grisha Exp $
+# $Id: vds.py,v 1.34 2004/11/04 18:18:28 grisha Exp $
 
 """ VDS related functions """
 
@@ -391,6 +391,22 @@ def ref_fix_inittab(refroot):
 
     open(file, 'w').writelines(lines)
 
+def ref_fix_vncserver(refroot):
+
+    # make vnc server start the lightweight xfce
+    # instead of twm
+
+    file = os.path.join(refroot, 'usr/bin/vncserver')
+
+    print 'Fixing up %s to start the lightweight xfce4' % file
+
+    lines = open(file).readlines()
+    for n in range(len(lines)):
+        if 'twm' in lines[n]:
+            lines[n] = lines[n].replace('twm', 'startxfce4')
+
+    open(file, 'w').writelines(lines)
+
 def buildref(refroot, distroot):
 
     print 'Building a reference server at %s using packages in %s' % \
@@ -407,6 +423,7 @@ def buildref(refroot, distroot):
     ref_make_libexec_oh(refroot)
     ref_make_i18n(refroot)
     ref_fix_inittab(refroot)
+    ref_fix_vncserver(refroot)
 
     # enable shadow (I wonder why it isn't by default)
     cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, refroot)
@@ -789,6 +806,14 @@ def vserver_immutable_modules(root):
     print s
 
 
+def vserver_fix_vncserver(root, name):
+
+    # create a vncserver entry for the main account
+    file = os.path.join(root, 'etc/sysconfig/vncservers')
+    print 'Adding a %s vncserver in %s' % (name, file)
+
+    open(file, 'a').write('VNCSERVERS="1:%s"\n' % name)
+
 def vserver_make_symlink(root, xid):
     
     # to hide the actual name of the vserver from other vservers (they
@@ -814,10 +839,6 @@ def vserver_make_symlink(root, xid):
 
     else:
         print '%s already a symlink, leaving it alone' % root
-
-def fix_vncserver(root, name):
-
-    pass # ZZZ
 
 def vserver_vroot_perms():
 
@@ -864,10 +885,9 @@ def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
     vserver_ohd_key(root, name)
     vserver_fixup_libexec_oh(root)
     vserver_immutable_modules(root)
+    vserver_fix_vncserver(root, name)
     vserver_make_symlink(root, xid)
     vserver_vroot_perms()
-
-    # ZZZ vsched
     
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""
