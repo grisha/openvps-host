@@ -83,7 +83,7 @@ VSERVER_PREFIX = '/usr/local'
 # services we want enabled on new vservers (everything else is
 # disabled)
 
-# FEDORA_C1_SRVCS =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
+# FEDORA_C2_SRVCS =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
 #                     'syslog', 'xinetd', 'webmin']
 
 # This is a list of additional packages that are installed when the
@@ -93,7 +93,7 @@ VSERVER_PREFIX = '/usr/local'
 # important, since you will only build a reference server once per
 # physical machine, if that.
 
-# FEDORA_C1_PKGS_ADDL = [ ]
+# FEDORA_C2_PKGS_ADDL = [ ]
 
 ###
 # do not edit this if you like using emacs

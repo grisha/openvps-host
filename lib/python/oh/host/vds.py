@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.24 2004/10/13 22:47:08 grisha Exp $
+# $Id: vds.py,v 1.25 2004/10/14 19:48:50 grisha Exp $
 
 """ VDS related functions """
 
@@ -183,7 +183,7 @@ def ref_install_pkgs(root, distroot):
         #os.chdir(distroot)
         
         print "Installing base packages STEP I..."
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_BASE_I, distroot)))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C2_PKGS_BASE_I, distroot)))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -199,7 +199,7 @@ def ref_install_pkgs(root, distroot):
         os.mkdir(os.path.join(root, 'usr', 'src', 'redhat'))
 
         print "Installing packages STEP II..."
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_BASE_II, distroot)))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C2_PKGS_BASE_II, distroot)))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -208,10 +208,10 @@ def ref_install_pkgs(root, distroot):
         pipe.close()
 
 
-        if cfg.FEDORA_C1_PKGS_ADDL:
+        if cfg.FEDORA_C2_PKGS_ADDL:
         
             print "Installing additional packages..."
-            cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C1_PKGS_ADDL, distroot)))
+            cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(resolve_packages(cfg.FEDORA_C2_PKGS_ADDL, distroot)))
             pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
             s = pipe.read(1)
             while s:
@@ -240,10 +240,10 @@ def ref_fix_services(refroot):
     services = os.listdir('.')
 
     for service in services:
-        if service in cfg.FEDORA_C1_NOT_SRVCS:
+        if service in cfg.FEDORA_C2_NOT_SRVCS:
             continue
         else:
-            onoff = ['off', 'on'][service in cfg.FEDORA_C1_SRVCS]
+            onoff = ['off', 'on'][service in cfg.FEDORA_C2_SRVCS]
             cmd = '%s %s /sbin/chkconfig --level 2345 %s %s' % (cfg.CHROOT, refroot, service, onoff)
             print '  ', cmd
             pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
@@ -496,6 +496,22 @@ def vserver_config_sendmail(root, hostname):
     f.write('%s\n' % domain)
     f.close()
 
+    # up the load average so that sendmail does not refuse connections
+    # even if the load is ridiculously high (this may not as critical
+    # now that we've got vsched XXX)
+
+    print 'Fixing RefuseLA in sendmail.cf'
+
+    fname = os.path.join(root, 'etc', 'mail', 'sendmail.cf')
+    lines = open(fname).readlines()
+
+    for n in range(len(lines)):
+
+        if lines[n].startswith('#O RefuseLA'):
+            lines[n] = 'O RefuseLA 100\n'
+        
+    open(fname, 'w').writelines(lines)
+
 def vserver_enable_imaps(root):
 
     print 'Enabling IMAPS and POP3S'
@@ -730,6 +746,20 @@ def vserver_fixup_libexec_oh(root):
     vsutil.set_file_immutable_unlink(png)
     vsutil.set_file_immutable_unlink(tr)
 
+def vserver_immutable_modules(root):
+
+    # make lib/modules immutable. we already have a fake kernel
+    # installed, but this will serve as a further deterrent against
+    # installing kernels and/or modules. This flag can be unset from
+    # within a vserver.
+
+    print 'Making lib/modules immutable'
+
+    cmd = 'chattr +i %s' % os.path.join(root, 'lib/modules')
+    s = commands.getoutput(cmd)
+    print s
+
+
 def vserver_make_symlink(root, xid):
     
     # to hide the actual name of the vserver from other vservers (they
@@ -797,14 +827,13 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns=cfg.PRIMARY_
     vserver_disable_pam_limits(root)
     vserver_ohd_key(root, name)
     vserver_fixup_libexec_oh(root)
+    vserver_immutable_modules(root)
     vserver_make_symlink(root, xid)
     vserver_vroot_perms()
 
-    # ZZZ localedef -i en_US -c -f UTF-8 en_US.UTF-8
-    # ZZZ also remember to create an immutable /modules
-    # ZZZ and a bogus kernel rpm (DONE)
-    # ZZZ need to check the named rpm (it needs caps, remember?)
-    # ZZZ need to update webmin rpm
+    # ZZZ test ping/traceroute
+    # ZZZ fix pops imaps (FIXME)
+    # ZZZ vsched
     
     # rm -f /var/lib/rpm/__db*
     # (this is because we install from FC1)

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * $Id: common.c,v 1.1 2004/05/21 03:38:43 grisha Exp $
+ * $Id: common.c,v 1.2 2004/10/14 19:48:50 grisha Exp $
  * 
  */
 
@@ -37,7 +37,7 @@ int run(char *command, int argc, char *argv[]) {
         "-o", "NumberOfPasswordPrompts=0",
         "-o", "NoHostAuthenticationForLocalhost=yes",
         "-c", "blowfish", 
-//        "-v", 
+        "-v", 
         "-p", SSH_PORT,
         SSH_USER "@" SSH_HOST, 
         command
