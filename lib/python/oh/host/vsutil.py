@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.13 2004/11/07 05:11:10 grisha Exp $
+# $Id: vsutil.py,v 1.14 2004/11/15 17:44:23 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -249,6 +249,12 @@ def is_file_immutable_unlink(path):
 
     x = vserver.get_file_attr(path)
     return x.has_key('iunlink') and x.has_key('immutable') and x['iunlink'] and x['immutable']
+
+
+def set_file_xid(path, xid):
+    """ Set xid of a file """
+    
+    vserver.set_file_xid(path, xid)
 
 #
 # XXX These are obsolete with vs 1.9.x and up

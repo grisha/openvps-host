@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.36 2004/11/08 16:22:21 grisha Exp $
+# $Id: vds.py,v 1.37 2004/11/15 17:44:23 grisha Exp $
 
 """ VDS related functions """
 
@@ -890,6 +890,7 @@ def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
     vserver_fixup_libexec_oh(root)
     vserver_immutable_modules(root)
     vserver_fix_vncserver(root, name)
+    fixxids(root, xid)
     vserver_make_symlink(root, xid)
     vserver_vroot_perms()
     
@@ -1173,6 +1174,46 @@ def fixflags(refroot):
     sys.stdout.write('\b'*(prog_size+2))
     sys.stdout.write('[%s]' % ('='*prog_size)); sys.stdout.flush()
     print 'Done.'
+
+
+def fixxids(root, xid, pace=cfg.PACE[0]):
+
+    # walk the root, and set all non-iunlink files to xid xid.  this
+    # means that when a non iunlink file is deleted, the proper amount
+    # of space is freed.
+
+    xid = int(xid)
+
+    print 'Fixing xids in %s for xid %d... (this may take a while)' % (root, xid)
+
+    p = 0
+    t, x = 0, 0
+
+    for root, dirs, files in os.walk(root):
+
+        for file in files + dirs:
+
+            path = os.path.join(root, file)
+
+            if pace and p >= pace:
+                sys.stdout.write('.'); sys.stdout.flush()
+                time.sleep(cfg.PACE[1])
+                p = 0
+            else:
+                p += 1
+
+            t += 1  # total file count
+
+            if not vsutil.is_file_immutable_unlink(path):
+
+                vsutil.set_file_xid(path, xid)
+
+                x += 1 # setxid file count
+
+
+    print 'Done.\n%d xids of a total of %d has been set to %d' % (x, t, xid)
+
+
 
 def addip(vserver, ip):
 

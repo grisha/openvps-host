@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost,v 1.9 2004/10/25 20:43:18 grisha Exp $
+# $Id: ohhost,v 1.10 2004/11/15 17:44:23 grisha Exp $
 
 
 """
@@ -97,6 +97,19 @@ def cmd_fixflags():
     refroot = args[0]
 
     vds.fixflags(refroot)
+
+def cmd_fixxids():
+
+    parser = OptionParser(usage="%prog fixxids <root> <xid>\n"
+                          "  Set the right xid tags on a vserver")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 2:
+        parser.error("Must specify both <root> and <xid>")
+
+    root, xid = args[0], int(args[1])
+
+    vds.fixxids(root, xid)
 
 def cmd_addip():
 
