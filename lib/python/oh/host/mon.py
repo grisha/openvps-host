@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: mon.py,v 1.1 2004/12/22 21:12:48 grisha Exp $
+# $Id: mon.py,v 1.2 2004/12/29 00:58:02 grisha Exp $
 
 # This file contains functions to retrieve various server statistics
 # (mostly) from the /proc filesystem. It also contains functions to
@@ -122,7 +122,7 @@ def net_dev():
             if ifnam in ['eth0', 'eth1']:
                 result.update({
                     'net_%s_rx_bytes' % ifnam : long(rx_b),
-                    'net_%s_tx_bytes' % ifnam : long(rx_b),
+                    'net_%s_tx_bytes' % ifnam : long(tx_b),
                     'net_%s_packets' % ifnam : long(rx_p)+long(tx_p),
                     'net_%s_errors' % ifnam : long(rx_er)+long(tx_er),
                     'net_%s_drop' % ifnam : long(rx_dr)+long(tx_dr)})
@@ -183,6 +183,37 @@ def diskstats():
 
     return result
 
+
+shmall, semmns = None, None
+
+def ipcs():
+
+    # kernel.shmall
+    global shmall
+    if not shmall:
+        shmall = int(commands.getoutput('/sbin/sysctl -n kernel.shmall').strip())
+
+    # semmns in kernel.sem
+    global semmns
+    if not semmns:
+        sem = commands.getoutput('/sbin/sysctl -n kernel.sem').split()
+        semmns = int(sem[1])
+
+    totshm = 0
+    lines = commands.getoutput('/usr/bin/ipcs -m').splitlines()
+    for line in lines:
+        if not line or line.startswith('----') or line.startswith('key') or line == '\n':
+            continue
+        key, shmid, owner, perms, bytes, x = line.split(None, 5)
+        totshm += int(bytes)
+
+    lines = commands.getoutput('/usr/bin/ipcs -s').splitlines()
+    totsem = len(lines) - 3  # a simple trick
+
+    return {'ipc_shmall':shmall, 'ipc_totshm':totshm,
+            'ipc_semmns':semmns, 'ipc_totsem':totsem}
+            
+
 def collect_stats():
 
     # do all of the above
@@ -196,6 +227,7 @@ def collect_stats():
     data.update(net_dev())
     data.update(df())
     data.update(diskstats())
+    data.update(ipcs())
 
     return result(data)
 
