@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.4 2004/05/25 17:17:44 grisha Exp $
+# $Id: Makefile.in,v 1.5 2004/05/25 17:20:25 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -25,6 +25,8 @@ CONFIG=@prefix@/etc/ohhost.conf
 VERSION=version.txt
 
 all:
+	cd ohd && $(MAKE)
+	cd src && $(MAKE)
 
 install:
 	$(INSTALL) -d $(SBINDIR)
