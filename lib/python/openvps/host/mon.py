@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: mon.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
+# $Id: mon.py,v 1.2 2005/01/31 18:15:08 grisha Exp $
 
 # This file contains functions to retrieve various server statistics
 # (mostly) from the /proc filesystem. It also contains functions to
@@ -83,7 +83,12 @@ def meminfo():
 
     result = {}
 
-    lines = open('/proc/meminfo').readlines()
+    try:
+        lines = open('/proc/meminfo').readlines()
+    except IOError:
+        # we've seen 'file does not exist' being raised here sometimes
+        # try again
+        lines = open('/proc/meminfo').readlines()
     
     for line in lines:
         # only pick the ones we're interested in
