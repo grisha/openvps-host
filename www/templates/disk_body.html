@@ -4,6 +4,26 @@
   <h4>DISK Utilization </h4>
 
   <p>
+  <table style="float: left;">
+    <tr>
+      <th></th><th>disk used</th></th>
+    </tr>
 
-  <img src="day_graph"><br>   
+<%
+for d in data:
+    # begin
+%>
+    <tr>
+      <td><%="%s %s" % (d[1], d[0]) %></td>
+      <td><%="%d" % int(d[2]) %></td>
+    </tr>
+<%
+# end
+%>
+  </table>
+
+  <p>
+  <img src="disk/graph?s=86400&l=1"><br>   
+  <img src="disk/graph?s=2592000&l=1"><br>
+  <img src="disk/graph?s=7776000"><br>
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.16 2005/02/11 22:47:26 grisha Exp $
+# $Id: panel.py,v 1.17 2005/02/15 21:49:00 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -25,6 +25,9 @@ import os
 import time
 import sys
 import binascii
+import tempfile
+
+import RRD
 
 from mod_python import apache, psp, util, Cookie
 
@@ -32,12 +35,17 @@ from openvps.common import rrdutil, crypto, RSASignedCookie
 from openvps.host import cfg, vsutil, vsmon
 
 ALLOWED_COMMANDS = ['index',
+                    'graph',
+                    'graph1',
+                    'graph2',
+                    'graph3',
                     'day_graph',
                     'month_graph',
                     'quarter_graph',
                     'status',
                     'stats',
                     'traffic',
+                    'bwidth',
                     'disk',
                     'cpu',
                     'start',
@@ -138,31 +146,30 @@ def handler(req):
 # Supporting functions
 #
 
-def _load_rrd_data(name):
+def _load_rrd_data(rrd, dslist):
+
+    # dslist is a list of DS's in the RRD that we're totalling
 
     # build a list of
-    # [[year, month, in, out]
-    #  [year, month, in, out]...]
+    # [[year, month, x1, x2]
+    #  [year, month, x1, x2]...]
 
     MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
     data = []
 
-    # location of the bandwidth rrd
-    rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
-
     yyyy, mm = time.localtime()[0:2]
-    i, o  = rrdutil.month_total(rrd, yyyy, mm)
-    data.append([yyyy, MONTHS[mm-1], i, o])
+    x  = rrdutil.month_total(rrd, yyyy, mm, dslist)
+    data.append([yyyy, MONTHS[mm-1]] + x)
 
     yyyy, mm = rrdutil.prev_month(yyyy, mm)
-    i, o = rrdutil.month_total(rrd, yyyy, mm)
-    data.append([yyyy, MONTHS[mm-1], i, o])
+    x = rrdutil.month_total(rrd, yyyy, mm, dslist)
+    data.append([yyyy, MONTHS[mm-1]] + x)
 
     yyyy, mm = rrdutil.prev_month(yyyy, mm)
-    i, o = rrdutil.month_total(rrd, yyyy, mm)
-    data.append([yyyy, MONTHS[mm-1], i, o])
+    x = rrdutil.month_total(rrd, yyyy, mm, dslist)
+    data.append([yyyy, MONTHS[mm-1]] + x)
 
     return data
 
@@ -375,7 +382,8 @@ def traffic(req, name, params):
 
     body_tmpl = _tmpl_path('traffic_body.html')
 
-    data = _load_rrd_data(name)
+    rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
+    data = _load_rrd_data(rrd, ['in', 'out'])
     body_vars = {'data':data}
 
     vars = {'global_menu': _global_menu(req, location),
@@ -420,7 +428,7 @@ def month_graph(req, name, params):
 
 def quarter_graph(req, name, params):
 
-    # location of the bandwidth rrd
+    # location of the vsmon rrd
     rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
 
     image = rrdutil.graph(rrd, back=7614000, title='Last 90 days',
@@ -433,61 +441,232 @@ def quarter_graph(req, name, params):
     return apache.OK
 
 
-def graph(req, name, params):
+def cpu(req, name, params):
 
-    # location of the bandwidth rrd
-    rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
+    if params.startswith('graph'):
 
-    image = rrdutil.graph(rrd, back=86400, title='Last 24 hours',
-                          width=484, height=50)
+        if not req.args:
+            return error(req, 'Not sure what you mean')
 
-    req.content_type = 'image/gif'
-    req.sendfile(image)
-    os.unlink(image)
+        qargs = util.parse_qs(req.args)
+        
+        if not qargs.has_key('s'):
+            return error(req, 'Where do I start?')
 
-    return apache.OK
+        start = '-'+qargs['s'][0]
+        width = 484
+        height = 70
+        nolegend = ''
+        if qargs.has_key('l'):
+            nolegend = '-g'  # no legend
+
+        # how many days back?
+        secs = abs(int(start))
+        if secs < 60*60*24:
+            # we're talking hours
+            title = 'last %d hours' % (secs/(60*60))
+        else:
+            title = 'last %d days' % (secs/(60*60*24))
+
+        rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
+        tfile, tpath = tempfile.mkstemp('.gif', 'oh')
+        os.close(tfile)
+
+        args = [tpath, '--start', start,
+                  '--title', title,
+                  '-w', str(width),
+                  '-h', str(height),
+                  '-c', 'SHADEB#FFFFFF',
+                  '-c', 'SHADEA#FFFFFF',
+                  'DEF:u=%s:vs_uticks:AVERAGE' % rrd,
+                  'DEF:s=%s:vs_sticks:AVERAGE' % rrd,
+                  'AREA:s#FF4500:user ticks',
+                  'STACK:u#FF8000:system ticks']
+
+        if qargs.has_key('l'):
+            args.append('-g')  # no legend
+        
+        RRD.graph(*args)
+        
+        req.content_type = 'image/gif'
+        req.sendfile(tpath)
+        os.unlink(tpath)
+        
+        return apache.OK
+
+    else:
+
+        location = 'stats:cpu'
+
+        body_tmpl = _tmpl_path('cpu_body.html')
+
+        rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
+        data = _load_rrd_data(rrd, ['vs_uticks', 'vs_sticks'])
+
+        body_vars = {'data':data}
+
+        vars = {'global_menu': _global_menu(req, location),
+                'body':psp.PSP(req, body_tmpl, vars=body_vars),
+                'name':name}
+
+        p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                    vars=vars)
+
+        p.run()
+
+        return apache.OK
+
+
+def bwidth(req, name, params):
+
+    if params.startswith('graph'):
+
+        if not req.args:
+            return error(req, 'Not sure what you mean')
+
+        qargs = util.parse_qs(req.args)
+        
+        if not qargs.has_key('s'):
+            return error(req, 'Where do I start?')
+
+        start = '-'+qargs['s'][0]
+        width = 484
+        height = 56
+        nolegend = ''
+        if qargs.has_key('l'):
+            nolegend = '-g'  # no legend
+
+        # how many days back?
+        secs = abs(int(start))
+        if secs < 60*60*24:
+            # we're talking hours
+            title = 'last %d hours' % (secs/(60*60))
+        else:
+            title = 'last %d days' % (secs/(60*60*24))
+
+        rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
+        tfile, tpath = tempfile.mkstemp('.gif', 'oh')
+        os.close(tfile)
+
+        args = [tpath, '--start', start,
+                  '--title', title,
+                  '-w', str(width),
+                  '-h', str(height),
+                  '-c', 'SHADEB#FFFFFF',
+                  '-c', 'SHADEA#FFFFFF',
+                'DEF:in=%s:vs_in:AVERAGE' % rrd,
+                'DEF:out=%s:vs_out:AVERAGE' % rrd,
+                'CDEF:inbits=in,8,*',
+                'CDEF:outbits=out,8,*',
+                'AREA:inbits#00FF00:bps in',
+                'LINE1:outbits#0000FF:bps out']
+
+        if qargs.has_key('l'):
+            args.append('-g')  # no legend
+        
+        RRD.graph(*args)
+        
+        req.content_type = 'image/gif'
+        req.sendfile(tpath)
+        os.unlink(tpath)
+        
+        return apache.OK
+
+    else:
+
+        location = 'stats:bwidth'
+
+        body_tmpl = _tmpl_path('bwidth_body.html')
+
+        rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
+        data = _load_rrd_data(rrd, ['vs_in', 'vs_out'])
+
+        body_vars = {'data':data}
+
+        vars = {'global_menu': _global_menu(req, location),
+                'body':psp.PSP(req, body_tmpl, vars=body_vars),
+                'name':name}
+
+        p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                    vars=vars)
+
+        p.run()
+
+        return apache.OK
 
 
 def disk(req, name, params):
 
-    location = 'stats:disk'
+    if params.startswith('graph'):
 
-    body_tmpl = _tmpl_path('disk_body.html')
+        if not req.args:
+            return error(req, 'Not sure what you mean')
 
-    data = _load_rrd_data(name)
-    body_vars = {'data':data}
+        qargs = util.parse_qs(req.args)
+        
+        if not qargs.has_key('s'):
+            return error(req, 'Where do I start?')
 
-    vars = {'global_menu': _global_menu(req, location),
-            'body':psp.PSP(req, body_tmpl, vars=body_vars),
-            'name':name}
-            
-    p = psp.PSP(req, _tmpl_path('main_frame.html'),
-                vars=vars)
+        start = '-'+qargs['s'][0]
+        width = 484
+        height = 56
+        nolegend = ''
+        if qargs.has_key('l'):
+            nolegend = '-g'  # no legend
 
-    p.run()
+        # how many days back?
+        secs = abs(int(start))
+        if secs < 60*60*24:
+            # we're talking hours
+            title = 'last %d hours' % (secs/(60*60))
+        else:
+            title = 'last %d days' % (secs/(60*60*24))
 
-    return apache.OK
+        rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
+        tfile, tpath = tempfile.mkstemp('.gif', 'oh')
+        os.close(tfile)
 
+        args = [tpath, '--start', start,
+                  '--title', title,
+                  '-w', str(width),
+                  '-h', str(height),
+                  '-c', 'SHADEB#FFFFFF',
+                  '-c', 'SHADEA#FFFFFF',
+                'DEF:d=%s:vs_disk_b_used:AVERAGE' % rrd,
+                'AREA:d#00FF00:bytes used']
 
-def cpu(req, name, params):
+        if qargs.has_key('l'):
+            args.append('-g')  # no legend
+        
+        RRD.graph(*args)
+        
+        req.content_type = 'image/gif'
+        req.sendfile(tpath)
+        os.unlink(tpath)
+        
+        return apache.OK
 
-    location = 'stats:cpu'
+    else:
 
-    body_tmpl = _tmpl_path('cpu_body.html')
+        location = 'stats:disk'
 
-    data = _load_rrd_data(name)
-    body_vars = {'data':data}
+        body_tmpl = _tmpl_path('disk_body.html')
 
-    vars = {'global_menu': _global_menu(req, location),
-            'body':psp.PSP(req, body_tmpl, vars=body_vars),
-            'name':name}
-            
-    p = psp.PSP(req, _tmpl_path('main_frame.html'),
-                vars=vars)
+        rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % name)
+        data = _load_rrd_data(rrd, ['vs_disk_b_used'])
 
-    p.run()
+        body_vars = {'data':data}
 
-    return apache.OK
+        vars = {'global_menu': _global_menu(req, location),
+                'body':psp.PSP(req, body_tmpl, vars=body_vars),
+                'name':name}
+
+        p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                    vars=vars)
+
+        p.run()
+
+        return apache.OK
 
 
 def getstats(req, name, command):

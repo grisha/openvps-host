@@ -1,0 +1,37 @@
+  
+
+  
+  <h4>Bandwidth Utilization Statistics  (1 gigabyte is 1073741824 bytes)</h4>
+
+  <p>
+  <table style="float: left; white-space: nowrap; font-size: 90%;">
+    <tr>
+      <th></th><th>input</th><th>output</th><th>total</th>
+    </tr>
+
+<%
+
+GB = 1073741824.0  # bytes in gigabyte
+
+for d in data:
+    # begin
+%>
+    <tr>
+      <td><%="%s %d" % (d[1], d[0]) %></td>
+      <td><%="%.2f Gb (%d bytes)" % (d[2]/GB, d[2]) %></td>
+      <td><%="%.2f Gb (%d bytes)" % (d[3]/GB, d[3]) %></td>
+      <td><%="%.2f Gb (%d bytes)" % ((d[2]+d[3])/GB, (d[2]+d[3])) %></td>
+    </tr>
+<%
+# end
+%>
+  </table>
+
+  <p>
+  <img src="bwidth/graph?s=86400&l=1"><br>   
+  <img src="bwidth/graph?s=2592000&l=1"><br>
+  <img src="bwidth/graph?s=7776000"><br>
+
+  <p>
+  Note - the above graphs represent <em>bits per second</em>. 
+  One byte is equivalent to eight bits.
