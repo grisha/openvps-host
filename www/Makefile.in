@@ -14,19 +14,22 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.4 2005/01/12 22:52:29 grisha Exp $
+# $Id: Makefile.in,v 1.5 2005/01/13 23:40:33 grisha Exp $
 
 install: 
 	cd conf && $(MAKE) install
 	cd templates && $(MAKE) install
+	cd images && $(MAKE) install
 
 clean:
 	cd conf && $(MAKE) clean
 	cd templates && $(MAKE) clean
+	cd images && $(MAKE) clean
 	rm -rf *~ 
 
 distclean: clean
 	cd conf && $(MAKE) distclean
 	cd templates && $(MAKE) distclean
+	cd images && $(MAKE) distclean
 	rm -rf Makefile 
 

@@ -1,8 +1,55 @@
-  
-   <p>
-   blah blah blah
 
-   <p>
-   blah blah blah
 
-   
+<%
+if status == 'running':
+    # begin
+%>
+   <br><br><br><br>
+   <center>
+   <table style="width: 300px;">
+   <tr>
+     <th style="border: 0;" colspan=3>
+       <h1>Status: <font color="blue">Running</font></h1>
+       <br><br><br>
+     </th>
+   </tr>
+   <tr>
+     <td style="width: 100px; border: 0;"></td>
+     <td style="width: 100px;"><a href="stop"><div class="stop"></div></a></td>
+     <td style="width: 100px; border:0;"></td>
+   </tr>
+   <tr>
+     <th style="border: 0;" colspan=3>
+       Click to stop.
+     </th>  
+   </table>
+   </center>
+<%
+# end
+else:
+    # begin
+%>
+   <br><br><br><br>
+   <center>
+   <table style="width: 300px;">
+   <tr>
+     <th style="border: 0;" colspan=3>
+       <h1>Status: <font color="red">Stopped</font></h1>
+       <br><br><br>
+     </th>
+   </tr>
+   <tr>
+     <td style="width: 100px; border: 0;"></td>
+     <td style="width: 100px;"><a href="start"><div class="play"></div></a></td>
+     <td style="width: 100px; border:0;"></td>
+   </tr>
+   <tr>
+     <th style="border: 0;" colspan=3>
+       Click to start.
+     </th>  
+   </table>
+   </center>
+<%
+# end
+%>
+

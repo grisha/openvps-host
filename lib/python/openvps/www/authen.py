@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: authen.py,v 1.2 2005/01/12 22:52:29 grisha Exp $
+# $Id: authen.py,v 1.3 2005/01/13 23:40:33 grisha Exp $
 
 """ Authentication handler for the panel. This
 requires mod_python 3.1 or later """
@@ -29,13 +29,10 @@ def authenhandler(req):
 
     # a userid matching the vserver name must exist in the vserver
 
-    path = os.path.normpath(req.uri)
-    userid = path.split('/')[1]
+    passwd = req.get_basic_auth_pw()
+    vserver = userid = req.user
 
     vservers = vsutil.list_vservers()
-
-    passwd = req.get_basic_auth_pw()
-    vserver = userid
 
     if vservers.has_key(userid):
         if vsutil.check_passwd(vserver, userid, passwd):

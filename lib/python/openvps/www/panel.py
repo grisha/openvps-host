@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.2 2005/01/12 22:52:29 grisha Exp $
+# $Id: panel.py,v 1.3 2005/01/13 23:40:33 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -25,20 +25,23 @@ import os
 import time
 import sys
 
-from mod_python import apache, psp
+from mod_python import apache, psp, util
 
 from openvps.common import rrdutil
 from openvps.host import cfg
 from openvps.host import vsutil
 
-GB = 1073741824.0  # bytes in gigabyte
-
 ALLOWED_COMMANDS = ['index',
                     'day_graph',
                     'month_graph',
-                    'quarter_graph']
+                    'quarter_graph',
+                    'status',
+                    'traffic',
+                    'start',
+                    'stop']
 
 def error(req, msg):
+    req.content_type = 'text/html'
     req.write('\n<h1>Error: %s</h1>\n' % msg)
     return apache.OK
               
@@ -59,6 +62,12 @@ def handler(req):
 
     if len(parts) >= 2:
         vserver_name = parts[1]
+        vservers = vsutil.list_vservers()
+        if not vservers.has_key(vserver_name):
+            return error(req, 'request not understood')
+
+    if req.user != vserver_name:
+        return error(req, 'request not understood')
         
     if len(parts) > 2:
         command = parts[2]
@@ -108,44 +117,40 @@ def _load_rrd_data(name):
 
     return data
 
-def _navigation_map(req):
-                                                                                                                                               
-    si = '/images/some_icon.gif'
-                                                                                                                                               
-    global_menu = [("status", "Status", "status", si, []),
-                   ("bandwidth", "Bandwidth", "bandwidth", si, []),
-                   ("blah", "Blah", "blah", si, [])]
-                                                                                                                                               
-    return global_menu
+def _tmpl_path(tmpl):
 
+    return os.path.join(cfg.TMPL_DIR, tmpl)
+
+def _base_url(req, ssl=0):
+    # lame attempt at guessing base url
+
+    host = req.headers_in.get('host', req.server.server_hostname)
+
+    if ssl:
+        base = 'https://' + host + req.uri
+    else:
+        base = 'http://' + host + req.uri
+
+    return os.path.split(base)[0]
+
+def _navigation_map(req):
+
+    # tag, Text, link, icon_url, submenu
+
+    global_menu = [("status", "Status", "status", None, []),
+                   ("traffic", "Bandwidth", "traffic", None, []),
+                   ]
+
+    return global_menu
 
 def _global_menu(req, location):
 
     menu_items = _navigation_map(req)
 
-    m = psp.PSP(req, '/usr/openvps/templates/global_menu.html',
+    m = psp.PSP(req, _tmpl_path('global_menu.html'),
                 vars={'menu_items':menu_items,
                       'hlight':location})
-
     return m
-
-def _navigation_menu(req, location):
-                                                                                                                                               
-    nmap = _navigation_map(req)
-                                                                                                                                               
-    return _render_navi_menu(req, nmap, location)
-                                                                                                                                               
-def _render_navi_menu(req, menu_items, location, level=0):
-                                                                                                                                               
-    # This is a recursive operation - we pass the function
-    # into the PSP template so that it can call it to render
-    # expanded items.
-                                                                                                                                               
-    return psp.PSP(req, '/usr/openvps/templates/navigation.html',
-                   vars={"menu_items": menu_items,
-                         "level": level,
-                         "location": location,
-                         "render_menu": _render_navi_menu})
 
 #
 # Callable from outside
@@ -153,62 +158,48 @@ def _render_navi_menu(req, menu_items, location, level=0):
 
 def index(req, name, params):
 
-    location = 'status'.split(':')
+    return status(req, name, params)
 
-    body_tmpl = '/usr/openvps/templates/status_body.html'
+
+def traffic(req, name, params):
+
+    location = 'traffic'.split(':')
+
+    body_tmpl = _tmpl_path('traffic_body.html')
+
+    data = _load_rrd_data(name)
+    body_vars = {'data':data}
 
     vars = {'global_menu': _global_menu(req, location[0]),
-            'body':psp.PSP(req, body_tmpl, vars={}),
-            'navigation': _navigation_menu(req, location)}
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
+            'name':name}
             
-    p = psp.PSP(req, '/usr/openvps/templates/main_frame.html',
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
                 vars=vars)
 
     p.run()
 
     return apache.OK
 
+def status(req, name, params):
+    
+    location = 'status'.split(':')
 
-def index2(req, name, params):
-
-    # set content type
-    req.content_type = 'text/html'
-
-    req.write('<html>\n')
-    #req.write('<link rel="STYLESHEET" type="text/css" '
-    #          'href="http://www.openhosting.com/styles/style.css">\n')
-
-    # server status
+    status = 'stopped'
     if vsutil.is_running(name):
-        req.write('<h2>Server status: running</h2><br>\n')
-    else:
-        req.write('<h2>Server status: stopped</h2><br>\n')
+        status = 'running'
 
-    # bandwidth utilization
-    data = _load_rrd_data(name)
-    req.write('<center>\n')
-    req.write('<h1>Bandwidth use on server <em>%s</em></h1>\n' % name)
-    req.write('<h3>%s</h3>\n' % time.ctime())
-    req.write('<table border=1 cellpadding=5>\n')
-    req.write('<tr><th></th><th>Input</th><th>Output</th><th>Total</th></tr>\n')
-    for d in data:
-        req.write('<tr><th>%s %d</th>'
-                  '<td><b>%.2f Gb</b> (%d bytes)</td>'
-                  '<td><b>%.2f Gb</b> (%d bytes)</td>'
-                  '<td><b>%.2f Gb</b> (%d bytes)</td></tr>\n' %
-                  (d[1], d[0], d[2]/GB, d[2], d[3]/GB, d[3], (d[2]+d[3])/GB, d[2]+d[3]))
-    req.write('</table><br>\n')
-    req.write('<em>(1 gigabyte is 1073741824 bytes)</em>\n')
-    req.write('<h3>Throughput statistics</h3>\n')
-    req.write('<img src="day_graph"><br><br>\n')
-    req.write('<img src="month_graph"><br><br>\n')
-    req.write('<img src="quarter_graph"><br><br>\n')
-    req.write('<em>(Note - the above graphs represent number of bits transerred per second. '
-              'One byte is equivalent to eight bits.)</em><br><br>\n')
-    req.write('<hr><em>Copyright 2004 OpenHosting, Inc.</em>\n')
-    req.write('</center>\n')
+    body_tmpl = _tmpl_path('status_body.html')
+    body_vars = {'status':status}
 
-    req.write('</html>')
+    vars = {'global_menu': _global_menu(req, location[0]),
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
+            'name':name}
+            
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                vars=vars)
+
+    p.run()
 
     return apache.OK
 
@@ -217,7 +208,8 @@ def day_graph(req, name, params):
     # location of the bandwidth rrd
     rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
 
-    image = rrdutil.graph(rrd, back=86400, title='Last 24 hours')
+    image = rrdutil.graph(rrd, back=86400, title='Last 24 hours',
+                          width=484, height=50)
 
     req.content_type = 'image/gif'
     req.sendfile(image)
@@ -230,7 +222,8 @@ def month_graph(req, name, params):
     # location of the bandwidth rrd
     rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
 
-    image = rrdutil.graph(rrd, back=2592000, title='Last 30 days')
+    image = rrdutil.graph(rrd, back=2592000, title='Last 30 days',
+                          width=484, height=50)
 
     req.content_type = 'image/gif'
     req.sendfile(image)
@@ -243,10 +236,29 @@ def quarter_graph(req, name, params):
     # location of the bandwidth rrd
     rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
 
-    image = rrdutil.graph(rrd, back=7614000, title='Last 90 days')
+    image = rrdutil.graph(rrd, back=7614000, title='Last 90 days',
+                          width=484, height=50)
 
     req.content_type = 'image/gif'
     req.sendfile(image)
     os.unlink(image)
 
     return apache.OK
+
+def stop(req, name, params):
+
+    if vsutil.is_running(name):
+
+        vsutil.stop(name)
+        time.sleep(3)
+
+    util.redirect(req, _base_url(req)+'/status')
+
+def start(req, name, params):
+
+    if not vsutil.is_running(name):
+
+        vsutil.start(name)
+        time.sleep(3)
+
+    util.redirect(req, _base_url(req)+'/status')

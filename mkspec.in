@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.14 2005/01/12 22:52:29 grisha Exp $
+# $Id: mkspec.in,v 1.15 2005/01/13 23:40:33 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -30,7 +30,7 @@ echo "License: ASL 2.0"
 echo "Group: OpenVPS"
 echo "URL: http://www.openvps.org/"
 echo "Vendor: OpenHosting, Inc."
-echo "Requires: openvps-common >= 0.9"
+echo "Requires: openvps-common >= 0.10"
 echo "Requires: python httpd mod_python mod_ssl bind bind-chroot rrdtool util-vserver rpm-python openssl"
 echo "Source0: %{name}-%{version}.tgz"
 echo "BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot"
@@ -57,6 +57,7 @@ echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/httpd/conf.d"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/ssh"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/usr/openvps/misc"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/usr/openvps/templates"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/usr/openvps/images"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/oh"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/%{_libdir}/@PYTHON@/site-packages/oh"
 echo 'make install DESTDIR=$RPM_BUILD_ROOT'

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.1 2005/01/12 21:24:43 grisha Exp $
+# $Id: vsutil.py,v 1.2 2005/01/13 23:40:33 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -341,7 +341,27 @@ def start(vserver):
         # run directly
         return commands.getoutput('%s %s start' % (cfg.VSERVER, vserver))
     else:
-        return commands.getoutput('%s vserver-start %s' % (cfg.OVWRAPPER, vserver))
+
+        # in this case assume we're called from mod_python. things aren't nearly
+        # as simple - if we were to start the vserver directly, its init process would
+        # inherit all our file descriptors for as long as the vserver will run,
+        # making it impossible to restart httpd on the main server since its ip/port
+        # will remain open. so we have to daemonize here
+
+        if os.fork() == 0:
+            
+            # in child, fork again to avoid zombies
+            if os.fork() == 0:
+
+                # now close all file descriptors
+                for fd in range(os.sysconf("SC_OPEN_MAX")):
+                    try:
+                        os.close(fd)
+                    except OSError:   # ERROR (ignore)
+                        pass
+
+                # only now is it OK to do our thing
+                commands.getoutput('%s vserver-start %s' % (cfg.OVWRAPPER, vserver))
 
 def stop(vserver):
 

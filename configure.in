@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.20 2005/01/12 22:52:29 grisha Exp $
+# $Id: configure.in,v 1.21 2005/01/13 23:40:33 grisha Exp $
 
 AC_INIT
 
@@ -143,4 +143,5 @@ AC_OUTPUT(Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec \
 		   src/ohchkpwd/Makefile www/Makefile www/conf/Makefile \
 		   lib/python/openvps/host/dft.py openvps.conf ohd/Makefile \
 		   ohd/common.h ohd/sshd_config src/pace/Makefile \
-		   src/wrapper/wrapper.h src/wrapper/Makefile www/templates/Makefile)
+		   src/wrapper/wrapper.h src/wrapper/Makefile www/templates/Makefile \
+		   www/images/Makefile www/conf/openvps.conf)

@@ -1,25 +1,25 @@
 <%
 """
-$Id: global_menu.html,v 1.1 2005/01/12 22:52:29 grisha Exp $
+$Id: global_menu.html,v 1.2 2005/01/13 23:40:33 grisha Exp $
 
 """
 %>
 
-<ul id="portal-globalnav">
+<ul id="globalnav">
 
 <%
 for mi in menu_items:
     link, text, url, icon, sub = mi
     attr = "plain"
     if link == hlight:
-        attr = "selected"
+        attr = "active"
     # begin
 %>
-  <li id="portaltab-<%=link%>" class="<%=attr%>">
-    <a href="<%=url%>" class=""><%=text%></a>
-  </li>
+  <li><a href="<%=url%>" class="<%=attr%>"><%=text%></a></li>
 <%
 # end
 %>
                                                                                                                                                
 </ul>
+
+
