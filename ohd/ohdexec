@@ -1,0 +1,160 @@
+#!/usr/local/bin/python
+
+import os
+import commands
+from syslog import syslog, openlog
+import sys
+
+from oh.host import vsutil
+from oh.host import cfg
+
+def get_client_ip():
+    """ get the ip from the environment """
+
+    ip = None
+
+    try:
+        ssh_conn = os.environ['SSH_CONNECTION']
+        # Note that we actually grab the _destination_ ip here.
+        # because the client should be connecting to 127.0.0.1,
+        # and vserver redirects that to the IP of the vserver, the
+        # destination becomes the vserver's ip, (and the source
+        # would be 127.0.0.1 as in normal loopback connections)
+        # XXX This may brake in later vserver versions
+        ip = ssh_conn.split()[2]
+    except:
+        pass
+
+    return ip
+
+openlog('ohdexec')
+
+def log(data):
+    """ log to syslog """
+    
+    ip = get_client_ip()
+    syslog('%s: %s' % (ip, data))
+                    
+
+def get_command():
+    """ get the command that the user intended """
+
+    command = None
+
+    try:
+        command = os.environ['SSH_ORIGINAL_COMMAND']
+    except:
+        pass
+
+    cmd = command.split(None, 1)
+    if len(cmd) == 1:
+        cmd.append('')
+
+    # cmd is (prog, args) tuple
+    return cmd
+
+
+def list_objects(root, path):
+    """ List the binary and the libraries it depends on """
+
+    # this has to be done chroot vserver to be real
+
+    cmd = '/usr/sbin/chroot %s ' \
+          '/usr/bin/ldd -v %s' % (root, path)
+
+    lines = commands.getoutput(cmd).splitlines()
+    libs, seen_vi = [], 0
+    for line in lines:
+
+        if seen_vi:
+
+            # only look at absolute paths
+            line = line.strip()
+            if line.startswith('/'):
+                libs.append(line[:-1]) # strip ':' at the end
+
+        else:
+
+            # skip past 'version information'
+            if 'ersion information' in line:
+                seen_vi = 1
+
+    return libs
+
+def is_binary_safe(root, cmd):
+    """ Is a binary safe to run? path is absolute within
+        a vserver """
+
+    safe = 0
+
+    # what does this binary consist of?
+    objs = list_objects(root, cmd)
+
+    if objs:
+
+        safe = 1
+        for obj in objs:
+            long_path = os.path.join(root, obj[1:])
+            if not vsutil.is_file_immutable_link(long_path):
+                safe = 0
+                log('Warning: %s does not have both +i and +t set!' % long_path)
+                break
+
+    return safe
+    
+
+def run_command(vserver, path, args, caps):
+
+    """ Run the command. Path should be absolute within a
+        vserver. Args should be a string.
+    """
+
+    cap_opts = '--cap ' + ' --cap '.join(caps)
+
+    # the cd first, then chroot trick is there to get
+    # aroud the 0000 permissions on the vserver root (once
+    # you switched context, vserver won't allow traversing
+    # 0000 directories, even if root
+
+    os.chdir(vserver['root'])
+
+    cmd = '/usr/local/sbin/chbind --silent --ip %s /usr/local/sbin/chcontext ' \
+          '--silent --ctx %s --secure %s /usr/sbin/chroot . %s %s' \
+          % (vserver['IPROOT'], vserver['S_CONTEXT'], cap_opts,
+             path, args)
+
+    return os.execv('/usr/local/sbin/chbind', cmd.split())
+
+def main():
+
+    if len(sys.argv) != 2:
+        log('Only one argument allowed, terminating. sys.argv is %s' % `sys.argv`)
+        return
+
+    # find the matching vserver
+    try:
+        vserver = vsutil.list_vservers()[sys.argv[1]]
+    except KeyError:
+        log('Unknown vserver: %s, terminating.' % `sys.argv[1]`)
+        return
+
+    # determine which command they want to run
+    cmd, args = get_command()
+
+    # what is the binary and what caps are needed for this command?
+    if cmd not in cfg.COMMAND_CAPS:
+        log('Command %s %s not allowed to run with raised caps.' % (cmd, args))
+        return
+
+    binary, caps = cfg.COMMAND_CAPS[cmd]
+
+    if not is_binary_safe(vserver['root'], binary):
+        log('Binary %s or one of its libraries does not have the +i +t flags ' \
+            'set to be allowed to run with elevated capabilities, terminating.' \
+            % `binary`)
+        return
+
+    sys.exit(run_command(vserver, binary, args, caps))
+
+
+main()

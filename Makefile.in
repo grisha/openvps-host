@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.2 2004/03/28 22:57:37 grisha Exp $
+# $Id: Makefile.in,v 1.3 2004/05/21 03:38:43 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -38,6 +38,7 @@ install:
 	cd crontab && $(MAKE) install
 	cd src && $(MAKE) install
 	cd www && $(MAKE) install
+	cd ohd && $(MAKE) install
 	@if test ! -e $(CONFIG) ; then \
 		$(INSTALL) ohhost.conf $(CONFIG); \
 	else \

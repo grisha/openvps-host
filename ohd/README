@@ -1,0 +1,65 @@
+
+$Id: README,v 1.1 2004/05/21 03:38:43 grisha Exp $
+
+This is a strange hack to allow programs to be run with elevated
+capabilities.
+
+The ideal solution would be to look at the way its done in LIDS and do
+something similar (and the contribute it to the VServer project), but
+for now this will suffice.
+
+Here is how it works (lets assume we're doing ping, which requires the
+CAP_NET_RAW capability):
+
+Inside the vserver, /bin/ping is replaced by our own binary. It's main
+source code is in common.c in this directory. 
+
+All this binary does is invoke ssh using an passwordless RSA key
+stored in /etc/ohd_key to localhost port 1012. (The reason its RSA is
+because RSA is supposed to be faster on authentication than
+DSA). There are a bunch of parameters to ssh all aimed to conceal the
+fact that ssh is being invoked.
+
+Because /etc/ohd_key is only readable by root, our custom /bin/ping
+has to be setuid. Keys must have such rstrictive permissions, or ssh
+will complain. Also this means that non-priviged user in the vserver
+will not be able to steal the key (although doing so won't give them
+much).
+
+Ssh is given all the parameters passed to ping, except that the name
+ping is replace with PING which is a symbolic name. 
+
+On the server end, a special sshd is running on port 1012. It is bound
+to 0.0.0.0 and is therefore available on all vserver interfaces. 
+
+There exists a special user "ohd". This user has one public key in its
+.ssh/authorized_keys file for every vserver allowed to use it. So each
+vserver has his own key. Using the "command" and "from" parameters in
+the file we make sure that no matter what they pass us, the command
+executed on the server will always be the ohdexec script followed by
+the vserver name, and that this can only be accessed from 127.0.0.1.
+
+Actually, ohdexec is invoked via sudo, so it runs as root. ohdexec is
+a Python script at the moment. It is very careful and fails every time
+it sees anything it doesn't like. It first extracts the information
+for the vserver passed as the first argument. It then determines what
+the symbolic command is, e.g. PING. It will look in the oh
+configuration (tweakable via /etc/ohhost.conf) to see which actual
+binary should be run and which caps it needs (in case of ping it would
+be /usr/libexec/oh/ping on the vserver).
+
+Once the command to run is know, the binary on the vserver is run
+through ldd, to find all the libraries it dynamically links
+against. Then the binary and the libs are checked to make sure that
+their IMMUTABLE_FILE and IMMUTABLE_LINK flags are set. This means that
+none of them could be modified from within a vserver, and are the
+original files safe to run.
+
+Last, but not the least, ohdexec executes the binary in the vserver's
+context and with additional capabilities. 
+
+This whole process carries pretty huge overhead, but it is a pretty
+flexible and reliable system in the end.
+
+
+

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.2 2004/04/02 22:34:13 grisha Exp $
+# $Id: vsutil.py,v 1.3 2004/05/21 03:38:43 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -54,9 +54,28 @@ def list_vservers():
                 val = val[1:-1]
 
             params[key] = val
-            
+
+        # what is our name
         name = file[:-len('.conf')]
+
+        # add some convenience parameters
+        params['name'] = name
+        params['root'] = os.path.join(cfg.VSERVERS_ROOT, name)
+            
         result[name] = params
+
+    return result
+
+def get_vserver_info_by_ip(ip):
+
+    """ get vserver information based on ip """
+
+    vservers = list_vservers()
+
+    result = None
+    for vserver in vservers:
+        if vservers[vserver]['IPROOT'] == ip:
+            result = vservers[vserver]
 
     return result
 
@@ -109,3 +128,26 @@ def read_shadow(vserver):
         users[uid] = pwhash
         
     return users
+
+def is_file_immutable_link(path):
+    """ Does this file have immutable_file and immutable_link
+        flags set, which would mean it is a safe bet that it
+        cannot be modified from within a vserver """
+
+    import fcntl
+    import struct
+
+    ## this should really be
+    # EXT2_IOC_GETFLAGS = 0x80046601
+    # but because of a FutureWarnig for 2.4, we have this
+    EXT2_IOC_GETFLAGS = struct.unpack('i',
+                                      struct.pack('L', 0x80046601L))[0]
+
+    f = open(path)
+    flags = struct.unpack('L',
+                          fcntl.ioctl(f.fileno(),
+                                      EXT2_IOC_GETFLAGS, '    '))[0]
+    
+    # 0x00008010 is EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL
+    return flags & 0x00008010 == 0x00008010
+

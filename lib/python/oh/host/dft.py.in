@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.3 2004/04/12 22:39:51 grisha Exp $
+# $Id: dft.py.in,v 1.4 2004/05/21 03:38:43 grisha Exp $
 
 """ Configuration Defaults
 
@@ -68,7 +68,7 @@ VAR_DB_OH = '/var/db/oh'
 BACKUP = NOVAL
 
 # default inodes per vserever allowed
-INODES_LIM = 200000
+INODES_LIM = 1000000
 
 # When cloning a reference server, these rules dictate
 # what is done. Default action is to hardlink, unless
@@ -120,6 +120,15 @@ INDEX_HTML = """
 DFT_ULIMIT = '-HS -u 1000 -v 500000'
 DFT_NICE = '9' # not as nice as default (10), but nice
 
+# Which "commands" are allowed to run with elevated capabilities and
+# what are those caps. The path is absolute inside a vserver.
+# Capability names can be found in /usr/include/linux/capability.h
+
+COMMAND_CAPS = {
+    'PING' : ['/usr/libexec/oh/ping', ['CAP_NET_RAW']],
+    'TRACEROUTE' : ['/usr/libexec/oh/traceroute', ['CAP_NET_RAW']],
+    }
+
 # services we want enabled (everything else is disabled)
 FEDORA_C1_SRVCS =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
                    'syslog', 'xinetd', 'webmin']
@@ -128,8 +137,6 @@ FEDORA_C1_NOT_SRVCS = ['functions', 'killall', 'halt', 'single']
 
 # This a dictionary with two lists: BASE and ADDL.
 # BASE is installed first, then ADDTL.
-
-# GT Stopped here
 
 FEDORA_C1_PKGS_BASE = [
     'chkconfig-1.3.9-1.i386.rpm',

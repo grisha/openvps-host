@@ -2455,7 +2455,7 @@ fi
 
 # final output
 
-                                                                                                                        ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile rhinit/ohd crontab/Makefile crontab/openhosting src/ohchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/oh/host/dft.py ohhost.conf"
+                                                                                                                                  ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile rhinit/ohd crontab/Makefile crontab/openhosting src/ohchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/oh/host/dft.py ohhost.conf ohd/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -3018,6 +3018,7 @@ do
   "www/conf/Makefile" ) CONFIG_FILES="$CONFIG_FILES www/conf/Makefile" ;;
   "lib/python/oh/host/dft.py" ) CONFIG_FILES="$CONFIG_FILES lib/python/oh/host/dft.py" ;;
   "ohhost.conf" ) CONFIG_FILES="$CONFIG_FILES ohhost.conf" ;;
+  "ohd/Makefile" ) CONFIG_FILES="$CONFIG_FILES ohd/Makefile" ;;
   *) { { echo "$as_me:$LINENO: error: invalid argument: $ac_config_target" >&5
 echo "$as_me: error: invalid argument: $ac_config_target" >&2;}
    { (exit 1); exit 1; }; };;
