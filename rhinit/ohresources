@@ -20,7 +20,7 @@
 # limitations under the License.
 #
 
-# $Id: ohresources,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: ohresources,v 1.2 2004/10/16 05:05:19 grisha Exp $
 
 DISKLIMITS=/var/db/oh/disklimits
 ETHIF=eth0
@@ -31,7 +31,7 @@ case "$1" in
 	echo "Restoring context disk limits"
 	/bin/sh $DISKLIMITS
 	echo "Creating iptables entries for vservers"
-	for ip in `grep IPROOT= /etc/vservers/*.conf | awk -F= '{print $2}'`; do
+	for ip in `python -c 'from oh.host import vsutil; vsutil.print_vserver_ips()'`; do
 	    iptables -D INPUT -i $ETHIF -d $ip > /dev/null 2>&1
 	    iptables -A INPUT -i $ETHIF -d $ip
 	    iptables -D OUTPUT -o $ETHIF -s $ip > /dev/null 2>&1

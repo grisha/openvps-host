@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.10 2004/10/16 01:09:47 grisha Exp $
+# $Id: vsutil.py,v 1.11 2004/10/16 05:05:19 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -116,6 +116,9 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
     # nice
     open(os.path.join(dirname, 'nice'), 'w').write(cfg.DFT_NICE+'\n')
 
+    # ccapabilities
+    open(os.path.join(dirname, 'ccapabilities'), 'w').write('mount\n')
+
     # run
     os.symlink('/var/run/vservers/%s' % name, os.path.join(dirname, 'run'))
 
@@ -129,20 +132,7 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
     # interfaces
     os.mkdir(os.path.join(dirname, 'interfaces'))
 
-    # interface 0
-    os.mkdir(os.path.join(dirname, 'interfaces', '0'))
-
-    # interface 0 ip
-    open(os.path.join(dirname, 'interfaces', '0', 'ip'), 'w').write(ip+'\n')
-
-    # interface 0 mask (yes, it *must* be /32, or they will end up grouped)
-    open(os.path.join(dirname, 'interfaces', '0', 'mask'), 'w').write('255.255.255.255\n')
-
-    # interface 0 name
-    open(os.path.join(dirname, 'interfaces', '0', 'name'), 'w').write(name+'\n')
-
-    # interface 0 dev
-    open(os.path.join(dirname, 'interfaces', '0', 'dev'), 'w').write(cfg.DFT_DEVICE+'\n')
+    add_vserver_ip(name, ip)
 
     # fstab
     open(os.path.join(dirname, 'fstab'), 'w').writelines([
@@ -156,6 +146,40 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
 
     print 'Done'
 
+def add_vserver_ip(name, ip):
+
+    # what is the next interface number?
+    conf = get_vserver_config(name)
+    inums = []
+    for i in conf['interfaces']:
+        inums.append(i['dir'])
+
+    next = None
+    for n in map(str, range(64)):
+        if n not in inums:
+            next = str(n)
+            break
+
+    if next is None:
+        raise 'Too many interfaces for this vserver?'
+    
+    # now write it
+    dirname = os.path.join(cfg.ETC_VSERVERS, name)
+    
+    # interface 0
+    os.mkdir(os.path.join(dirname, 'interfaces', next))
+
+    # interface 0 ip
+    open(os.path.join(dirname, 'interfaces', next, 'ip'), 'w').write(ip+'\n')
+
+    # interface 0 mask (yes, it *must* be /32, or they will end up grouped)
+    open(os.path.join(dirname, 'interfaces', next, 'mask'), 'w').write('255.255.255.255\n')
+
+    # interface 0 name
+    open(os.path.join(dirname, 'interfaces', next, 'name'), 'w').write(name+next+'\n')
+
+    # interface 0 dev
+    open(os.path.join(dirname, 'interfaces', next, 'dev'), 'w').write(cfg.DFT_DEVICE+'\n')
 
 def list_vservers():
     """ Return a dictionary of vservers """
@@ -173,6 +197,15 @@ def list_vservers():
         result[file] = get_vserver_config(file)
 
     return result
+
+def print_vserver_ips():
+
+    # this is used by the /etc/init.d/ohresources shell script
+
+    vl = list_vservers()
+    for v in vl.keys():
+        for i in vl[v]['interfaces']:
+            print i['ip']
 
 def guess_vserver_device():
     """ Guess which device is the one mounting our vservers partition """

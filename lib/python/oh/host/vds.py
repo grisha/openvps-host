@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.28 2004/10/16 01:09:47 grisha Exp $
+# $Id: vds.py,v 1.29 2004/10/16 05:05:19 grisha Exp $
 
 """ VDS related functions """
 
@@ -336,12 +336,9 @@ def ref_make_libexec_oh(refroot):
     print 'Making %s' % libexec_dir
     os.mkdir(libexec_dir)
 
-    print 'Copying traceroute, mount and umount there'
+    print 'Copying traceroute there'
 
-
-    for path, short_name in [('bin/traceroute', 'traceroute'),
-                             ('bin/mount', 'mount'),
-                             ('bin/umount', 'umount'),]:
+    for path, short_name in [('bin/traceroute', 'traceroute'),]:
 
         # move the originals into libexec/oh
         dest_path = os.path.join(libexec_dir, short_name)
@@ -564,7 +561,7 @@ def vserver_disk_limit(root, xid, limit):
     print ' ', cmd
     print commands.getoutput(cmd)
 
-def vserver_bwidth_acct(name, ip):
+def vserver_bwidth_acct(name):
 
     # step is 1 minute, up to 300 seconds can be skept (heartbeat) before
     # data becomes unknown. Note that you should not increase this
@@ -598,15 +595,17 @@ def vserver_bwidth_acct(name, ip):
 
     commands.getoutput(cmd)
 
+def vserver_iptables_rule(ip):
+
     print 'Adding iptables rules for bandwidth montoring'
 
-    cmd = 'iptables -D INPUT -i eth0 -d %s' % ip
+    cmd = 'iptables -D INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
     commands.getoutput(cmd)
-    cmd = 'iptables -A INPUT -i eth0 -d %s' % ip
+    cmd = 'iptables -A INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
     commands.getoutput(cmd)
-    cmd = 'iptables -D OUTPUT -o eth0 -s %s' % ip
+    cmd = 'iptables -D OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
     commands.getoutput(cmd)
-    cmd = 'iptables -A OUTPUT -o eth0 -s %s' % ip
+    cmd = 'iptables -A OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
     commands.getoutput(cmd)    
 
 def vserver_make_ssl_cert(root, hostname):
@@ -749,7 +748,7 @@ def vserver_fixup_libexec_oh(root):
 
     print 'Setting flags in usr/libexec/oh'
 
-    for file in ['traceroute', 'mount', 'umount']:
+    for file in ['traceroute',]:
 
         path = os.path.join(root, 'usr/libexec/oh/', file)
         vsutil.set_file_immutable_unlink(path)
@@ -768,31 +767,31 @@ def vserver_immutable_modules(root):
     print s
 
 
-def vserver_make_symlink(root, xid):
+## def vserver_make_symlink(root, xid):
     
-    # to hide the actual name of the vserver from other vservers (they
-    # can see it by looking at mounts in /proc/mount), the directory
-    # in which the vserver resides is renamed to the context_id rather
-    # than the vserver name, which in trun becomes a symlink. This way
-    # the /proc/mount shows stuff from which it is impossible to
-    # discern the vserver name. (Note that from ctx 0 you will still
-    # the symlink names, but from within a vserver you won't).
+##     # to hide the actual name of the vserver from other vservers (they
+##     # can see it by looking at mounts in /proc/mount), the directory
+##     # in which the vserver resides is renamed to the context_id rather
+##     # than the vserver name, which in trun becomes a symlink. This way
+##     # the /proc/mount shows stuff from which it is impossible to
+##     # discern the vserver name. (Note that from ctx 0 you will still
+##     # the symlink names, but from within a vserver you won't).
 
-    root = os.path.normpath(root) # strip trailing /
+##     root = os.path.normpath(root) # strip trailing /
 
-    if not os.path.islink(root):
+##     if not os.path.islink(root):
     
-        base = os.path.split(root)[0]
+##         base = os.path.split(root)[0]
 
-        newname = os.path.join(base, xid)
+##         newname = os.path.join(base, xid)
 
-        print 'Renaming/symlinking %s -> %s' % (root, newname)
+##         print 'Renaming/symlinking %s -> %s' % (root, newname)
 
-        os.rename(root, newname)
-        os.symlink(os.path.basename(newname), root)
+##         os.rename(root, newname)
+##         os.symlink(os.path.basename(newname), root)
 
-    else:
-        print '%s already a symlink, leaving it alone' % root
+##     else:
+##         print '%s already a symlink, leaving it alone' % root
 
 def vserver_vroot_perms():
 
@@ -828,6 +827,7 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns=cfg.PRIMARY_
     vserver_fix_services(root)
     vserver_disk_limit(root, xid, disklim)
     vserver_bwidth_acct(name, ip)
+    vserver_iptables_rule(ip)
     vserver_make_ssl_cert(root, hostname)
     vserver_add_http_proxy(root)
     vserver_random_crontab(root)
@@ -836,11 +836,9 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns=cfg.PRIMARY_
     vserver_ohd_key(root, name)
     vserver_fixup_libexec_oh(root)
     vserver_immutable_modules(root)
-    vserver_make_symlink(root, xid)
+##    vserver_make_symlink(root, xid) # <- not relevant in 1.9.x
     vserver_vroot_perms()
 
-    # ZZZ fix pops imaps (FIXME)
-    # ZZZ mount --bind/umount (still broken, pending SYS_ADMIN research)
     # ZZZ vsched
     
 def match_path(path):
@@ -1073,6 +1071,13 @@ def fixflags(refroot, pace=cfg.PACE[0]):
             # is not in an rpm.
 
     print 'Done.'
+
+def addip(vserver, ip):
+
+    # add a second ip address to a vserver
+    
+    vsutil.add_vserver_ip(vserver, ip)
+    vserver_iptables_rule(ip)
 
 rpm_cache = {}
 
