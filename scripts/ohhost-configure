@@ -1,4 +1,4 @@
-#!/usr/bin/python2.3
+#!/usr/bin/env python2.3
 
 #
 # Copyright 2004 OpenHosting, Inc.
@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost-configure,v 1.9 2004/09/29 18:06:20 grisha Exp $
+# $Id: ohhost-configure,v 1.10 2004/10/04 15:28:54 grisha Exp $
 
 #
 #This script initially sets up the system.

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.8 2004/09/28 15:48:51 grisha Exp $
+# $Id: Makefile.in,v 1.9 2004/10/04 15:28:54 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -39,28 +39,3 @@ install:
 	$(INSTALL) -m 0550 ohbackup $(DESTDIR)$(SBINDIR)/ohbackup
 	$(INSTALL) -m 0550 ohhost $(DESTDIR)$(SBINDIR)/ohhost
 	$(INSTALL) -m 0550 ohhost-configure $(DESTDIR)$(SBINDIR)/ohhost-configure
-# 	if test -z "$(DESTDIR)"; then \
-# 		$(MAKE) peer_key ; \
-# 	fi
-
-# peer_key:
-# 	@if test -z "`egrep ^$(BACKUP_USER): /etc/passwd`"; then \
-# 		echo "Adding user $(BACKUP_USER)..."; \
-# 		adduser $(BACKUP_USER) -d $(BACKUP_DIR); \
-# 		mkdir -p -m 700 $(BACKUP_DIR)/.ssh; \
-# 		chown $(BACKUP_USER) $(BACKUP_DIR)/.ssh; \
-# 		touch $(BACKUP_DIR)/.ssh/authorized_keys; \
-# 		chown $(BACKUP_USER) $(BACKUP_DIR)/.ssh/authorized_keys; \
-# 		chmod 600 $(BACKUP_DIR)/.ssh/authorized_keys; \
-# 		echo "Generating a dsa key $DSA_KEY..."; \
-# 		ssh-keygen -t dsa -N "" -f $(DSA_KEY); \
-# 		echo ""; \
-# 		echo "Now we are going to try to copy $(DSA_KEY).pub to the peer server, you will be prompted for password"; \
-# 		echo "If this fails (e.g. peer server is not yet set up), then"; \
-# 		echo "REMEMBER to paste the contents of $(DSA_KEY).pub into $(BACKUP_DIR)/.ssh/authorized_keys on $(PEERIP)"; \
-# 		echo "  also remember to ssh to $(PEERIP) at least once to get into known_hosts."; \
-# 		echo; \
-# 		cat $(DSA_KEY).pub | ssh -v $(PEERIP) "cat >> $(BACKUP_DIR)/.ssh/authorized_keys; chmod 500 $(BACKUP_DIR)/.ssh/authorized_keys"; \
-# 	else \
-# 		echo "User $(BACKUP_USER) exists, not adding."; \
-# 	fi

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.9 2004/09/28 19:09:07 grisha Exp $
+# $Id: configure.in,v 1.10 2004/10/04 15:28:54 grisha Exp $
 
 AC_INIT
 
@@ -26,8 +26,9 @@ AC_PROG_MAKE_SET
 
 # check for Python executable 
 
+AC_SUBST(PYTHON_BIN)
 if test -z "$PYTHON_BIN"; then
-  AC_PATH_PROG(PYTHON_BIN, python)
+  AC_PATH_PROG(PYTHON_BIN, python2.3)
   if test -z "$PYTHON_BIN"; then
     AC_MSG_ERROR(python binary not found in path)
   fi
@@ -126,50 +127,15 @@ if test -z "$NAMED"; then
   AC_MSG_ERROR([not found. Please install bind])
 fi
 
-dnl # check for --with-peer
-dnl AC_SUBST(PEERIP)
-dnl PEERIP=""
-dnl AC_MSG_CHECKING(for --with-peer)
-dnl AC_ARG_WITH(peer, [--with-peer=HOST     IP of the peer host for backups],
-dnl [
-dnl   AC_MSG_RESULT([$withval, good])
-dnl   PEERIP=$withval
-dnl ],
-dnl [
-dnl   # no peer, attempt to guess:
-dnl   # if last number of eth1 ip is odd, then +1
-dnl   # else -1
-
-dnl   # extract IP of eth1
-dnl   ip=`grep IPADDR /etc/sysconfig/network-scripts/ifcfg-eth1 | sed -e "s/.*=//g"`
-dnl   if test -z "$ip"; then
-dnl     AC_MSG_ERROR([Unable to guess peer ip, please specify it manually with --with-peer])
-dnl   fi
-
-dnl   # do the math
-dnl   PEERIP=`echo $ip | awk '{ x=substr($0,length($0),1); \
-dnl                                 if (x%2) \
-dnl 				  print substr($0, 1, length($0)-1) x+1; \
-dnl                                 else \
-dnl 				  print substr($0, 1, length($0)-1) x-1; \
-dnl                           }'`
-
-dnl   AC_MSG_RESULT([No, but your ip is $ip, so your peer ip is (guessed) $PEERIP])    
-dnl ])
-
-dnl # base backup time on the PEERIP. If it ends with 01, backups will be
-dnl # at 1, 02 @ 1:10, 03 @ 1:20, 07 @ 2:00, etc.
-dnl AC_SUBST(BACKUP_TIME)
-dnl BACKUP_TIME=`echo $PEERIP | awk '{x=substr($0, length($0)-1)-1; print x*10%60 " " int(x*10/60)}'`
-
 AC_SUBST(OHD_USER)
 AC_SUBST(OHD_PORT)
+# XXX these chould be made ./configur-able
 OHD_USER="ohd"
 OHD_PORT="1012"
 
 # final output
 
-AC_OUTPUT(Makefile scripts/Makefile src/Makefile rhinit/Makefile \
+AC_OUTPUT(Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec \
 		   rhinit/ohd crontab/Makefile crontab/openhosting \
 		   src/ohchkpwd/Makefile www/Makefile www/conf/Makefile \
 		   lib/python/oh/host/dft.py ohhost.conf ohd/Makefile \

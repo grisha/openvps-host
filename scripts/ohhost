@@ -1,4 +1,4 @@
-#!/usr/bin/python2.3
+#!/usr/bin/env python2.3
 
 #
 # Copyright 2004 OpenHosting, Inc.
@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohhost,v 1.3 2004/09/27 14:34:13 grisha Exp $
+# $Id: ohhost,v 1.4 2004/10/04 15:28:54 grisha Exp $
 
 
 """
@@ -140,3 +140,9 @@ def main():
 if __name__ == "__main__":
     main()
 
+###
+# do not edit this if you like using emacs
+# makes emacs go into python mode
+### Local Variables:
+### mode:python
+### End:

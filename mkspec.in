@@ -1,0 +1,84 @@
+#!/bin/sh
+
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: mkspec.in,v 1.1 2004/10/04 15:28:54 grisha Exp $
+
+# Output a spec file for an RPM
+
+# ------- package info -------
+
+echo "Summary: OpenVPS Host Utilities"
+echo "Name: openvps-host"
+echo "Version: `cat version.txt`"
+echo "Release: 1"
+echo "License: ASL 2.0"
+echo "Group: OpenVPS"
+echo "URL: http://www.openvps.org/"
+echo "Vendor: OpenHosting, Inc."
+echo "Requires: @PYTHON_BIN@ openvps-common httpd mod_python mod_ssl bind rrdtool util-vserver cq-tools vproc"
+echo "Source0: %{name}-%{version}.tgz"
+echo "BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot"
+echo "BuildPrereq: @PYTHON_BIN@-devel httpd-devel"
+
+echo "%description"
+echo "OpenVPS Host Utilities"
+
+# ------- build -------
+
+echo "%prep"
+echo "%setup -q"
+
+echo "%build"
+echo "%configure"
+echo "make"
+
+# ------- install -------
+
+echo "%install"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/init.d"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/cron.d"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/httpd/conf.d"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/ssh"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/usr/oh/misc"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/oh"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/%{_libdir}/@PYTHON_BIN@/site-packages/oh"
+echo 'make install DESTDIR=$RPM_BUILD_ROOT'
+
+echo "%clean"
+echo '[ "$RPM_BUILD_ROOT" != "/" ] && rm -rf $RPM_BUILD_ROOT'
+
+echo "%files"
+echo "%defattr(-,root,root,-)"
+echo "%doc"
+echo "%config(noreplace) %{_sysconfdir}/cron.d/*"
+echo "%config(noreplace) %{_sysconfdir}/httpd/conf.d/*.conf"
+echo "%config(noreplace) %{_sysconfdir}/*.conf"
+echo "%config(noreplace) %{_sysconfdir}/ssh/sshd_config_ohd"
+echo "%{_libdir}/python2.3/site-packages/oh"
+echo "/etc/init.d/ohd"
+echo "/etc/init.d/ohfixproc"
+echo "/etc/init.d/ohresources"
+echo "/etc/oh-release"
+echo "/usr/oh"
+echo "/usr/sbin/ohbackup"
+echo "/usr/sbin/ohbwidth"
+echo "/usr/sbin/ohchkpwd"
+echo "/usr/sbin/ohdisk"
+echo "/usr/sbin/ohhost"
+echo "/usr/sbin/ohhost-configure"
+echo "%dir /var/db/oh"

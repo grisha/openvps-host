@@ -2213,8 +2213,8 @@ fi
 # check for Python executable
 
 if test -z "$PYTHON_BIN"; then
-  # Extract the first word of "python", so it can be a program name with args.
-set dummy python; ac_word=$2
+  # Extract the first word of "python2.3", so it can be a program name with args.
+set dummy python2.3; ac_word=$2
 echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
 if test "${ac_cv_path_PYTHON_BIN+set}" = set; then
@@ -2501,11 +2501,7 @@ fi
 
 
 
-
-
-
-
-
+# XXX these chould be made ./configur-able
 OHD_USER="ohd"
 OHD_PORT="1012"
 

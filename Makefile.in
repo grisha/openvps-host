@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.10 2004/09/27 14:34:12 grisha Exp $
+# $Id: Makefile.in,v 1.11 2004/10/04 15:28:54 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -46,26 +46,14 @@ install:
 	else \
 		echo "Not installing $(DESTDIR)$(CONFIG) because it already exists."; \
 	fi
-#	if test -z "$(DESTDIR)"; then \
-#		$(MAKE) fix_sems; \
-#	fi
 	$(INSTALL) $(VERSION) $(DESTDIR)/etc/oh-release
-
-
-# fix_sems:
-# 	@if test -z "`grep kernel.sem /etc/sysctl.conf`"; then \
-# 		echo "Increasing the number of available semaphores"; \
-# 		sysctl -w kernel.sem="250 256000 32 1024"; \
-# 		echo "kernel.sem = 250 256000 32 1024" >> /etc/sysctl.conf; \
-# 	fi
 
 install_py_lib:
 	if test -z "$(DESTDIR)"; then \
-		cd lib/python && python setup.py install; \
+		cd lib/python && @PYTHON_BIN@ setup.py install; \
 	else \
-		cd lib/python && python setup.py install --root $(DESTDIR); \
+		cd lib/python && @PYTHON_BIN@ setup.py install --root $(DESTDIR); \
 	fi
-
 
 clean:
 	cd ohd && $(MAKE) clean
@@ -82,4 +70,15 @@ distclean: clean
 	cd crontab && $(MAKE) distclean
 	rm -rf Makefile config.h config.status config.cache config.log \
 		autom4te.cache
+spec:
+	./mkspec > openvps-host.spec
 
+rpm: spec
+	VERSION=`cat version.txt` ; \
+	PROPERNAME="openvps-host-$$VERSION" ; \
+	OURDIR=`pwd` ; \
+	cd .. ; \
+	ln -sf $$OURDIR /var/tmp/$$PROPERNAME; \
+	cd /var/tmp ; \
+	tar -czv --exclude CVS -f $$PROPERNAME.tgz $$PROPERNAME/. ; \
+	rpmbuild -tb /var/tmp/$$PROPERNAME.tgz

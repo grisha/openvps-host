@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python2.3
 
 import os
 import commands
@@ -164,3 +164,10 @@ def main():
 
 
 main()
+
+###
+# do not edit this if you like using emacs
+# makes emacs go into python mode
+### Local Variables:
+### mode:python
+### End:
