@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.6 2005/02/03 22:45:28 grisha Exp $
+# $Id: panel.py,v 1.7 2005/02/05 05:26:36 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -24,12 +24,11 @@
 import os
 import time
 import sys
+import binascii
 
-from mod_python import apache, psp, util
+from mod_python import apache, psp, util, Cookie
 
-from M2Crypto import RSA, BIO
-
-from openvps.common import rrdutil
+from openvps.common import rrdutil, crypto
 from openvps.host import cfg
 from openvps.host import vsutil
 
@@ -181,24 +180,49 @@ def _global_menu(req, location):
     return m
 
 
-def _read_pub_key(keypath):
+def _read_pub_key():
 
-    def _passphrase(x):
-        return time.strftime('%Y-%M-%d %H', (time.localtime(time.time() - float(open('/proc/uptime').read().split()[0]))))
-    
-    key = RSA.load_key(keypath, _passphrase)
-    bio = BIO.MemoryBuffer()
-    key.save_pub_key_bio(bio)
+    boottime = time.time() - float(open("/proc/uptime").read().split()[0])
+    boottime = time.strftime("%Y-%M-%d-%H",(time.localtime(boottime)))
 
-    return bio.getvalue()
+    keypath = os.path.join(cfg.VAR_DB_OPENVPS, cfg.KEYFILE)
+    key = crypto.load_key(keypath, boottime)
+
+    mtime = os.stat(keypath).st_mtime
+    pubkey = binascii.hexlify(crypto.rsa2str(key.publickey()))
+
+    return mtime, pubkey
 
 #
 # Callable from outside
 #
 
+_cached_key = None
+def pubkey(req):
+
+    #cookie = DSASignedCookie.DSASignedCookie('foo', 'barRRR', key)
+    #Cookie.add_cookie(req, cookie)
+
+    global _cached_key
+
+    keypath = os.path.join(cfg.VAR_DB_OPENVPS, cfg.KEYFILE)
+
+    if _cached_key:
+        mtime, key = _cached_key
+        if os.stat(keypath).st_mtime != mtime:
+            _cached_key = _read_pub_key()
+    else:
+            _cached_key = _read_pub_key()
+    
+    req.context_type = 'text/plain'
+    req.write(_cached_key[1])
+
+    return apache.OK
+
 def index(req, name, params):
 
     return status(req, name, params)
+
 
 def traffic(req, name, params):
 
@@ -309,22 +333,3 @@ def start(req, name, params):
     # note - this redirect is relative because absolute won't work with
     # our proxypass proxy
     util.redirect(req, 'status')
-
-_cached_key = None
-def pubkey(req):
-
-    global _cached_key
-
-    keypath = os.path.join(cfg.VAR_DB_OPENVPS, '.key')
-    
-    if not _cached_key:
-        _cached_key = (os.stat(keypath).st_mtime, _read_pub_key(keypath))
-    else:
-        if os.stat(keypath).st_mtime != _cached_key[0]:
-            _cached_key = (os.stat(keypath).st_mtime, _read_pub_key(keypath))
-
-    req.context_type = 'text/plain'
-    req.write(_cached_key[1])
-
-    return apache.OK
-

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env python
 
 #
 # Copyright 2004 OpenHosting, Inc.
@@ -16,19 +16,32 @@
 # limitations under the License.
 #
 
-# $Id: ovgenkey,v 1.1 2005/02/03 22:45:28 grisha Exp $
+# $Id: ovgenkey,v 1.2 2005/02/05 05:26:36 grisha Exp $
 
 # regenrate the RSA key. we use a value that is known only for the
 # duration of the machine's uptime for some added security
 
+from openvps.common import crypto
+from openvps.host import cfg
 
-VAR_DB_OPENVPS=`python -c 'from openvps.host import cfg; print cfg.VAR_DB_OPENVPS'`
+import time
+import os
+import grp
 
-/usr/bin/python -c 'import time;print time.strftime("%Y-%M-%d-%H",(time.localtime(time.time() - float(open("/proc/uptime").read().split()[0]))))' | \
-    /usr/bin/openssl genrsa -passout file:/dev/fd/0 -out $VAR_DB_OPENVPS/.key > /dev/null 2>&1
+boottime = time.time() - float(open("/proc/uptime").read().split()[0])
+boottime =  time.strftime("%Y-%M-%d-%H",(time.localtime(boottime)))
 
-/bin/chgrp apache $VAR_DB_OPENVPS/.key
-/bin/chmod 640 $VAR_DB_OPENVPS/.key
+# generate and save private key
+
+keypath = os.path.join(cfg.VAR_DB_OPENVPS, cfg.KEYFILE)
+crypto.save_key(crypto.genkey(), keypath, boottime)
+
+# make it readable only by apache group
+
+apache_gid = grp.getgrnam('apache').gr_gid
+os.lchown(keypath, os.stat(keypath).st_uid, apache_gid)
+os.chmod(keypath, 0640)
+
 
 
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.10 2005/01/29 03:31:12 grisha Exp $
+# $Id: dft.py.in,v 1.11 2005/02/05 05:26:36 grisha Exp $
 
 """ Configuration Defaults
 
@@ -83,6 +83,9 @@ VSERVERS_ROOT = NOVAL
 VAR_DB_OH = '/var/db/oh'
 # this is the new location
 VAR_DB_OPENVPS = '/var/db/openvps'
+
+# name of the key file (in /var/db/openvps usually)
+KEYFILE = '.key'
 
 # Location of the backups partition
 BACKUP = NOVAL

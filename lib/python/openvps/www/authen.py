@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: authen.py,v 1.5 2005/02/03 22:45:28 grisha Exp $
+# $Id: authen.py,v 1.6 2005/02/05 05:26:36 grisha Exp $
 
 """ Authentication handler for the panel. This
 requires mod_python 3.1 or later """

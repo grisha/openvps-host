@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.17 2005/02/03 22:45:28 grisha Exp $
+# $Id: mkspec.in,v 1.18 2005/02/05 05:26:36 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -31,7 +31,7 @@ echo "Group: OpenVPS"
 echo "URL: http://www.openvps.org/"
 echo "Vendor: OpenHosting, Inc."
 echo "Requires: openvps-common >= 0.10"
-echo "Requires: python httpd mod_python mod_ssl bind bind-chroot rrdtool util-vserver rpm-python openssl m2crypto"
+echo "Requires: python httpd mod_python mod_ssl bind bind-chroot rrdtool util-vserver rpm-python openssl"
 echo "Source0: %{name}-%{version}.tgz"
 echo "BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot"
 echo "BuildPrereq: python-devel httpd-devel"
