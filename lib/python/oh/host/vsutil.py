@@ -14,12 +14,14 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.3 2004/05/21 03:38:43 grisha Exp $
+# $Id: vsutil.py,v 1.4 2004/05/25 17:17:44 grisha Exp $
 
 """ Vserver-specific functions """
 
 import os
 import commands
+import struct
+import fcntl
 
 import cfg
 
@@ -134,9 +136,6 @@ def is_file_immutable_link(path):
         flags set, which would mean it is a safe bet that it
         cannot be modified from within a vserver """
 
-    import fcntl
-    import struct
-
     ## this should really be
     # EXT2_IOC_GETFLAGS = 0x80046601
     # but because of a FutureWarnig for 2.4, we have this
@@ -150,4 +149,14 @@ def is_file_immutable_link(path):
     
     # 0x00008010 is EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL
     return flags & 0x00008010 == 0x00008010
+
+def set_file_immutable_link(path):
+    """ Sets the ext2 immutable flag. This is the special
+        flag that only exists in a vserver kernel."""
+
+    f = open(path)
+    # 0x00008010 is EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL
+    rec = struct.pack('L', 0x00008010)
+    # 0x40046602 is EXT2_IOC_SETFLAGS
+    fcntl.ioctl(f.fileno(), 0x40046602, rec)
 

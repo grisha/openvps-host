@@ -14,17 +14,18 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.1 2004/05/21 03:38:43 grisha Exp $
+# $Id: Makefile.in,v 1.2 2004/05/25 17:17:44 grisha Exp $
 
 INSTALL=@INSTALL@
 PREFIX=@prefix@
 MISC=@prefix@/oh/misc
 SUDOERS=/etc/sudoers  # XXX conf
+OHD_USER=ohd
 
-ping: ping.c common.c
+ping: ping.c common.c common.h
 	$(CC) -o ping ping.c common.c
 
-traceroute: traceroute.c common.c
+traceroute: traceroute.c common.c common.h
 	$(CC) -o traceroute traceroute.c common.c
 
 install: ping traceroute
@@ -32,12 +33,26 @@ install: ping traceroute
 	$(INSTALL) -m 4755 -o root traceroute $(MISC)/traceroute
 	$(INSTALL) -m 4755 -o root ohdexec $(MISC)/ohdexec
 
+	@if test -z "`egrep ^$(OHD_USER): /etc/passwd`"; then \
+		echo "Adding user $(OHD_USER)..."; \
+		adduser $(OHD_USER); \
+		mkdir -p -m 700 /home/$(OHD_USER)/.ssh; \
+		chown $(OHD_USER) /home/$(OHD_USER)/.ssh; \
+		touch /home/$(OHD_USER)/.ssh/authorized_keys; \
+		chown $(OHD_USER) /home/$(OHD_USER)/.ssh/authorized_keys; \
+		chmod 600 /home/$(OHD_USER)/.ssh/authorized_keys; \
+	else \
+		echo "User $(OHD_USER) exists, not adding."; \
+	fi
+
 	@if test -z "`grep ohd /etc/sudoers`"; then \
 		echo "Adding ohdexec to sudoers..."; \
 		echo "ohd     ALL= NOPASSWD: $(MISC)/ohdexec" >> $(SUDOERS); \
 	else \
 		echo "Looks like ohdexec is in sudoers already, leaving $(SUDOERS) alone."; \
 	fi
+
+	@cp sshd_config /etc/ssh/sshd_config_ohd
 
 clean:
 	rm -rf ping traceroute core *~ .libs *.o *.slo *.lo *.la

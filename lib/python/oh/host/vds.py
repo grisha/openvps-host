@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.5 2004/04/23 22:52:07 grisha Exp $
+# $Id: vds.py,v 1.6 2004/05/25 17:17:44 grisha Exp $
 
 """ VDS related functions """
 
@@ -22,8 +22,6 @@ import os
 import sys
 import stat
 import shutil
-import fcntl
-import struct
 import re
 import commands
 import tempfile
@@ -222,16 +220,16 @@ def ref_fix_syslog(refroot):
 
     open(fname, 'w').writelines(result)
 
-def ref_ping_traceroute(refroot):
-    print 'Installing special ping and traceroute'
-    ping = os.path.join(refroot, 'bin', 'ping')
-    shutil.copy(os.path.join(cfg.OH_MISC, 'ping'),
-                ping)
-    os.chmod(ping, 0755)
-    tracert = os.path.join(refroot, 'usr', 'sbin', 'traceroute')
-    shutil.copy(os.path.join(cfg.OH_MISC, 'traceroute'),
-                tracert)
-    os.chmod(tracert, 0755)
+## def ref_ping_traceroute(refroot):
+##     print 'Installing special ping and traceroute'
+##     ping = os.path.join(refroot, 'bin', 'ping')
+##     shutil.copy(os.path.join(cfg.OH_MISC, 'ping'),
+##                 ping)
+##     os.chmod(ping, 0755)
+##     tracert = os.path.join(refroot, 'usr', 'sbin', 'traceroute')
+##     shutil.copy(os.path.join(cfg.OH_MISC, 'traceroute'),
+##                 tracert)
+##     os.chmod(tracert, 0755)
 
 def ref_fix_python(refroot):
     print 'Making python 2.3 default'
@@ -242,6 +240,30 @@ def ref_fix_python(refroot):
     cmd = 'ln %s %s' % (os.path.join(refroot, 'usr/bin/python2.3'),
                         os.path.join(refroot, 'usr/bin/python'))
     commands.getoutput(cmd)
+
+def ref_make_libexec_oh(refroot):
+
+    dir = os.path.join(refroot, 'usr/libexec/oh')
+    
+    print 'Making %s' % dir
+    os.mkdir(dir)
+
+    print 'Copying ping and traceroute there'
+
+    shutil.move(os.path.join(refroot, 'bin/ping'), os.path.join(dir, 'ping'))
+    shutil.move(os.path.join(refroot, 'usr/sbin/traceroute'),
+                os.path.join(dir, 'traceroute'))
+
+    shutil.copy(os.path.join(cfg.OH_MISC, 'ping'), os.path.join(refroot, 'bin/ping'))
+    shutil.copy(os.path.join(cfg.OH_MISC, 'traceroute'),
+                os.path.join(refroot, 'usr/sbin/traceroute'))
+
+    # why can't I do setuid with os.chmod?
+    cmd = 'chmod 04755 %s' % os.path.join(refroot, 'bin/ping')
+    commands.getoutput(cmd)
+    cmd = 'chmod 04755 %s' % os.path.join(refroot, 'usr/sbin/traceroute')
+    commands.getoutput(cmd)
+
 
 def buildref(refroot, distroot):
 
@@ -255,8 +277,9 @@ def buildref(refroot, distroot):
     ref_make_tabs(refroot)
     ref_fix_halt(refroot)
     ref_fix_syslog(refroot)
-    ref_ping_traceroute(refroot)
+    ##ref_ping_traceroute(refroot)
     ref_fix_python(refroot)
+    ref_make_libexec_oh(refroot)
 
     # enable shadow (I wonder why it isn't by default)
     cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, refroot)
@@ -568,6 +591,30 @@ def vserver_webmin_passwd(root):
     open(musers, 'w').write('root:%s:0' % root_hash)
     os.chmod(musers, 0600)
 
+def vserver_ohd_key(root, name):
+
+    # create an ohd key, and add it to
+    # allowed keys of the ohd user on the host
+
+    keyfile = os.path.join(root, 'etc/ohd_key')
+
+    if os.path.exists(keyfile):
+        print 'NOT touching already existing key', keyfile
+        return
+
+    print 'Generating ssh key', keyfile
+    
+    cmd = 'ssh-keygen -t rsa -b 768 -N "" -f %s' % keyfile
+    commands.getoutput(cmd)
+
+    ohdkeys = '/home/ohd/.ssh/authorized_keys'
+    print 'Adding it to', ohdkeys
+
+    key = open(keyfile+'.pub').read()
+    s = 'from="127.0.0.1",command="/usr/bin/sudo /usr/local/oh/misc/ohdexec %s" %s' % (name, key)
+
+    open(ohdkeys, 'a+').write(s)
+
 def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
 
     # first make a configuration
@@ -594,6 +641,7 @@ def customize(name, hostname, ip, xid, userid, passwd, disklim, dns):
     vserver_random_crontab(root)
     vserver_webmin_passwd(root)
     vserver_disable_pam_limits(root)
+    vserver_ohd_key(root, name)
     
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""
@@ -607,18 +655,6 @@ def match_path(path):
     return copy_exp and not not copy_exp.search(path), \
            touch_exp and not not touch_exp.search(path), \
            skip_exp and not not skip_exp.search(path)
-
-def set_ext2_immutable_flag(path):
-    """ Sets the ext2 immutable flag. This is the special
-        flag that only exists in a vserver kernel."""
-
-    # XXX This heavily Linux-specific stuff !!!
-    
-    f = open(path)
-    # 0x00008010 is EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL
-    rec = struct.pack('L', 0x00008010)
-    # 0x40046602 is EXT2_IOC_SETFLAGS
-    fcntl.ioctl(f.fileno(), 0x40046602, rec)
 
 def copyown(src, dst):
     """Copy ownership"""
@@ -677,7 +713,8 @@ def copy(src, dst, link=1, touch=0):
                 print 'ln %s %s' % (src, dst)
             else:
                 os.link(src, dst)
-                set_ext2_immutable_flag(dst)
+                if not vsutil.is_file_immutable_link(dst):
+                    vsutil.set_file_immutable_link(dst)
 
             lins += 1
             

@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-# $Id: ohd.in,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: ohd.in,v 1.2 2004/05/25 17:17:44 grisha Exp $
 
 PREFIX=@prefix@
 
@@ -27,6 +27,7 @@ case "$1" in
   start)
  	echo -n $"Starting OpenHosting daemon: "
 	$PREFIX/sbin/ohd &
+	/usr/sbin/sshd -f /etc/ssh/sshd_config_ohd
 	;;
   stop)
 	# XXX not yet implemented
