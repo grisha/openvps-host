@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.10 2005/02/16 20:35:58 grisha Exp $
+# $Id: openvps-configure,v 1.11 2005/02/17 04:22:15 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -590,7 +590,7 @@ def main():
     print
     print " # openvps buildref /vservers/REF /location/of/rpms"
     print "     OR"
-    print " # openvps buildref /vservers/REF http://favorite.mirror.tld/fedora/core/2/i386/os"
+    print " # openvps buildref /vservers/REF http://favorite.mirror.tld/fedora/core/X/i386/os"
     print
 
 main()
