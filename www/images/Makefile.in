@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.2 2005/01/14 21:41:07 grisha Exp $
+# $Id: Makefile.in,v 1.3 2005/01/19 18:08:04 grisha Exp $
 
 INSTALL=@INSTALL@
 IMGS=@prefix@/openvps/images
@@ -26,7 +26,7 @@ distclean: clean
 	rm -f Makefile
 
 install:
-	$(INSTALL) -m 0644 style.css $(DESTDIR)$(IMGS)/style.css
+	$(INSTALL) -m 0644 ovstyle.css $(DESTDIR)$(IMGS)/ovstyle.css
 	$(INSTALL) -m 0644 tab_rounded.gif $(DESTDIR)$(IMGS)/tab_rounded.gif
 	$(INSTALL) -m 0644 unauthorized.html $(DESTDIR)$(IMGS)/unauthorized.html
 

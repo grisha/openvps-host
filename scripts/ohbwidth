@@ -16,7 +16,9 @@
 # limitations under the License.
 #
 
-# $Id: ohbwidth,v 1.8 2005/01/12 21:24:43 grisha Exp $
+# $Id: ohbwidth,v 1.9 2005/01/19 18:08:04 grisha Exp $
+
+# This script will go away in favor of the -mon daemon.
 
 """
 This script periodically collects data about vserver
@@ -31,39 +33,16 @@ from syslog import syslog, openlog
 
 from openvps.host import cfg
 from openvps.host import vsutil
+from openvps.host import vsmon
 
 openlog('ohbwidth')
-
-def iptables_info():
-
-    input = {}
-
-    cmd = '/sbin/iptables -xvnL INPUT | grep 0.0.0.0/0'
-    s = commands.getoutput(cmd)
-
-    for line in s.splitlines():
-        x = line.split()
-        bytes, ip = x[1], x[-1]
-        input[ip] = bytes
-
-    output = {}
-
-    cmd = '/sbin/iptables -xvnL OUTPUT | grep 0.0.0.0/0'
-    s = commands.getoutput(cmd)
-
-    for line in s.splitlines():
-        x = line.split()
-        bytes, ip = x[1], x[-2]
-        output[ip] = bytes
-
-    return input, output
 
 # main starts here
 
 if not vsutil.is_vserver_kernel():
     sys.exit()
 
-input, output = iptables_info()
+input, output = vsmon.iptables_info()
 
 vservers = vsutil.list_vservers()
 

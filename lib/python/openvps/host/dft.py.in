@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.2 2005/01/12 22:52:29 grisha Exp $
+# $Id: dft.py.in,v 1.3 2005/01/19 18:08:04 grisha Exp $
 
 """ Configuration Defaults
 
@@ -70,7 +70,7 @@ VSERVER_PREFIX = '/usr/local'   # overriden by openvps.conf
 #VSERVER_LIB = os.path.join(VSERVER_PREFIX, 'lib/util-vserver')
 #VSERVER_STAT = os.path.join(VSERVER_PREFIX, 'sbin/vserver-stat')
 #VSERVER = os.path.join(VSERVER_PREFIX, 'sbin/vserver')
-
+#CHCONTEXT = os.path.join(VSERVER_PREFIX, 'sbin/chcontext')
 
 # Location of context disk limit tool (vdlimit)
 VDLIMIT = os.path.join('@VDLIMIT_DIR@', 'vdlimit')
@@ -635,6 +635,27 @@ HOME=/
 22 4 * * 0 root rndsleep 1200 && run-parts /etc/cron.weekly
 42 4 1 * * root rndsleep 1200 && run-parts /etc/cron.monthly
 """
+
+HB = 300 # default heart beat
+
+# RRD datapoints definition for per-vserver stats
+# (name, rrd_type, hbeat, min, max)
+VSMON_DATA_DEF = [('vs_procs', 'gauge', HB, 0, 'U'), # number of procs 
+                  ('vs_procs_lim', 'gauge', HB, 0, 'U'), 
+                  ('vs_procs_lhits', 'gauge', HB, 0, 'U'), 
+                  ('vs_vm', 'gauge', HB, 0, 'U'),    # total memory
+                  ('vs_vm_lim', 'gauge', HB, 0, 'U'), 
+                  ('vs_vm_lhits', 'gauge', HB, 0, 'U'), 
+                  ('vs_vml', 'gauge', HB, 0, 'U'),   # locked memory
+                  ('vs_vml_lim', 'gauge', HB, 0, 'U'), 
+                  ('vs_uticks', 'counter', HB, 0, 0xFFFFFF00L), 
+                  ('vs_sticks', 'counter', HB, 0, 0xFFFFFF00L), 
+                  ('vs_hticks', 'counter', HB, 0, 0xFFFFFF00L),
+                  ('vs_ipc_totshm', 'gauge', HB, 0, 'U'),
+                  ('vs_ipc_totsem', 'gauge', HB, 0, 'U'),
+                  ('vs_in', 'counter', HB, 0, 0xFFFFFF00L), 
+                  ('vs_out', 'counter', HB, 0, 0xFFFFFF00L), 
+                  ]
 
 
 # makes emacs go into python mode
