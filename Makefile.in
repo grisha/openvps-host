@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.5 2004/05/25 17:20:25 grisha Exp $
+# $Id: Makefile.in,v 1.6 2004/06/15 18:05:35 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -47,6 +47,12 @@ install:
 	else \
 		echo "Not installing $(CONFIG) because it already exists."; \
 	fi
+	@if test -z "`grep kernel.sem /etc/sysctl.conf`"; then \
+		echo "Increasing the number of available semaphores"; \
+		sysctl -w kernel.sem="250 256000 32 1024"; \
+		echo "kernel.sem = 250 256000 32 1024" >> /etc/sysctl.conf; \
+	fi
+
 	@cp $(VERSION) /etc/oh-release
 
 install_py_lib:
