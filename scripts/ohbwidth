@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohbwidth,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: ohbwidth,v 1.2 2004/08/09 17:52:08 grisha Exp $
 
 """
 This script periodically collects data about vserver
@@ -61,7 +61,8 @@ def list_vserver_ips():
 
     ips = {}
     for vserver in vservers:
-        ips[vserver] = vservers[vserver]['IPROOT']
+        if vservers[vserver].has_key('IPROOT'):
+            ips[vserver] = vservers[vserver]['IPROOT']
 
     return ips
 
