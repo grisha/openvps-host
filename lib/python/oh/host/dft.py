@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py,v 1.1 2004/03/25 16:48:40 grisha Exp $
+# $Id: dft.py,v 1.2 2004/03/26 02:40:40 grisha Exp $
 
 """ Configuration Defaults """
 
@@ -291,6 +291,8 @@ FEDORA_C1_PKGS = {
     'rpm-build-4.2.1-0.30.i386.rpm',
     'nano-1.2.1-3.i386.rpm',
     'cvs-1.11.5-3.i386.rpm',
+    'libstdc++-devel-3.3.2-1.i386.rpm',
+    'gcc-c++-3.3.2-1.i386.rpm',
     'http://download.fedora.us/fedora/fedora/1/i386/RPMS.stable/apt-0.5.15cnc5-0.fdr.10.1.i386.rpm'
     ] }
   
