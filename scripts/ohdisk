@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ohdisk,v 1.5 2004/10/05 20:50:54 grisha Exp $
+# $Id: ohdisk,v 1.6 2004/10/05 21:08:34 grisha Exp $
 
 """
 This script periodically collects data about vservers disk
@@ -95,7 +95,7 @@ for xid in xids:
             syslog('Less than 10000 inodes left for xid %s, resetting' % xid)
             
             # less then 10000 inodes left, reset
-            cmd = '%s -x %s -S %s,%s,%s,%s,%s -v %s' % \
+            cmd = '%s -x %s -S %s,%s,%s,%s,%s %s' % \
                   (cfg.VDLIMIT, xid, 
                    dl['b_used'], dl['b_total'], 0, dl['i_total'], dl['root'],
                    cfg.VSERVERS_ROOT)
@@ -106,7 +106,7 @@ for xid in xids:
         # print out the current counters in the form of a readily
         # usable command (that is then executed on server startup)
         
-        print '%s -a -x %s -S %s,%s,%s,%s,%s -v %s' % \
+        print '%s -a -x %s -S %s,%s,%s,%s,%s %s' % \
               (cfg.VDLIMIT, xid,
                dl['b_used'], dl['b_total'], dl['i_used'], dl['i_total'], dl['root'],
                cfg.VSERVERS_ROOT)
