@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.38 2004/11/15 18:47:43 grisha Exp $
+# $Id: vds.py,v 1.39 2004/11/19 20:32:03 grisha Exp $
 
 """ VDS related functions """
 
@@ -412,6 +412,8 @@ def ref_fix_vncserver(refroot):
     open(file, 'w').writelines(lines)
 
 def buildref(refroot, distroot):
+
+    refroot = os.path.abspath(refroot)
 
     print 'Building a reference server at %s using packages in %s' % \
           (refroot, distroot)
@@ -1025,8 +1027,8 @@ def clone(source, dest, pace=cfg.PACE[0]):
     # pace counter
     p = 0
 
-    # this will strip trailing slashes
-    source, dest = os.path.normpath(source), os.path.normpath(dest)
+    # this will also strip trailing slashes
+    source, dest = os.path.abspath(source), os.path.abspath(dest)
 
     print 'Cloning %s -> %s ... (this will take a while)' % (source, dest)
 
@@ -1080,8 +1082,8 @@ def fixflags(refroot):
     # except those that are marked as config (or mentioned at all)
     # in rpms
 
-    # this will strip trailing slashes
-    refroot = os.path.normpath(refroot)
+    # make sure it's an absolute path
+    refroot = os.path.abspath(refroot)
 
     print 'Fixing flags in %s ... (this will take a while)' % refroot
 
@@ -1181,6 +1183,8 @@ def fixxids(vsroot, xid, pace=cfg.PACE[0]):
     # walk the root, and set all non-iunlink files to xid xid.  this
     # means that when a non iunlink file is deleted, the proper amount
     # of space is freed.
+
+    vsroot = os.path.abspath(vsroot)
 
     xid = int(xid)
 
