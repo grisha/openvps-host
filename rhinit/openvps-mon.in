@@ -1,3 +1,8 @@
+#!/bin/bash
+#
+# chkconfig: 345 31 69
+# description: This is a helper service for ping and other OH commands
+
 #
 # Copyright 2004 OpenHosting, Inc.
 #
@@ -14,23 +19,32 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.6 2004/12/22 21:12:48 grisha Exp $
+# $Id: openvps-mon.in,v 1.1 2004/12/22 21:12:48 grisha Exp $
 
-INSTALL=@INSTALL@
-CHKCONFIG=/sbin/chkconfig
-SSHD_CONFIG=/etc/ssh/sshd_config
-NAMED_CONFIG=/etc/named.conf
-INITD=/etc/init.d
+PREFIX=@prefix@
 
-clean:
-	rm -rf *~
+case "$1" in
+  start)
+ 	echo -n $"Starting OpenVPS Monitor: "
+	$PREFIX/sbin/openvps-mon start 
+	RETVAL=$?
+	echo
+	;;
+  stop)
+	$PREFIX/sbin/openvps-mon stop 
+	RETVAL=$?
+	echo
+	;;
+  status)
+	# XXX not yet implemented
+	;;
+  restart|reload)
+	$PREFIX/sbin/openvps-mon restart &
+	;;
+  *)
+	echo $"Usage: $0 {start|stop|status|restart}"
+	exit 1
+esac
 
-distclean: clean
-	rm -f Makefile
-
-install:
-	$(INSTALL) ohresources $(DESTDIR)$(INITD)/ohresources
-	$(INSTALL) ohd $(DESTDIR)$(INITD)/ohd
-	$(INSTALL) ohfixproc $(DESTDIR)$(INITD)/ohfixproc
-	$(INSTALL) openvps-mon $(DESTDIR)$(INITD)/openvps-mon
+exit $RETVAL
 

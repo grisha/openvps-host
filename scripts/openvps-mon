@@ -1,0 +1,271 @@
+#!/usr/bin/env python2.3
+
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: openvps-mon,v 1.1 2004/12/22 21:12:48 grisha Exp $
+
+# This is a daemon script that runs in the background, collects
+# datapoints (using oh.host.mon) and sends them out to a central
+# server in a hmac signed udp packet at constant intervals
+
+# the daemonization stuff is from recipe 66012 on ASPN with some
+# enhancements
+
+import os
+import sys
+import signal
+import time
+import socket
+import traceback
+from signal import SIGTERM, SIGKILL
+from syslog import syslog, openlog
+
+# openvps modules
+from oh.host import mon, cfg
+
+openlog('openvps-mon')
+
+def log(data):
+   syslog('%s' % data)
+
+EXIT = 0
+
+def exit_handler(signum, frame):
+   global EXIT
+   log('Received SIGTERM.')
+   EXIT = 1
+                   
+def daemonize(pidfile=None):
+   """
+      Detach a process from the controlling terminal and run it in the
+      background as a daemon.
+   """
+
+   log('Starting...')
+
+   # make sure we can write the pid file
+   if pidfile:
+      file(pidfile,'w+').write("\n")
+      os.unlink(pidfile)
+   
+   try:
+      # Fork a child process so the parent can exit.
+      pid = os.fork()
+   except OSError, e:
+      log('Could not start: %s %s' % (e.errno, e.strerror))
+      sys.exit(1)
+   
+   if (pid == 0):       # The first child.
+      
+      # Next we call os.setsid() to become the session leader of this new
+      # session.
+      os.setsid()
+
+      # When the first child terminates, all processes in the second child
+      # are sent a SIGHUP, so it's ignored.
+      signal.signal(signal.SIGHUP, signal.SIG_IGN)
+      
+      try:
+         # Fork a second child to prevent zombies.
+         pid = os.fork()        # Fork a second child.
+      except OSError, e:
+         log('Could not start: %s %s' % (e.errno, e.strerror))
+      
+      if (pid == 0):      # The second child.
+         # Ensure that the daemon doesn't keep any directory in use.
+         os.chdir("/")
+         # Give the child complete control over permissions.
+         os.umask(0)
+      else:
+         os._exit(0)      # Exit parent (the first child) of the second child.
+   else:
+      os._exit(0)         # Exit parent of the first child.
+
+   # Close all open files.
+   try:
+      maxfd = os.sysconf("SC_OPEN_MAX")
+   except (AttributeError, ValueError):
+      maxfd = 256       # default maximum
+
+   for fd in range(0, maxfd):
+      try:
+         os.close(fd)
+      except OSError:   # ERROR (ignore)
+         pass
+
+   # Redirect the standard file descriptors to /dev/null.
+   os.open("/dev/null", os.O_RDONLY) 
+   os.open("/dev/null", os.O_RDWR)
+   os.open("/dev/null", os.O_RDWR)
+
+   # register signal handler
+   signal.signal(SIGTERM, exit_handler)
+
+   # write our pid file
+   if pidfile:
+      file(pidfile,'w+').write("%s\n" % os.getpid())
+
+def startstop(pidfile='%s.pid' % os.path.basename(sys.argv[0])):
+
+   # turn pid into full path
+   pidfile = os.path.abspath(pidfile)
+   
+   if len(sys.argv) > 1:
+      
+      action = sys.argv[1]
+
+      # is there a pid file?
+      try:
+         pf  = file(pidfile,'r')
+         pid = int(pf.read().strip())
+         pf.close()
+      except IOError:
+         pid = None
+         
+      if 'stop' == action or 'restart' == action:
+
+         # start or restart without pid
+         if not pid:
+
+            print >> sys.stderr, "Could not stop, pid file '%s' missing." % pidfile
+
+            if 'stop' == action:
+               # we're done
+               sys.exit(1)
+               
+            action = 'start'
+            pid = None
+            
+         else:
+
+            # we have a pid file
+            try:
+
+               # keep on killing for X seconds
+               X = 5
+               for x in xrange(X):
+                  os.kill(pid, SIGTERM)
+                  time.sleep(1)
+
+               # now really kill
+               print >> sys.stderr, "%d SIGTERMs did not kill it, switching to SIGKILL" % X
+               for x in xrange(3):
+                  os.kill(pid, SIGKILL)
+                  time.sleep(1)
+
+               print >> sys.stderr, "Process still running, we give up!"
+               sys.exit(1)
+                  
+            except OSError, err:
+               err = str(err)
+               if err.find("No such process") > 0:
+                  # kill succeeded
+                  os.remove(pidfile)
+                  if 'stop' == action:
+                     sys.exit(0)
+                  action = 'start'
+                  pid = None
+
+               else:
+                  # some other error?
+                  print >> sys.stderr, str(err)
+                  sys.exit(1)
+                  
+      if 'start' == action:
+         if pid:
+            print >> sys.stderr, "NOT starting because pid file '%s' exists." % pidfile
+            sys.exit(1)
+            
+         daemonize(pidfile=pidfile)
+         log('Started.')
+         return
+
+   print "usage: %s start|stop|restart" % sys.argv[0]
+   sys.exit(2)
+
+
+def work():
+
+   try:
+      do_work()
+   except:
+      etype, evalue, etb = sys.exc_info()
+
+      # write to log
+      for e in traceback.format_exception(etype, evalue, etb):
+         log(e[:-1])
+      
+   log('Exiting...')
+   sys.exit(1)
+
+def do_work():
+
+   global EXIT
+   
+   # work starts here
+   udp_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+   # first time do it right away
+   data = mon.collect_stats()
+   udp_sock.sendto(data, (cfg.MON_TARGET_IP, cfg.MON_TARGET_PORT))
+
+   # enter the loop
+   # loop every second, but only do anything once per N loops
+
+   N, n = 60, 0
+   
+   while 1:
+
+      if EXIT:
+         return
+
+      if n < N:
+         n += 1
+         time.sleep(1)
+         continue
+      
+      data = mon.collect_stats()
+      udp_sock.sendto(data, (cfg.MON_TARGET_IP, cfg.MON_TARGET_PORT))
+
+      n = 0
+
+   return
+
+if __name__ == "__main__":
+
+   try:
+      startstop(pidfile=cfg.MON_PID_FILE)
+   except IOError:
+      etype, evalue, etb = sys.exc_info()
+
+      # write to log
+      for e in traceback.format_exception(etype, evalue, etb):
+         log(e[:-1])
+      
+      log('Exiting...')
+      sys.exit(1)
+
+   # start working
+   work()
+   
+      
+###
+# do not edit this if you like using emacs
+# makes emacs go into python mode
+### Local Variables:
+### mode:python
+### End:

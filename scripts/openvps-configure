@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.2 2004/12/22 16:03:12 grisha Exp $
+# $Id: openvps-configure,v 1.3 2004/12/22 21:12:48 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -75,6 +75,26 @@ def get_peerip():
         return cfg.PEERIP
 
     cfg.PEERIP = s
+    return s
+
+def get_mon_target_ip():
+
+    prompt = 'Please enter the IP of the server to receive mon heartbeats [%s]:' % cfg.MON_TARGET_IP
+    s = raw_input(prompt)
+    if not s:
+        return cfg.MON_TARGET_IP
+
+    cfg.MON_TARGET_IP = s
+    return s
+
+def get_mon_secret():
+
+    prompt = 'Please enter the shared secret to sign heartbeats with [%s]:' % cfg.MON_SECRET
+    s = raw_input(prompt)
+    if not s:
+        return cfg.MON_SECRET
+
+    cfg.MON_SECRET = s
     return s
 
 def get_ssl_org_country():
@@ -333,7 +353,7 @@ def fix_services():
 
     for srv in ['network', 'sshd', 'syslog', 'atd', 'random', 'iptables',
                 'crond', 'anacron', 'httpd', 'named', 'vservers-default',
-                'ohresources', 'ohd', 'ohfixproc']:
+                'ohresources', 'ohd', 'ohfixproc', 'openvps-mon']:
         print srv,
         commands.getoutput('/sbin/chkconfig %s on' % srv)
 
@@ -488,6 +508,8 @@ def main():
     params['VSERVER_PREFIX'] = get_util_vserver_prefix()
     params['BACKUP'] = get_backup()
     params['PEERIP'] = get_peerip()
+    params['MON_TARGET_IP'] = get_mon_target_ip()
+    params['MON_SECRET'] = get_mon_secret()
     params['SSL_ORG_COUNTRY'] = get_ssl_org_country()
     params['SSL_ORG_STATE'] = get_ssl_org_state()
     params['SSL_ORG_NAME'] = get_ssl_org_name()
@@ -512,22 +534,22 @@ def main():
 
     print
     print
-    print "We are *almost* done now. The last remaining step is to"
-    print "build a reference server. To do this we first need a"
-    print "directory that contains all the rpms from the distribution"
-    print "CDs (i.e. everything in the RPMS directory on all 3 Fedora CD's),"
-    print "or a URL to an ftp/http server with a distribution on it."
+    print " We  are  *almost*  done  now.  The  last remaining  step  is to"
+    print " build  a  reference  server.   To  do  this  we  first  need  a"
+    print " directory that  contains  all the rpms  from  the  distribution"
+    print " CDs (i.e. everything in the RPMS directory on all 3 Fedora CD's),"
+    print " or  a  URL  to  an  ftp/http  server with a distribution on it."
     print 
-    print "Even if you decide to use the local filesyste, you will still"
-    print "need to make sure the server can get out to the Internet via HTTP"
-    print "at this point, because the next step will attempt to download a"
-    print "few RPMs from openvps.org (look in dft.py for specifics)."
+    print " Even  if  you decide to use the local filesystem,  you will still"
+    print " need to make sure the server can get out to the Internet via HTTP"
+    print " at this point,  because  the next step will attempt to download a"
+    print " few RPMs from openvps.org (look in dft.py for specifics)."
     print
-    print "Once you have that setup, do (as root)"
+    print " Once you have that setup, do (as root)"
     print
-    print "# openvps buildref /vservers/REF /location/of/rpms"
+    print " # openvps buildref /vservers/REF /location/of/rpms"
     print "     OR"
-    print "# openvps buildref /vservers/REF http://favorite.mirror.tld/fedora/core/2/i386/os"
+    print " # openvps buildref /vservers/REF http://favorite.mirror.tld/fedora/core/2/i386/os"
     print
 
 main()

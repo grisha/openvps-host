@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.42 2004/12/09 05:26:40 grisha Exp $
+# $Id: vds.py,v 1.43 2004/12/22 21:12:48 grisha Exp $
 
 """ VDS related functions """
 
@@ -32,7 +32,7 @@ import types
 # python-rpm
 import rpm
 
-# oh modules
+# openvps modules
 import cfg
 import vsutil
 from oh.common import util

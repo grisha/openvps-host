@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.7 2004/12/22 16:03:12 grisha Exp $
+# $Id: mkspec.in,v 1.8 2004/12/22 21:12:48 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -73,6 +73,7 @@ echo "%{_libdir}/@PYTHON@/site-packages"
 echo "/etc/init.d/ohd"
 echo "/etc/init.d/ohfixproc"
 echo "/etc/init.d/ohresources"
+echo "/etc/init.d/openvps-mon"
 echo "/etc/oh-release"
 echo "/usr/oh"
 echo "/usr/sbin/ohbackup"
@@ -81,5 +82,6 @@ echo "/usr/sbin/ohchkpwd"
 echo "/usr/sbin/ohdisk"
 echo "/usr/sbin/openvps"
 echo "/usr/sbin/openvps-configure"
+echo "/usr/sbin/openvps-mon"
 echo "/usr/sbin/pace"
 echo "%dir /var/db/oh"
