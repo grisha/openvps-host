@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.8 2004/05/25 19:59:38 grisha Exp $
+# $Id: vds.py,v 1.9 2004/06/09 18:46:41 grisha Exp $
 
 """ VDS related functions """
 
@@ -100,8 +100,8 @@ def ref_install_pkgs(root, distroot):
     try:
         os.chdir(distroot)
         
-        print "Installing base packages..."
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_BASE))
+        print "Installing base packages STEP I..."
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_BASE_I))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
@@ -112,15 +112,28 @@ def ref_install_pkgs(root, distroot):
         # another mising dir
         os.mkdir(os.path.join(root, 'usr', 'src', 'redhat'))
 
-        print "Installing additional packages..."
+        print "Installing packages STEP II..."
         #cmd = 'rpm --root %s -Uvh --nodeps %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS['ADDL']))
-        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_ADDL))
+        cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_BASE_II))
         pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
         s = pipe.read(1)
         while s:
             sys.stdout.write(s); sys.stdout.flush()
             s = pipe.read(1)
         pipe.close()
+
+
+        if cfg.FEDORA_C1_PKGS_ADDL:
+        
+            print "Installing additional packages..."
+            #cmd = 'rpm --root %s -Uvh --nodeps %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS['ADDL']))
+            cmd = 'rpm --root %s -Uvh %s' % (root, ' '.join(cfg.FEDORA_C1_PKGS_ADDL))
+            pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
+            s = pipe.read(1)
+            while s:
+                sys.stdout.write(s); sys.stdout.flush()
+                s = pipe.read(1)
+            pipe.close()
 
         
     finally:
