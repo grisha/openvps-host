@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: mon.py,v 1.2 2004/12/29 00:58:02 grisha Exp $
+# $Id: mon.py,v 1.3 2004/12/30 20:34:00 grisha Exp $
 
 # This file contains functions to retrieve various server statistics
 # (mostly) from the /proc filesystem. It also contains functions to
@@ -167,6 +167,26 @@ def df():
 
     return result
 
+def dfi():
+
+    # disk utilization  - inodes
+
+    result = {}
+
+    lines = commands.getoutput('/bin/df -i').splitlines()
+
+    for line in lines:
+
+        if re.search('/$|/var$|/tmp$|/backup$|/vservers$', line):
+            split = line.split()
+            used, free, percent, mount = split[-4:]
+            if mount == '/':
+                mount = '/root'
+            result['disk_%s_i_used' % mount[1:]] = long(used)
+            result['disk_%s_i_free' % mount[1:]] = long(free)
+
+    return result
+
 def diskstats():
 
     # disk device io stats
@@ -191,6 +211,9 @@ def ipcs():
     # kernel.shmall
     global shmall
     if not shmall:
+        # note that shmall is in pages (4096 bytes usually), and that it will
+        # be rounded off by the kernel to the nearest boundary. it may help
+        # to look at ipcs -lm and compare.
         shmall = int(commands.getoutput('/sbin/sysctl -n kernel.shmall').strip())
 
     # semmns in kernel.sem
@@ -214,6 +237,14 @@ def ipcs():
             'ipc_semmns':semmns, 'ipc_totsem':totsem}
             
 
+def file_handlers():
+
+    s = open('/proc/sys/fs/file-nr').read()
+    used, x, avail = s.split()
+
+    return {'fs_handlers_used':long(used),
+            'fs_handlers_avail':long(avail)}
+
 def collect_stats():
 
     # do all of the above
@@ -226,8 +257,10 @@ def collect_stats():
     data.update(stat())
     data.update(net_dev())
     data.update(df())
+    data.update(dfi())
     data.update(diskstats())
     data.update(ipcs())
+    data.update(file_handlers())
 
     return result(data)
 

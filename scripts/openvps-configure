@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.3 2004/12/22 21:12:48 grisha Exp $
+# $Id: openvps-configure,v 1.4 2004/12/30 20:34:00 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -274,6 +274,22 @@ def fix_sems():
         commands.getoutput('sysctl -w kernel.sem="250 524000 32 4096"')
         commands.getoutput('echo "kernel.sem = 250 524000 32 4096" >> /etc/sysctl.conf')
 
+def fix_shm():
+
+    # At this point it seems that the Linux defaults are fine. Here is a pretty good
+    # page on IPC:
+    # http://www.puschitz.com/TuningLinuxForOracle.shtml
+
+    pass
+
+##     s = commands.getoutput('grep kernel.shmall /etc/sysctl.conf')
+##     if not s:
+##         print 'Increasing the amount of available shared memory.'
+##         # kernel.shmall is total amount of shared memory available _in pages_ (4K)
+##         # kernel.shmmax is the maximum size of a segment
+##         commands.getoutput('sysctl -w kernel.shmall=134217728')
+##         commands.getoutput('echo "kernel.shmall = 134217728" >> /etc/sysctl.conf')
+
 def fix_arp_ignore():
 
     # this is critical for direct-server-return load-balancing where you need
@@ -520,6 +536,7 @@ def main():
     save_config(params)
     vserver_config()
     fix_sems()
+    fix_shm()
     fix_arp_ignore()
     create_dummy0()
     disable_ipv6()
