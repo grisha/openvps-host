@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.5 2004/06/09 18:46:41 grisha Exp $
+# $Id: dft.py.in,v 1.6 2004/07/30 22:00:52 grisha Exp $
 
 """ Configuration Defaults
 
@@ -415,7 +415,12 @@ FEDORA_C1_PKGS_BASE_II = [
     # newer python
     'http://dev.openhosting.com/dist/misc/mirror/python2.3-2.3.3-2pydotorg.i386.rpm',
     'http://dev.openhosting.com/dist/misc/mirror/python2.3-devel-2.3.3-2pydotorg.i386.rpm',
-    'http://dev.openhosting.com/dist/misc/mirror/python2.3-tools-2.3.3-2pydotorg.i386.rpm'
+    'http://dev.openhosting.com/dist/misc/mirror/python2.3-tools-2.3.3-2pydotorg.i386.rpm',
+    # yum
+    'elfutils-0.89-2.i386.rpm',
+    'libxml2-python-2.5.11-1.i386.rpm',
+    'rpm-python-4.2.1-0.30.i386.rpm',
+    'http://download.openvps.org/openvps/0/updates/noarch/yum-2.0.5-1_OH.noarch.rpm'
     ]
 
 FEDORA_C1_PKGS_ADDL = [ ]
