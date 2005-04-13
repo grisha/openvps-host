@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.32 2005/04/06 18:29:34 grisha Exp $
+# $Id: panel.py,v 1.33 2005/04/13 15:21:03 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -118,6 +118,9 @@ def handler(req):
 
         if (userid != SUPER) and (userid != cfg.PANEL_SUPERUSER) and (userid != vserver_name):
             return error(req, 'request not understood')
+
+        # save it in request to be used later in some places
+        req.user = userid
 
         if len(parts) > 4:
             params = parts[4]
@@ -382,7 +385,7 @@ def status(req, name, params):
 
 def stop(req, name, params):
 
-    req.log_error('Stopping vserver %s at request of %s.' % (name, req.user))
+    req.log_error('Stopping vserver %s at request of %s' % (name, req.user))
 
     if vsutil.is_running(name):
 
@@ -396,7 +399,7 @@ def stop(req, name, params):
 
 def start(req, name, params):
 
-    req.log_error('Starting vserver %s at request of %s.' % (name, req.user))
+    req.log_error('Starting vserver %s at request of %s' % (name, req.user))
 
     if not vsutil.is_running(name):
 
