@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.3 2005/02/09 20:04:04 grisha Exp $
+# $Id: vds.py,v 1.4 2005/04/13 15:13:53 grisha Exp $
 
 """ VDS related functions """
 
@@ -446,8 +446,10 @@ def buildref(refroot, distroot):
     ref_fix_vncserver(refroot)
     ref_import_rpm_key(refroot)
 
-    # enable shadow (I wonder why it isn't by default)
+    # enable shadow and md5 (I wonder why it isn't by default)
     cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, refroot)
+    s = commands.getoutput(cmd)
+    cmd = '%s %s /usr/sbin/authconfig --kickstart --enablemd5 --enableshadow' % (cfg.CHROOT, refroot)
     s = commands.getoutput(cmd)
 
     # set flags
