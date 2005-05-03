@@ -20,9 +20,9 @@ for d in data:
 %>
     <tr>
       <td><%="%s %s" % (month, year) %></td>
-      <td><%="%s" % locale.format("%d", st*step, 3) %></td>
-      <td><%="%s" % locale.format("%d", ut*step, 3) %></td>
-      <td><%="%s" % locale.format("%d", (st+ut)*step, 3) %></td>
+      <td><%="%s" % locale.format("%d", int(st*step), 3) %></td>
+      <td><%="%s" % locale.format("%d", int(ut*step), 3) %></td>
+      <td><%="%s" % locale.format("%d", int((st+ut)*step), 3) %></td>
     </tr>
 <%
 # end
