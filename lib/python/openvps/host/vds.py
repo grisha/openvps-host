@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.4 2005/04/13 15:13:53 grisha Exp $
+# $Id: vds.py,v 1.5 2005/05/05 03:24:16 grisha Exp $
 
 """ VDS related functions """
 
@@ -359,7 +359,7 @@ def ref_make_libexec_oh(refroot):
         # now place our custom in their path
         dest_path = os.path.join(refroot, path)
 
-        shutil.copy(os.path.join(cfg.OH_MISC, short_name), dest_path)
+        shutil.copy(os.path.join(cfg.OV_MISC, short_name), dest_path)
 
         # why can't I do setuid with os.chmod?
         cmd = 'chmod 04755 %s' % dest_path

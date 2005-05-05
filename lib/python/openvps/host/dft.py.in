@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.14 2005/04/05 20:07:35 grisha Exp $
+# $Id: dft.py.in,v 1.15 2005/05/05 03:24:16 grisha Exp $
 
 """ Configuration Defaults
 
@@ -29,7 +29,7 @@ import os, sys
 PREFIX = '@prefix@' 
 
 # The main oh directory
-OH_DIR = os.path.join(PREFIX, 'oh')
+OV_DIR = os.path.join(PREFIX, 'openvps')
 
 # Configuration directory
 CONFIG_DIR = '/etc'
@@ -48,7 +48,7 @@ NOVAL = 'NO VALUE SET - edit %s' % CONFIG_FILE
 
 # Location of miscellaneous files, particularly ping and traceroute
 # that later on are copied into a reference vserver
-OH_MISC = os.path.join(OH_DIR, 'misc')
+OV_MISC = os.path.join(OV_DIR, 'misc')
 
 # Version
 VERSION = open('/etc/openvps-release').read().strip()
