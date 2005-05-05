@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.13 2005/02/25 20:07:49 grisha Exp $
+# $Id: vsmon.py,v 1.14 2005/05/05 18:05:07 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -266,7 +266,12 @@ def collect_stats():
 
         # lookup vserver name (a little complex, but it works)
         server  = filter(lambda x: x[1] == xid, \
-                         [(name, vservers[name]['context']) for name in vservers.keys()])[0][0]
+                         [(name, vservers[name]['context']) for name in vservers.keys()])
+        if server:
+            server = server[0][0]
+        else:
+            # this is a zombie - it exists in /proc/virtual, but there is no such xid
+            continue
 
         # do all of the above
 
