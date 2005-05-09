@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovbackup,v 1.4 2005/03/21 15:47:02 grisha Exp $
+# $Id: ovbackup,v 1.5 2005/05/09 18:02:26 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -44,9 +44,12 @@ def which_level():
         return 0
 
     # shuffle is to make sure all level0's don't happen on the same
-    # day
+    # day. we base it on the PRIMARY_IP because it's always there (as
+    # opposed to BACKEND_IP which may not always be there). Based on
+    # the number of levels, only one 1 of 10 servers (2 out of 20,
+    # etc) would be performing a level0. 
 
-    shuffle = int(cfg.PEERIP.split('.')[-1][-2:])
+    shuffle = int(cfg.PEERIP.split('.')[-1][-1])
     day = time.localtime()[2] + shuffle
     levels = [9,0,3,2,5,4,7,6,9,8]
     return levels[day % 10]
