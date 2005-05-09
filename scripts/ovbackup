@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovbackup,v 1.5 2005/05/09 18:02:26 grisha Exp $
+# $Id: ovbackup,v 1.6 2005/05/09 18:57:37 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -27,6 +27,9 @@ import time
 import os
 import sys
 import commands
+from syslog import syslog, openlog
+
+openlog('ovbackup')
 
 DUMP = '/sbin/dump'
 SSH = '/usr/bin/ssh -c blowfish -i %s' % cfg.OHB_DSA_KEY
@@ -34,6 +37,19 @@ TAR = '/bin/tar'
 LEVEL0_FILE = os.path.join(cfg.BACKUP, 'level0')
 
 HOST = commands.getoutput('hostname -s')
+
+def sleep():
+    # sleep until it is our time.
+
+    slices = cfg.BACKUP_WINDOW / cfg.BACKUP_SLICE
+    shuffle = int(cfg.PRIMARY_IP.split('.')[-1][-1])
+    slice = shuffle % slices
+
+    sleep_dur = slice * cfg.BACKUP_SLICE * 60
+
+    syslog('Backups started, sleeping until %s to start' % time.ctime(time.time()+sleep_dur))
+    time.sleep(sleep_dur)
+    syslog('Sleep ended, now really starting backups')
 
 def which_level():
 
@@ -49,7 +65,7 @@ def which_level():
     # the number of levels, only one 1 of 10 servers (2 out of 20,
     # etc) would be performing a level0. 
 
-    shuffle = int(cfg.PEERIP.split('.')[-1][-1])
+    shuffle = int(cfg.PRIMARY_IP.split('.')[-1][-1])
     day = time.localtime()[2] + shuffle
     levels = [9,0,3,2,5,4,7,6,9,8]
     return levels[day % 10]
@@ -117,6 +133,7 @@ def other_stuff():
         run_cmd(cmd)
 
 
+sleep()
 do_dump()
 other_stuff()
 

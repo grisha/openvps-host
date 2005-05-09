@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.15 2005/05/05 03:24:16 grisha Exp $
+# $Id: dft.py.in,v 1.16 2005/05/09 18:57:37 grisha Exp $
 
 """ Configuration Defaults
 
@@ -98,6 +98,16 @@ OHB_DSA_KEY = '@prefix@/etc/ohbackup_dsa'
 
 # User used to login to remote server for backup
 BACKUP_USER = 'ohbackup'
+
+# Backup window. The window starts whenever the openvps cron file
+# starts it, thus there is no BACKUP_START value. 
+# Backups must be _started_ within this window (mins):
+BACKUP_WINDOW = 180 # 3 hrs
+# Period of time that separates backups (minutes). We will figure out
+# the number of slices in a window, and the start time of the backup
+# will fall into one of the slices, based on the last digit of the
+# PRIMARY_IP.
+BACKUP_SLICE = 30
 
 # default inodes per vserever allowed
 INODES_LIM = 1000000

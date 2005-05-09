@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 #
-# $Id: openvps.in,v 1.4 2005/02/09 21:35:43 grisha Exp $
+# $Id: openvps.in,v 1.5 2005/05/09 18:57:37 grisha Exp $
 #
 * * * * * root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits
 0 * * * * root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits.hour
@@ -26,7 +26,7 @@
 # make sure openvps-mon is running
 * * * * * root @prefix@/sbin/ovcheckproc
 #
-30 3 * * * root /bin/nice @prefix@/sbin/ovbackup
+30 2 * * * root /bin/nice @prefix@/sbin/ovbackup
 
 #
 0 0 * * * root @prefix@/sbin/ovgenkey
