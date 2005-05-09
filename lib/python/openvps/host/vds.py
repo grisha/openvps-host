@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.5 2005/05/05 03:24:16 grisha Exp $
+# $Id: vds.py,v 1.6 2005/05/09 19:17:00 grisha Exp $
 
 """ VDS related functions """
 
@@ -862,6 +862,8 @@ def vserver_fix_vncserver(root, name):
     open(file, 'a').write('VNCSERVERS="1:%s"\n' % name)
 
 def vserver_make_symlink(root, xid):
+
+    # UNUSED now
     
     # to hide the actual name of the vserver from other vservers (they
     # can see it by looking at mounts in /proc/mount), the directory
@@ -935,7 +937,7 @@ def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
     vserver_immutable_modules(root)
     vserver_fix_vncserver(root, name)
     fixxids(root, xid)
-    vserver_make_symlink(root, xid)
+    #vserver_make_symlink(root, xid)
     vserver_vroot_perms()
     
 def match_path(path):
