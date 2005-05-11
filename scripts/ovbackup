@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovbackup,v 1.7 2005/05/10 20:45:15 grisha Exp $
+# $Id: ovbackup,v 1.8 2005/05/11 14:56:25 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -98,7 +98,9 @@ def do_dump():
     run_cmd(cmd)
 
     # just in case
-    os.chmod(cfg.BACKUP, 0700)
+    if os.path.exists(cfg.BACKUP):
+        # if we're backing up to a remote server, this path may not exist...
+        os.chmod(cfg.BACKUP, 0700)
 
     
 def other_stuff():
