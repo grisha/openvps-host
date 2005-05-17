@@ -1,0 +1,185 @@
+#!/usr/bin/env python2.3
+
+#
+# Copyright 2005 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: ovuserfiles,v 1.1 2005/05/17 20:51:42 grisha Exp $
+
+
+"""
+
+This script produces a list of all "user" files. This is handy for
+feeding this list to tools like rsync. User files are files that are
+not iunlink. This script isn't going to be very accurate because it
+uses the rpm db on the reference server as a starting point, and
+therefore may not properly exclude the iunlink files links to which
+have been lost from the reference server because of package upgrades.
+
+
+"""
+
+import sys
+import rpm
+import os
+
+from openvps.host import vsutil
+from openvps.host import vds
+from openvps.host import cfg
+
+def list_vserver_paths():
+
+    vss = vsutil.list_vservers()
+
+    result = []
+    for vs in vss.keys():
+        result.append(vss[vs]['vdir'])
+
+    return result
+    
+
+def system_files(refroot):
+
+    # This routine is based on the fixflags in vsutils; it lists
+    # files that should and are iunlink.
+
+    # the return value is a dictionary of paths (dictionary so that
+    # it can be used for quick retrieval)
+
+    result = {}
+
+    # make sure it's an absolute path
+    refroot = os.path.abspath(refroot)
+
+    # vserver paths
+    vpaths = list_vserver_paths()
+
+    # list all rpms
+    # (rpmlint is a good place to look at Python code when it comes
+    #  to completely undocumented rpm-python)
+
+    ts = rpm.TransactionSet(refroot)
+    rpms  = [item[1][rpm.RPMTAG_NAME] for item in ts.IDTXload()]
+
+    # a stupid trick. makes the progress indicator move slow at first
+    # then faster (probably because small rpms are towards the end).
+    rpms.reverse()
+
+    # this will prevent some warnings related to chroot
+    os.chdir(refroot+'/..')
+
+    for name in rpms:
+
+        # list files in the rpm
+        it = ts.dbMatch('name', name)
+
+        hdr = it.next()
+
+        # this creates a list of file in an rpm. the implementation
+        # is borrowed from rpmlint package, i don't really understand
+        # how it works, but it does.
+
+        files = hdr[rpm.RPMTAG_OLDFILENAMES]
+        if files == None:
+            basenames = hdr[rpm.RPMTAG_BASENAMES]
+            if basenames:
+                dirnames = hdr[rpm.RPMTAG_DIRNAMES]
+                dirindexes = hdr[rpm.RPMTAG_DIRINDEXES]
+                files=[]
+                if type(dirindexes) == types.IntType:
+                    files.append(dirnames[dirindexes] + basenames[0])
+                else:
+                    for idx in range(0, len(dirindexes)):
+                        files.append(dirnames[dirindexes[idx]] + basenames[idx])
+
+        # now step through those files
+
+        for idx in xrange(len(files)):
+
+            flags = hdr[rpm.RPMTAG_FILEFLAGS][idx]
+    
+            if not flags & rpm.RPMFILE_CONFIG:
+                # (if not a config file)
+
+                file = files[idx]
+
+                # check against our cloning rules
+                c, t, s = vds.match_path(file)
+    
+                if c or t or s:
+                    # skip it
+                    continue
+                else:
+                    abspath = os.path.join(refroot, file[1:])
+                    
+                    if (os.path.exists(abspath) 
+                        and (not os.path.islink(abspath)) 
+                        and (not os.path.isdir(abspath))):
+                        # (do not make symlinks and dirs immutable)
+
+                        #vsutil.set_file_immutable_unlink(abspath)
+
+                        # is this file indeed iunlink?
+                        if vsutil.is_file_immutable_unlink(abspath):
+                            result[os.path.join('/', refroot.split('/')[-1], file[1:])] = None
+                            #print os.path.join('/', refroot.split('/')[-1], file[1:])
+                            #print abspath
+
+                            # who else?
+                            for vpath in vpaths:
+                                v_abspath = os.path.join(vpath, file[1:])
+                                if (os.path.exists(v_abspath) 
+                                    and (not os.path.islink(v_abspath)) 
+                                    and (not os.path.isdir(v_abspath))
+                                    and vsutil.is_file_immutable_unlink(v_abspath)):
+                                    # make sure inodes match
+                                    if os.stat(abspath).st_ino == os.stat(v_abspath).st_ino:
+                                        result[os.path.join('/', vpath.split('/')[-1], file[1:])] = None
+                                        #print os.path.join('/', vpath.split('/')[-1], file[1:])
+                                        #print v_abspath
+
+
+    return result
+
+if len(sys.argv) != 2:
+    print "Usage %s <refroot> [<refroot> ...]" % sys.argv[0]
+    sys.exit(0)
+
+
+# collect ALL sysfiles... 
+sysfiles = {}
+for refroot in sys.argv[1:]:
+    sysfiles.update(system_files(refroot))
+
+# now walk through files and exclude the ones that are
+# system
+
+vr_len = len(cfg.VSERVERS_ROOT)
+
+for root, dirs, files in os.walk(cfg.VSERVERS_ROOT):
+
+    for path in dirs + files:
+        relpath =  os.path.join(root, path)[vr_len:]
+        if not sysfiles.has_key(relpath):
+            print relpath
+
+
+
+###
+# do not edit this if you like using emacs
+# makes emacs go into python mode
+### Local Variables:
+### mode:python
+### End:
