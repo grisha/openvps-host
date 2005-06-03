@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.33 2005/04/13 15:21:03 grisha Exp $
+# $Id: panel.py,v 1.34 2005/06/03 20:35:46 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -203,7 +203,7 @@ def _navigation_map(req, vps):
 
     # tag, Text, link, icon_url, submenu
 
-    stats = [("traffic", "Bandwidth", "traffic", None, []),
+    stats = [("bwidth", "Bandwidth", "bwidth", None, []),
              ("disk", "Disk", "disk", None, []),
              ("cpu", "CPU", "cpu", None, []),
              ("mem", "Memory", "mem", None, []),
@@ -413,7 +413,7 @@ def start(req, name, params):
 
 def stats(req, name, params):
 
-    return traffic(req, name, params)
+    return bwidth(req, name, params)
 
 
 def traffic(req, name, params):
