@@ -2511,8 +2511,8 @@ echo "${ECHO_T}found $VDLIMIT, nice." >&6
 fi
 
 if test -z "$VDLIMIT"; then
-  { { echo "$as_me:$LINENO: error: vdlimit not found. You need to place vdlimit in your path." >&5
-echo "$as_me: error: vdlimit not found. You need to place vdlimit in your path." >&2;}
+  { { echo "$as_me:$LINENO: error: vdlimit not found. You need to use util-vserver 0.30.207 or newer (recommended), or install old vdlimit separately." >&5
+echo "$as_me: error: vdlimit not found. You need to use util-vserver 0.30.207 or newer (recommended), or install old vdlimit separately." >&2;}
    { (exit 1); exit 1; }; }
 fi
 

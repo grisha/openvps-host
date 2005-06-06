@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.7 2005/05/17 20:51:42 grisha Exp $
+# $Id: vsutil.py,v 1.8 2005/06/06 20:09:13 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -271,27 +271,80 @@ def set_file_xid(path, xid):
 
 def get_disk_limits(xid):
 
+    # this routine supports both old vdlimit written by Herbert and
+    # the new vdlimit in alpha tools. Eventually the old support can
+    # be removed.
+
     r = {}
 
-    cmd = '%s -x %s %s' % (cfg.VDLIMIT, xid, cfg.VSERVERS_ROOT)
-
+    # assume new style
+    cmd = '%s --xid %s %s' % (cfg.VDLIMIT, xid, cfg.VSERVERS_ROOT)
     s =  commands.getoutput(cmd)
 
-    lines = s.splitlines()
-    for line in lines:
+    if not 'invalid option' in s:
 
-        if line == 'vc_get_dlimit: No such process':
-            continue
-
-        key, val = line.split(': ')
-
-        if val == '0,0,0,0,0':
+        if 'No such process' in s:
+            # no limits for this vserver
             return None
+        
+        lines = s.splitlines()
+        for line in lines:
 
-        r['b_used'], r['b_total'], r['i_used'], r['i_total'], r['root'] = \
-                     val.split(',')
+            if '=' in line:
+                
+                key, val = line.split('=')
+                
+                if line.startswith('space_used='):
+                    r['b_used'] = val
+                elif line.startswith('space_total='):
+                    r['b_total'] = val
+                elif line.startswith('inodes_used='):
+                    r['i_used'] = val
+                elif line.startswith('inodes_total='):
+                    r['i_total'] = val
+                elif line.startswith('reserved='):
+                    r['root'] = val
+
+    else:
+        
+        # this must be old vdlimit
+        # XXX this can be removed later
+
+        cmd = '%s -x %s %s' % (cfg.VDLIMIT, xid, cfg.VSERVERS_ROOT)
+        s =  commands.getoutput(cmd)
+
+        lines = s.splitlines()
+        for line in lines:
+
+            if line == 'vc_get_dlimit: No such process':
+                continue
+
+            key, val = line.split(': ')
+
+            if val == '0,0,0,0,0':
+                return None
+
+            r['b_used'], r['b_total'], r['i_used'], r['i_total'], r['root'] = \
+                         val.split(',')
 
     return r
+
+def set_disk_limits(xid, b_used, b_total, i_used, i_total, root, mpoint):
+
+    # assume new style vdlimit, but be prepared to deal with the old one as well
+
+    cmd = '%s --xid %s --set space_used=%s --set space_total=%s ' \
+          '--set inodes_used=%s --set inodes_total=%s --set reserved=%s %s' \
+          %  (cfg.VDLIMIT, xid, b_used, b_total, i_used, i_total, root, mpoint)
+
+    s = commands.getoutput(cmd)
+    if 'invalid option' in s:
+        # old vdlimit (XXX this can go away soon)
+        print ' WARNING! OLD VDLIMIT! Upgrade your util-vserver to 0.30.207+. Using old vdlimit:'
+        cmd = '%s -a -x %s -S %s,%s,%s,%s,%s %s' % \
+              (cfg.VDLIMIT, xid, b_used, b_total, i_used, i_total, root, mpoint)
+        print ' ', cmd
+        print commands.getoutput(cmd)
 
 def unify(src, dst):
     """ Unify destination and source """

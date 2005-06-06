@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.23 2005/02/17 04:05:45 grisha Exp $
+# $Id: configure.in,v 1.24 2005/06/06 20:09:13 grisha Exp $
 
 AC_INIT
 
@@ -92,7 +92,7 @@ if test -n "$VDLIMIT"; then
 fi
 
 if test -z "$VDLIMIT"; then
-  AC_MSG_ERROR([vdlimit not found. You need to place vdlimit in your path.])
+  AC_MSG_ERROR([vdlimit not found. You need to use util-vserver 0.30.207 or newer (recommended), or install old vdlimit separately.])
 fi
 
 # check for rrdtool

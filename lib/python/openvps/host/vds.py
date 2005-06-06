@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.6 2005/05/09 19:17:00 grisha Exp $
+# $Id: vds.py,v 1.7 2005/06/06 20:09:13 grisha Exp $
 
 """ VDS related functions """
 
@@ -631,14 +631,10 @@ def vserver_disk_limit(root, xid, limit, d_used=0, i_used=0):
             print 'NOT setting disk limits, they exist already for xid %s' % xid
             return
 
-    print 'Setting disk limits:'
+    print 'Setting disk limits...'
 
-    dev = vsutil.guess_vserver_device()
+    vsutil.set_disk_limits(xid, d_used, limit, i_used, cfg.INODES_LIM, 5, cfg.VSERVERS_ROOT)
 
-    cmd = '%s -a -x %s -S %s,%s,%s,%s,5 %s' % \
-          (cfg.VDLIMIT, xid, d_used, limit, i_used, cfg.INODES_LIM, cfg.VSERVERS_ROOT)
-    print ' ', cmd
-    print commands.getoutput(cmd)
 
 def vserver_bwidth_acct(name):
 
@@ -1659,11 +1655,18 @@ def delete(vserver):
     commands.getoutput(cmd)
 
     # remove disk limits
-    # XXX vdlimit -d doesn't seem to do anything anyway....
-    cmd = '%s -d -x %s' % (cfg.VDLIMIT, config['context'])
+    cmd = '%s --xid %s --remove %s' % (cfg.VDLIMIT, config['context'], cfg.VSERVERS_ROOT)
     print cmd
-    commands.getoutput(cmd)
+    s = commands.getoutput(cmd)
+    print s
 
+    if 'invalid option' in s:
+        # old vdlimit (XXX this can go away soon)
+        print ' WARNING! OLD VDLIMIT! Upgrade your util-vserver to 0.30.207+. Using old vdlimit:'
+        cmd = '%s -d -x %s %s' % (cfg.VDLIMIT, config['context'], cfg.VSERVERS_ROOT)
+        print ' ', cmd
+        print commands.getoutput(cmd)
+    
     # remove iptables? It's probably best not to remove iptables
     # counters, since all that's going to do is disrupt the counter
     # should you restore the vserver back.
