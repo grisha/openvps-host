@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.16 2005/05/09 18:57:37 grisha Exp $
+# $Id: dft.py.in,v 1.17 2005/06/07 15:53:11 grisha Exp $
 
 """ Configuration Defaults
 
@@ -706,6 +706,17 @@ VSMON_DATA_DEF = [('vs_procs', 'gauge', HB, 0, 'U'), # number of procs
                   ('vs_disk_i_total', 'gauge', HB, 0, 'U'), 
                   ]
 
+# The default vserver fstab file. This can be overriden in the config
+# file if you want additional mounts created. This is what ends up in
+# /etc/vservers/<vps>/fstab file at VPS creation time.
+
+VS_FSTAB = 'none                    /dev/pts                devpts  gid=5,mode=620  0 0\n' \
+           'none                    /proc                   proc    defaults        0 0\n'
+
+# The /etc/fstab file _inside_ the VPS. This file is cosmetic - it
+# does not cause any mounts, for that see VS_FSTAB.
+
+FSTAB = '/dev/hdv1  /       ext2    defaults  1       1\n'
 
 # makes emacs go into python mode
 ### Local Variables:

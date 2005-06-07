@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.7 2005/06/06 20:09:13 grisha Exp $
+# $Id: vds.py,v 1.8 2005/06/07 15:53:11 grisha Exp $
 
 """ VDS related functions """
 
@@ -264,10 +264,13 @@ def ref_make_tabs(refroot):
     fname = os.path.join(refroot, 'etc', 'fstab')
     print 'Writing %s' % fname
     f = open(fname, 'w')
-    f.write('/dev/hdv1  /       ext2    defaults  1       1\n')
+    f.write(cfg.FSTAB)
     f.close()
     os.chmod(fname, 0644)
 
+    # this is only cosmetic, since the reference server never actually
+    # "runs"
+    
     fname = os.path.join(refroot, 'etc', 'mtab')
     print 'Writing %s' % fname
     f = open(fname, 'w')
@@ -278,13 +281,6 @@ def ref_make_tabs(refroot):
 def ref_fix_halt(refroot):
     """ Replace halt with a simpler version so the
     server stops cleanly, also copy in vreboot """
-
-    # XXX in alpha utils this is gone
-    #fname = 'vreboot'
-    #src = os.path.join(cfg.VSERVER_LIB, fname)
-    #dst = os.path.join(refroot, 'sbin', fname)
-    #print 'Copying %s to %s' % (src, dst)
-    #shutil.copy(src, dst)
 
     fname = os.path.join(refroot, 'etc', 'init.d', 'halt')
     print 'Writing %s' % fname
@@ -327,16 +323,6 @@ def ref_fix_syslog(refroot):
         result.append(line)
 
     open(fname, 'w').writelines(result)
-
-# def ref_fix_python(refroot):
-#     print 'Making python 2.3 default'
-
-#     cmd = 'rm %s' % os.path.join(refroot, 'usr/bin/python')
-#     commands.getoutput(cmd)
-
-#     cmd = 'ln %s %s' % (os.path.join(refroot, 'usr/bin/python2.3'),
-#                         os.path.join(refroot, 'usr/bin/python'))
-#     commands.getoutput(cmd)
 
 def ref_make_libexec_oh(refroot):
 
@@ -622,6 +608,15 @@ def vserver_stub_www_index_page(root):
 
 def vserver_fix_services(root):
     ref_fix_services(root)
+
+def vserver_make_snapshot_dir(root):
+
+    # This is used when you have a snaphosts backup server
+
+    print 'Creating /snapshots directory'
+
+    os.mkdir(os.path.join(root, 'snapshot'))
+    os.chmod(os.path.join(root, 'snapshot'), 0500)
 
 def vserver_disk_limit(root, xid, limit, d_used=0, i_used=0):
 
@@ -932,6 +927,7 @@ def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
     vserver_fixup_libexec_oh(root)
     vserver_immutable_modules(root)
     vserver_fix_vncserver(root, name)
+    vserver_make_snapshot_dir(root)
     fixxids(root, xid)
     #vserver_make_symlink(root, xid)
     vserver_vroot_perms()
