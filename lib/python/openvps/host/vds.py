@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.8 2005/06/07 15:53:11 grisha Exp $
+# $Id: vds.py,v 1.9 2005/06/08 20:49:38 grisha Exp $
 
 """ VDS related functions """
 
@@ -50,7 +50,7 @@ def ref_make_root(root):
 
 def ref_make_devs(root):
     """ This func makes the basic necessary devices. It has
-    to be clled twice - once before installing the base system
+    to be called twice - once before installing the base system
     so that rpm can run, and then once after the base system has
     been installed to wipe all the numerous devices installed by
     the dev package and revert to the minimal set again. """
@@ -417,7 +417,7 @@ def buildref(refroot, distroot):
 
     print 'Building a reference server at %s using packages in %s' % \
           (refroot, distroot)
-    ref_make_root(refroot)
+    ref_make_root(refroot) # distro indep
     ref_make_devs(refroot)
     ref_install_pkgs(refroot, distroot)
     ref_make_devs(refroot) # yes, again
