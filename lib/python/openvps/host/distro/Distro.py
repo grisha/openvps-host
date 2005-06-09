@@ -14,13 +14,14 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.1 2005/06/08 20:49:38 grisha Exp $
+# $Id: Distro.py,v 1.2 2005/06/09 21:39:36 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
 
 import urllib
 import os
+import commands
 
 class Distro(object):
 
@@ -37,7 +38,134 @@ class Distro(object):
             return urllib.urlopen(os.path.join(self.distroot, relpath)).read()
         except IOError:
             return None
-                                  
 
+    """
+
+    so a bundle is an (externally visible) list of packages and
+    methods.... a bundle could actually know how to install itself. A
+    ditribution then is a class for managing a set of bundles. This
+    way perhaps bundles could based on the install method -
+    e.g. RPMBundle? Who cares....
+
+    If a bundle is a class that never gets instantiated, and its
+    methods are called to BLAH... all bundles share refroot... could
+    they be used as mixins? how can we start small here?
+
+    we're just hung up on where the bundles are and how to use them.
+
+    they're inside distro classes. a distro sub-class inherits all the
+    bundles... is there a way to un-inherit something? Yes, just
+    delete it at construction time. This is where metaclasses come in
+
+
+    """
+
+
+    ## reference-building methods
+
+    def buildref(self, refroot):
+
+        self.refroot = os.path.abspath(refroot)
+
+        print 'Building a reference server at %s using packages in %s' % \
+              (self.refroot, self.distroot)
+
+        self.ref_make_root() 
+        self.ref_install()
         
+        # set flags
+        self.fixflags()
 
+
+    def ref_make_root(self):
+
+        print 'Making %s' % self.refroot
+
+        os.mkdir(refroot)
+        os.chmod(refroot, 0755)
+
+
+    def get_bundle_list(self):
+
+        # find our attributes prefixed with _bundle
+        # XXX this method could take an argument to select bundles
+
+        bundles = [n for n in dir(self) if n.startswith('_Bundle_')]
+        bundles.sort()
+
+        # put _bundle_base first
+        del bundles[bundles.index('_Bundle_base')]
+        bundles = ['_Bundle_base'] + bundles
+
+        # instantiate them classes
+        return [bundle(self.distroot, self.refroot) for bundle in bundles]
+
+
+    def ref_install(self):
+
+        # list our package bundles
+        bundles = self.get_bundle_list()
+
+        for bundle in bundles:
+            bundle.install()
+            
+        print "DONE"
+
+    def fixflags(self):
+
+        raise "NOT IMPLEMENTED"
+
+
+class Bundle(object):
+
+    packages = []
+
+    def __init__(self, distroot, refroot):
+        self.distroot = distroot
+        self.refroot = refroot
+
+    def ref_make_devs(self):
+        
+        """ This method makes the basic necessary devices.
+
+        On RH systems (and probably others) It has to be called twice
+        - once before installing the base system so that rpm can run,
+        and then once after the base system has been installed to wipe
+        all the numerous devices installed by the dev package and
+        revert to the minimal set again.
+
+        XXX This could also be done by way of a custom-crafted dev
+        package.
+
+        """
+
+        print 'Making dev in %s' % self.refroot
+
+        dev = os.path.join(self.refroot, 'dev')
+
+        cmd = 'rm -rf %s' % dev
+        commands.getoutput(cmd)
+
+        os.mkdir(dev)
+        os.chmod(dev, 0755)
+
+        pts = os.path.join(dev, 'pts')
+        os.mkdir(pts)
+        os.chmod(pts, 0755)
+
+        for spec in [('null', stat.S_IFCHR, 0666, 1, 3),
+                     ('zero', stat.S_IFCHR, 0666, 1, 5),
+                     ('full', stat.S_IFCHR, 0666, 1, 7),
+                     ('random', stat.S_IFCHR, 0644, 1, 8),
+                     ('urandom', stat.S_IFCHR, 0644, 1, 9),
+                     ('tty', stat.S_IFCHR, 0666, 5, 0),
+                     ('ptmx', stat.S_IFCHR, 0666, 5, 2)]:
+            name, mode, perm, maj, min = spec
+            os.mknod(os.path.join(dev, name), mode, os.makedev(maj, min))
+            os.chmod(os.path.join(dev, name), perm)
+
+        # make an hdv1 "device"
+        hdv1 = os.path.join(dev, 'hdv1')
+        open(hdv1, 'w')
+        os.chmod(hdv1, 0644)
+        

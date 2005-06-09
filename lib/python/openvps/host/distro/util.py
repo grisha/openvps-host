@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: util.py,v 1.1 2005/06/08 20:49:38 grisha Exp $
+# $Id: util.py,v 1.2 2005/06/09 21:39:36 grisha Exp $
 
 # this module contains a register function that gives an opportunity
 # for distro modules in this package to register their
@@ -31,7 +31,7 @@ from distro import *
 def get_distros():
     return _registered
 
-def probe_distro(distroot):
+def probe_distro_media(distroot):
 
     # give me a url (or a file path) and will tell you if
     # I recognize this distro by returning an instance of the
@@ -44,3 +44,16 @@ def probe_distro(distroot):
         if version:
             # got it!
             return dist
+
+def probe_distro_installation(refroot):
+
+    # guess by looking at an already installed system
+
+    for Class in _registered:
+
+        dist = Class(refroot)
+        version = dist.distro_version()
+        if version:
+            # got it!
+            return dist
+    
