@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.3 2005/06/10 03:09:21 grisha Exp $
+# $Id: Distro.py,v 1.4 2005/06/10 21:36:59 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -22,16 +22,22 @@
 import urllib
 import os
 import commands
+import stat
 
 class Distro(object):
 
-    def __init__(self, url):
+    def __init__(self, vpsroot, url=None):
+
+        if vpsroot:
+            self.vpsroot = os.path.abspath(vpsroot)
+        else:
+            self.vpsroot = None
 
         # the url is where the distribution is located
         self.distroot = url
 
 
-    def read(self, relpath):
+    def read_from_distro(self, relpath):
 
         # read a path relative to the url
         try:
@@ -41,12 +47,13 @@ class Distro(object):
 
     ## reference-building methods
 
-    def buildref(self, refroot):
+    def buildref(self):
 
-        self.refroot = os.path.abspath(refroot)
+        if not self.distroot:
+            raise 'Distroot not specified'
 
         print 'Building a reference server at %s using packages in %s' % \
-              (self.refroot, self.distroot)
+              (self.vpsroot, self.distroot)
 
         self.ref_make_root() 
         self.ref_install()
@@ -57,10 +64,10 @@ class Distro(object):
 
     def ref_make_root(self):
 
-        print 'Making %s' % self.refroot
+        print 'Making %s' % self.vpsroot
 
-        os.mkdir(refroot)
-        os.chmod(refroot, 0755)
+        os.mkdir(self.vpsroot)
+        os.chmod(self.vpsroot, 0755)
 
 
     def get_bundle_list(self):
@@ -76,7 +83,7 @@ class Distro(object):
         bundles = ['_Bundle_base'] + bundles
 
         # instantiate them classes
-        return [bundle(self.distroot, self.refroot) for bundle in bundles]
+        return [getattr(self, bundle)(self.distroot, self.vpsroot) for bundle in bundles]
 
 
     def ref_install(self):
@@ -98,11 +105,11 @@ class Bundle(object):
 
     packages = []
 
-    def __init__(self, distroot, refroot):
+    def __init__(self, distroot, vpsroot):
         self.distroot = distroot
-        self.refroot = refroot
+        self.vpsroot = vpsroot
 
-    def ref_make_devs(self):
+    def make_devs(self):
         
         """ This method makes the basic necessary devices.
 
@@ -117,9 +124,9 @@ class Bundle(object):
 
         """
 
-        print 'Making dev in %s' % self.refroot
+        print 'Making dev in %s' % self.vpsroot
 
-        dev = os.path.join(self.refroot, 'dev')
+        dev = os.path.join(self.vpsroot, 'dev')
 
         cmd = 'rm -rf %s' % dev
         commands.getoutput(cmd)
@@ -147,7 +154,4 @@ class Bundle(object):
         open(hdv1, 'w')
         os.chmod(hdv1, 0644)
         
-class VPS(object):
-
-    pass
 

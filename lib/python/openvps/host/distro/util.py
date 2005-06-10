@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: util.py,v 1.3 2005/06/10 03:09:21 grisha Exp $
+# $Id: util.py,v 1.4 2005/06/10 21:36:59 grisha Exp $
 
 # this module contains a register function that gives an opportunity
 # for distro modules in this package to register their
@@ -22,34 +22,34 @@
 
 _registered = []
 
-def register(distro_class, vps_class):
-    _registered.append((distro_class, vps_class))
+def register(klass):
+    _registered.append(klass)
 
 # this should trigger the registrations
 from distro import *
 
-def probe_distro(distroot):
+def probe_distro(vpsroot, distroot):
 
     # give me a url (or a file path) and will tell you if
     # I recognize this distro by returning an instance of the
     # appropriate distro class
 
-    for distro_class, vps_class in _registered:
+    for klass in _registered:
 
-        dist = distro_class(distroot)
+        dist = klass(vpsroot, distroot)
         version = dist.distro_version()
         if version:
             # got it!
             return dist
 
-def probe_vps(refroot):
+def probe_vps(vpsroot):
 
     # guess by looking at an already installed system
 
-    for distro_class, vps_class in _registered:
+    for klass in _registered:
 
-        vps = vps_class(refroot)
-        version = vps.distro_version()
+        vps = klass(vpsroot)
+        version = vps.vps_version()
         if version:
             # got it!
             return vps

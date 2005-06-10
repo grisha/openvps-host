@@ -14,11 +14,16 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.3 2005/06/10 03:09:21 grisha Exp $
+# $Id: Fedora.py,v 1.4 2005/06/10 21:36:59 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
-from RedHat import RedHat, RedHat_VPS, RedHatBundle, RedHat_Bundle_base
+import os
+import sys
+import commands
+
+from openvps.host import cfg
+from RedHat import RedHat, RedHatBundle, RedHat_Bundle_base
 import util
 
 class Fedora_Core(RedHat):
@@ -36,13 +41,9 @@ class Fedora_Core(RedHat):
         except:
             return None
         
-class Fedora_Core_VPS(RedHat_VPS):
+    def vps_version(self):
 
-    FC_VER = 0
-
-    def distro_version(self):
-
-        rh_ver = RedHat_VPS.distro_version(self)
+        rh_ver = RedHat.vps_version(self)
         try:
             if rh_ver and rh_ver.startswith('Fedora Core release'):
                 if int(rh_ver.split()[3]) == self.FC_VER:
@@ -53,20 +54,13 @@ class Fedora_Core_VPS(RedHat_VPS):
 class Fedora_Core_1(Fedora_Core):
     FC_VER = 1
 
-class Fedora_Core_1_VPS(Fedora_Core_VPS):
-    FC_VER = 1
-
-util.register(Fedora_Core_1, Fedora_Core_1_VPS)
+util.register(Fedora_Core_1)
 
 
 class Fedora_Core_2(Fedora_Core):
     FC_VER = 2
 
-class Fedora_Core_2_VPS(Fedora_Core_VPS):
-    FC_VER = 2
-
-
-util.register(Fedora_Core_2, Fedora_Core_2_VPS)
+util.register(Fedora_Core_2)
 
 
 class Fedora_Core_3(Fedora_Core):
@@ -112,26 +106,25 @@ class Fedora_Core_3(Fedora_Core):
             'specspo', 'star', 'stunnel', 'sudo', 'symlinks',
             'sysklogd', 'talk', 'tar', 'tcp_wrappers', 'tcsh',
             'telnet', 'termcap', 'time', 'tmpwatch', 'traceroute',
-            'traceroute', 'tzdata', 'unix2dos', 'unzip', 'usermode',
-            'utempter', 'util-linux', 'vim-common', 'vim-minimal',
-            'vixie-cron', 'wget', 'which', 'words', 'yum', 'zip',
-            'zlib', ]
+            'tzdata', 'unix2dos', 'unzip', 'usermode', 'utempter',
+            'util-linux', 'vim-common', 'vim-minimal', 'vixie-cron',
+            'wget', 'which', 'words', 'yum', 'zip', 'zlib', ]
         
         def install(self):
 
             # make some base directories that are required before anything
             # works
         
-            os.mkdir(os.path.join(self.refroot, 'var'))
-            os.mkdir(os.path.join(self.refroot, 'var', 'lib'))
-            os.mkdir(os.path.join(self.refroot, 'var', 'lib', 'rpm'))
-            os.mkdir(os.path.join(self.refroot, 'usr'))
-            os.mkdir(os.path.join(self.refroot, 'usr', 'src'))
-            os.mkdir(os.path.join(self.refroot, 'usr', 'src', 'redhat'))
-            os.mkdir(os.path.join(self.refroot, 'proc'))
+            os.mkdir(os.path.join(self.vpsroot, 'var'))
+            os.mkdir(os.path.join(self.vpsroot, 'var', 'lib'))
+            os.mkdir(os.path.join(self.vpsroot, 'var', 'lib', 'rpm'))
+            os.mkdir(os.path.join(self.vpsroot, 'usr'))
+            os.mkdir(os.path.join(self.vpsroot, 'usr', 'src'))
+            os.mkdir(os.path.join(self.vpsroot, 'usr', 'src', 'redhat'))
+            os.mkdir(os.path.join(self.vpsroot, 'proc'))
 
             # call our super
-            RedHat._Bundle_base.install(self)
+            RedHat_Bundle_base.install(self)
 
             # fixups?
 
@@ -154,7 +147,6 @@ class Fedora_Core_3(Fedora_Core):
                      'glib-devel', 'glib2-devel', 'glibc-devel',
                      'glibc-headers', 'glibc-kernheaders', 'gtk2',
                      'gtk2-devel',
-                     'http://www.openvps.org/dist/misc/mirror/perl-Net-SSLeay-1.23-0.rhfc1.dag.i386.rpm',
                      'http://www.openvps.org/dist/misc/mirror/perl-Net-SSLeay-1.23-0.rhfc1.dag.i386.rpm',
                      'http://www.openvps.org/dist/misc/mirror/proftpd-1.2.9-7.i386.rpm',
                      'http://www.openvps.org/dist/misc/oh-bind-9.2.4-2.i386.rpm',
@@ -205,7 +197,7 @@ class Fedora_Core_3(Fedora_Core):
 
             self.fix_vncserver()
             self.import_rpm_key()
-            self.enable_sahdow()
+            self.enable_shadow()
 
 
         def fix_vncserver(self):
@@ -213,7 +205,7 @@ class Fedora_Core_3(Fedora_Core):
             # make vnc server start the lightweight xfce
             # instead of twm
 
-            file = os.path.join(self.refroot, 'usr/bin/vncserver')
+            file = os.path.join(self.vpsroot, 'usr/bin/vncserver')
 
             print 'Fixing up %s to start the lightweight xfce4' % file
 
@@ -227,31 +219,26 @@ class Fedora_Core_3(Fedora_Core):
 
         def import_rpm_key(self):
 
-            path = os.path.join(self.refroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY')
+            path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY')
             print 'Importing RPM GPG key: %s' % path
-            cmd = 'rpm -r %s --import %s' % (self.refroot, path)
+            cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
             commands.getoutput(cmd)
 
-            path = os.path.join(self.refroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY-fedora')
+            path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY-fedora')
             print 'Importing RPM GPG key: %s' % path
-            cmd = 'rpm -r %s --import %s' % (self.refroot, path)
+            cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
             commands.getoutput(cmd)
 
 
         def enable_shadow(self):
 
             # enable shadow and md5 (I wonder why it isn't by default)
-            cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, self.refroot)
+            cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, self.vpsroot)
             s = commands.getoutput(cmd)
-            cmd = '%s %s /usr/sbin/authconfig --kickstart --enablemd5 --enableshadow' % (cfg.CHROOT, self.refroot)
+            cmd = '%s %s /usr/sbin/authconfig --kickstart --enablemd5 --enableshadow' % (cfg.CHROOT, self.vpsroot)
             s = commands.getoutput(cmd)
 
 
-class Fedora_Core_3_VPS(Fedora_Core_VPS):
-
-    FC_VER = 3
-
-
-util.register(Fedora_Core_3, Fedora_Core_3_VPS)
+util.register(Fedora_Core_3)
 
 
