@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.2 2005/06/09 21:39:36 grisha Exp $
+# $Id: Distro.py,v 1.3 2005/06/10 03:09:21 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -38,28 +38,6 @@ class Distro(object):
             return urllib.urlopen(os.path.join(self.distroot, relpath)).read()
         except IOError:
             return None
-
-    """
-
-    so a bundle is an (externally visible) list of packages and
-    methods.... a bundle could actually know how to install itself. A
-    ditribution then is a class for managing a set of bundles. This
-    way perhaps bundles could based on the install method -
-    e.g. RPMBundle? Who cares....
-
-    If a bundle is a class that never gets instantiated, and its
-    methods are called to BLAH... all bundles share refroot... could
-    they be used as mixins? how can we start small here?
-
-    we're just hung up on where the bundles are and how to use them.
-
-    they're inside distro classes. a distro sub-class inherits all the
-    bundles... is there a way to un-inherit something? Yes, just
-    delete it at construction time. This is where metaclasses come in
-
-
-    """
-
 
     ## reference-building methods
 
@@ -169,3 +147,7 @@ class Bundle(object):
         open(hdv1, 'w')
         os.chmod(hdv1, 0644)
         
+class VPS(object):
+
+    pass
+

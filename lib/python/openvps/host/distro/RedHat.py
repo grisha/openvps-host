@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.2 2005/06/09 21:39:36 grisha Exp $
+# $Id: RedHat.py,v 1.3 2005/06/10 03:09:21 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
-from Distro import Distro, Bundle
+from Distro import Distro, Bundle, VPS
 import os
 import time
 
@@ -339,4 +339,18 @@ class RedHat(Distro):
             return None
 
         return result
+
+class RedHat_VPS(VPS):
+
+    def __init__(self, vpsroot):
+
+        self.vpsroot = vpsroot
+
+    def distro_version(self):
+
+        try:
+            return open(os.path.join(self.vpsroot, 'etc/redhat-release')).read()
+        except:
+            return None
+
 

@@ -14,11 +14,11 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.2 2005/06/09 21:39:36 grisha Exp $
+# $Id: Fedora.py,v 1.3 2005/06/10 03:09:21 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
-from RedHat import RedHat, RedHatBundle, RedHat_Bundle_base
+from RedHat import RedHat, RedHat_VPS, RedHatBundle, RedHat_Bundle_base
 import util
 
 class Fedora_Core(RedHat):
@@ -28,22 +28,46 @@ class Fedora_Core(RedHat):
     def distro_version(self):
 
         rh_ver = RedHat.distro_version(self)
-        if rh_ver:
-            fc_ver = rh_ver['name'].split()[-1]
-            if int(fc_ver) == self.FC_VER:
-                return self.FC_VER
+        try:
+            if rh_ver:
+                fc_ver = rh_ver['name'].split()[-1]
+                if int(fc_ver) == self.FC_VER:
+                    return self.FC_VER
+        except:
+            return None
+        
+class Fedora_Core_VPS(RedHat_VPS):
+
+    FC_VER = 0
+
+    def distro_version(self):
+
+        rh_ver = RedHat_VPS.distro_version(self)
+        try:
+            if rh_ver and rh_ver.startswith('Fedora Core release'):
+                if int(rh_ver.split()[3]) == self.FC_VER:
+                    return self.FC_VER
+        except:
+            return None
 
 class Fedora_Core_1(Fedora_Core):
-
     FC_VER = 1
 
-util.register(Fedora_Core_1)
+class Fedora_Core_1_VPS(Fedora_Core_VPS):
+    FC_VER = 1
+
+util.register(Fedora_Core_1, Fedora_Core_1_VPS)
+
 
 class Fedora_Core_2(Fedora_Core):
-
     FC_VER = 2
 
-util.register(Fedora_Core_2)
+class Fedora_Core_2_VPS(Fedora_Core_VPS):
+    FC_VER = 2
+
+
+util.register(Fedora_Core_2, Fedora_Core_2_VPS)
+
 
 class Fedora_Core_3(Fedora_Core):
 
@@ -223,7 +247,11 @@ class Fedora_Core_3(Fedora_Core):
             s = commands.getoutput(cmd)
 
 
-        
-    
-util.register(Fedora_Core_3)
+class Fedora_Core_3_VPS(Fedora_Core_VPS):
+
+    FC_VER = 3
+
+
+util.register(Fedora_Core_3, Fedora_Core_3_VPS)
+
 
