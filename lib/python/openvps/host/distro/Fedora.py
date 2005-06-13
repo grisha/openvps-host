@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.4 2005/06/10 21:36:59 grisha Exp $
+# $Id: Fedora.py,v 1.5 2005/06/13 21:14:54 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -24,7 +24,7 @@ import commands
 
 from openvps.host import cfg
 from RedHat import RedHat, RedHatBundle, RedHat_Bundle_base
-import util
+import distro_util
 
 class Fedora_Core(RedHat):
 
@@ -51,16 +51,20 @@ class Fedora_Core(RedHat):
         except:
             return None
 
+    def get_desc(self):
+
+        return "Fedora Core %d" % self.FC_VER
+
 class Fedora_Core_1(Fedora_Core):
     FC_VER = 1
 
-util.register(Fedora_Core_1)
+distro_util.register(Fedora_Core_1)
 
 
 class Fedora_Core_2(Fedora_Core):
     FC_VER = 2
 
-util.register(Fedora_Core_2)
+distro_util.register(Fedora_Core_2)
 
 
 class Fedora_Core_3(Fedora_Core):
@@ -69,7 +73,8 @@ class Fedora_Core_3(Fedora_Core):
 
     class _Bundle_base(RedHat_Bundle_base):
 
-        desc  = 'Fedora Core 3 Base'
+        name = 'base'
+        desc = 'Fedora Core 3 Base'
 
         packages = [ 'SysVinit', 'acl', 'anacron', 'apr', 'apr-devel',
             'apr-util', 'ash', 'aspell', 'aspell-en', 'at', 'attr',
@@ -126,12 +131,34 @@ class Fedora_Core_3(Fedora_Core):
             # call our super
             RedHat_Bundle_base.install(self)
 
-            # fixups?
+            self.import_rpm_key()
+            self.enable_shadow()
 
-            
-    
-    class _Bundle_base2(RedHatBundle):
-        
+        def import_rpm_key(self):
+
+            path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY')
+            print 'Importing RPM GPG key: %s' % path
+            cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
+            commands.getoutput(cmd)
+
+            path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY-fedora')
+            print 'Importing RPM GPG key: %s' % path
+            cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
+            commands.getoutput(cmd)
+
+
+        def enable_shadow(self):
+
+            # enable shadow and md5 (I wonder why it isn't by default)
+            cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, self.vpsroot)
+            s = commands.getoutput(cmd)
+            cmd = '%s %s /usr/sbin/authconfig --kickstart --enablemd5 --enableshadow' % (cfg.CHROOT, self.vpsroot)
+            s = commands.getoutput(cmd)
+
+
+    class _Bundle_000_base2(RedHatBundle):
+
+        name = 'base2'
         desc = 'Fedora Core 3 Base 2'
         
         packages = [ 'Glide3', 'Xaw3d', 'apr-util-devel', 'atk',
@@ -164,10 +191,12 @@ class Fedora_Core_3(Fedora_Core):
                      'perl-Digest-SHA1', 'perl-HTML-Parser',
                      'perl-HTML-Tagset', 'perl-Net-DNS',
                      'perl-Time-HiRes', 'perl-URI', 'perl-XML-Parser',
-                     'perl-libwww-perl', 'php', 'php-devel',
-                     'php-domxml', 'php-imap', 'php-ldap',
-                     'php-mysql', 'php-pear', 'php-pgsql',
-                     'php-xmlrpc', 'php-gd', 'pkgconfig',
+                     'perl-libwww-perl',
+                     #'php', 'php-devel',
+                     #'php-domxml', 'php-imap', 'php-ldap',
+                     #'php-mysql', 'php-pear', 'php-pgsql',
+                     #'php-xmlrpc', 'php-gd',
+                     'pkgconfig',
                      'postgresql', 'postgresql-contrib',
                      'postgresql-devel', 'postgresql-docs',
                      'postgresql-jdbc', 'postgresql-libs',
@@ -196,8 +225,6 @@ class Fedora_Core_3(Fedora_Core):
             RedHatBundle.install(self)
 
             self.fix_vncserver()
-            self.import_rpm_key()
-            self.enable_shadow()
 
 
         def fix_vncserver(self):
@@ -217,28 +244,88 @@ class Fedora_Core_3(Fedora_Core):
             open(file, 'w').writelines(lines)
 
 
-        def import_rpm_key(self):
 
-            path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY')
-            print 'Importing RPM GPG key: %s' % path
-            cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
-            commands.getoutput(cmd)
+    class _Bundle_100_PHP(RedHatBundle):
 
-            path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY-fedora')
-            print 'Importing RPM GPG key: %s' % path
-            cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
-            commands.getoutput(cmd)
+        name = 'php'
+        desc = 'Fedora Core 3 PHP packages'
+        
+        packages = [ 'php', 'php-devel',
+                     'php-domxml', 'php-imap', 'php-ldap',
+                     'php-mysql', 'php-pear', 'php-pgsql',
+                     'php-xmlrpc', 'php-gd',]
 
+        def install(self):
 
-        def enable_shadow(self):
-
-            # enable shadow and md5 (I wonder why it isn't by default)
-            cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, self.vpsroot)
-            s = commands.getoutput(cmd)
-            cmd = '%s %s /usr/sbin/authconfig --kickstart --enablemd5 --enableshadow' % (cfg.CHROOT, self.vpsroot)
-            s = commands.getoutput(cmd)
+            # call our super
+            RedHatBundle.install(self)
 
 
-util.register(Fedora_Core_3)
+    ### Fedora specific methods
+
+    def enable_imaps(self):
+
+        # tell dovecot to listen to imaps and pops only
+
+        print 'Configuring etc/dovecot.conf to only allow SSL imap and pop'
+
+        protos = 'protocols = imaps pop3s\n'
+
+        file = os.path.join(self.vpsroot, 'etc/dovecot.conf')
+
+        set = 0
+        lines = open(file).readlines()
+        for n in range(len(lines)):
+            stripped = lines[n].strip()
+            if stripped.find('protocols') != -1:
+                lines[n] = protos
+                set = 1
+
+        if not set:
+            lines.append(protos)
+
+        open(file, 'w').writelines(lines)
+
+    def disable_pam_limits(self):
+
+        # pam_limits.so, which is enabled by default on fedora, will not
+        # work in a vserver whose priority has been lowered using the
+        # S_NICE configure option, which we do. pam_limits will cause
+        # startup problems with sshd and other daemons:
+        # http://www.paul.sladen.org/vserver/archives/200403/0277.html
+
+        print 'Disabling pam limits'
+
+        for pam in ['sshd', 'system-auth']:
+
+            fname = os.path.join(self.vpsroot, 'etc/pam.d', pam)
+
+            s = []
+            for line in open(fname):
+                if 'pam_limits' in line and line[0] != '#':
+                    s.append('#' + line)
+                else:
+                    s.append(line)
+            open(fname, 'w').write(''.join(s))
+
+    def fix_vncserver(self, name):
+
+        # create a vncserver entry for the main account
+        file = os.path.join(self.vpsroot, 'etc/sysconfig/vncservers')
+        print 'Adding a %s vncserver in %s' % (name, file)
+
+        open(file, 'a').write('VNCSERVERS="1:%s"\n' % name)
+
+    def customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
+
+        # call super
+        RedHat.customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP)
+
+        self.enable_imaps()
+        self.disable_pam_limits()
+        self.fix_vncserver(name)
+
+
+distro_util.register(Fedora_Core_3)
 
 

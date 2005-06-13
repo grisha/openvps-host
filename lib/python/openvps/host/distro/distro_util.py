@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: util.py,v 1.4 2005/06/10 21:36:59 grisha Exp $
+# $Id: distro_util.py,v 1.1 2005/06/13 21:14:54 grisha Exp $
 
 # this module contains a register function that gives an opportunity
 # for distro modules in this package to register their
@@ -26,7 +26,7 @@ def register(klass):
     _registered.append(klass)
 
 # this should trigger the registrations
-from distro import *
+from openvps.host.distro import *
 
 def probe_distro(vpsroot, distroot):
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: setup.py,v 1.3 2005/01/12 21:24:43 grisha Exp $
+# $Id: setup.py,v 1.4 2005/06/13 21:14:54 grisha Exp $
 
 from distutils.core import setup, Extension
 
@@ -26,7 +26,7 @@ setup(name='openvps-host',
       author='OpenHosting, Inc.',
       author_email='dev@openvps.org',
       url='http://www.openvps.org/',
-      packages=['openvps.host', 'openvps.www'])
+      packages=['openvps.host', 'openvps.host.distro', 'openvps.www'])
 
 
                           

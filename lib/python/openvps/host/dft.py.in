@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.17 2005/06/07 15:53:11 grisha Exp $
+# $Id: dft.py.in,v 1.18 2005/06/13 21:14:54 grisha Exp $
 
 """ Configuration Defaults
 
@@ -224,9 +224,10 @@ DFT_DEVICE = 'eth0'
 
 COMMAND_CAPS = {
     # ping already works in 1.9.3 without special tricks
-    'TRACEROUTE' : ['/usr/libexec/oh/traceroute', ['NET_RAW']],
-    'MOUNT_BIND': ['/usr/libexec/oh/mount', ['SYS_ADMIN']],
-    'UMOUNT': ['/usr/libexec/oh/umount', ['SYS_ADMIN']],
+    'TRACEROUTE' : ['/usr/libexec/openvps/traceroute', ['NET_RAW']],
+    # mount/umount work too
+    #'MOUNT_BIND': ['/usr/libexec/oh/mount', ['SYS_ADMIN']],
+    #'UMOUNT': ['/usr/libexec/oh/umount', ['SYS_ADMIN']],
     }
 
 # The username used for the commands above

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.4 2005/06/10 21:36:59 grisha Exp $
+# $Id: RedHat.py,v 1.5 2005/06/13 21:14:54 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -26,8 +26,10 @@ import urllib
 import sys
 import shutil
 import rpm
+import tempfile
 
-from openvps.host import cfg, vsutil, vds
+from openvps.common import util
+from openvps.host import cfg, vsutil
 
 class RedHatBundle(Bundle):
 
@@ -320,6 +322,12 @@ class RedHat_Bundle_base(RedHatBundle):
 
 class RedHat(Distro):
 
+    # these are not actually services
+    NOT_SERVICES = ['functions', 'killall', 'halt', 'single']
+
+    SERVICES =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
+                 'syslog', 'webmin', 'dovecot']
+
     def distro_version(self):
 
         # is this a redhat distribution?
@@ -347,14 +355,12 @@ class RedHat(Distro):
 
         return result
 
-
     def vps_version(self):
 
         try:
             return open(os.path.join(self.vpsroot, 'etc/redhat-release')).read()
         except:
             return None
-
 
     def fixflags(self):
 
@@ -430,7 +436,7 @@ class RedHat(Distro):
                     file = files[idx]
 
                     # check against our cloning rules
-                    c, t, s = vds.match_path(file)
+                    c, t, s = self.match_path(file)
 
                     if c or t or s:
                         # skip it
@@ -454,4 +460,308 @@ class RedHat(Distro):
         sys.stdout.write('[%s]' % ('='*prog_size)); sys.stdout.flush()
         print 'Done.'
 
-    
+    def clone(self, dest, pace=cfg.PACE[0]):
+
+        # pace counter
+        p = 0
+
+        # this will also strip trailing slashes
+        source, dest = self.vpsroot, os.path.abspath(dest)
+
+        print 'Cloning %s -> %s ... (this will take a while)' % (source, dest)
+
+        # this will prevent some warnings
+        os.chdir(cfg.VSERVERS_ROOT)
+
+        self.copy(source, dest)
+
+        for root, dirs, files in os.walk(source):
+
+            for file in files + dirs:
+
+                if pace and p >= pace:
+                    sys.stdout.write('.'); sys.stdout.flush()
+                    time.sleep(cfg.PACE[1])
+                    p = 0
+                else:
+                    p += 1
+
+                src = os.path.join(root, file)
+
+                # reldst is they way it would look inside vserver
+                reldst = os.path.join(max(root[len(source):], '/'), file)
+                dst = os.path.join(dest, reldst[1:])
+
+                c, t, s = self.match_path(reldst)
+
+                if not s:
+                    link = not c and not self.is_config(source, reldst)
+                    self.copy(src, dst, link=link, touch=t)
+
+        print 'Done.'
+
+        print 'Bytes copied:'.ljust(20), self.counter['bytes']
+        print 'Links created:'.ljust(20), self.counter['lins']
+        print 'Dirs copied:'.ljust(20), self.counter['drs']
+        print 'Symlinks copied:'.ljust(20), self.counter['syms']
+        print 'Touched files:'.ljust(20), self.counter['touchs']
+        print 'Copied files:'.ljust(20), self.counter['copys']
+        print 'Devices:'.ljust(20), self.counter['devs']
+
+
+    rpm_cache = {}
+
+    def is_config(self, root, file):
+
+        ts = rpm.TransactionSet(root)
+
+        if not self.rpm_cache.has_key(file):
+
+            hdr = self.rpm_which_package(ts, root, file)
+            if not hdr:
+                # assume it's config if not found, this will
+                # make sure it is copied, not linked
+                self.rpm_cache[file] = {'isconfig':1}
+            else:
+                self.rpm_cache.update(self.rpm_list_files(hdr))
+
+                # it's possible that which_package thinks a package is of an rpm
+                # but then it's not actually there
+                if file not in self.rpm_cache:
+                    self.rpm_cache[file] = {'isconfig':1}
+
+        ts = None
+
+        return self.rpm_cache[file]['isconfig']
+
+    def rpm_which_package(self, ts, root, file):
+
+        # just like rpm -qf file
+
+        it = ts.dbMatch('basenames', file)
+
+        try:
+            hdr = it.next()
+        except StopIteration:
+            return None
+
+        #return hdr[rpm.RPMTAG_NAME]
+        return hdr
+
+    def rpm_list_files(self, hdr):
+
+        # list files in an RPM.
+
+        files=hdr[rpm.RPMTAG_OLDFILENAMES]
+
+        if files == None:
+
+            basenames = hdr[rpm.RPMTAG_BASENAMES]
+
+            if basenames:
+
+                dirnames = hdr[rpm.RPMTAG_DIRNAMES]
+                dirindexes = hdr[rpm.RPMTAG_DIRINDEXES]
+
+                files=[]
+
+                if type(dirindexes) == types.IntType:
+                    files.append(dirnames[dirindexes] + basenames[0])
+                else:
+                    for idx in range(0, len(dirindexes)):
+
+                        files.append(dirnames[dirindexes[idx]] + basenames[idx])
+
+        # now stick in a dict
+        result = {}
+        for idx in xrange(len(files)):
+            flags = hdr[rpm.RPMTAG_FILEFLAGS][idx]
+            result[files[idx]] = {'isconfig': flags & rpm.RPMFILE_CONFIG}
+
+        return result
+
+    def add_user(self, userid, passwd):
+        """ Add a user. This method will guess whether
+        the password is already md5 hashed or not (in which
+        case it will hash it) """
+
+        print 'Adding user %s' % userid
+
+        comment = 'User %s' % userid
+
+        if passwd[0:3] == '$1$' and len(passwd) > 30:
+            # this is a password hash (most likely)
+            pass
+        else:
+            passwd = util.hash_passwd(passwd, md5=1)
+
+        cmd = "%s %s /usr/sbin/adduser -c '%s' -G wheel -p '%s' %s" % \
+              (cfg.CHROOT, self.vpsroot, comment, passwd, userid)
+        s = commands.getoutput(cmd)
+
+    def set_user_passwd(self, userid, passwd):
+        """ Sets password for uerid. This method will guess whether
+        the password is already md5 hashed or not (in which case it
+        will hash it) """
+
+        print 'Setting password for %s' % userid
+
+        if passwd[0:3] == '$1$' and len(passwd) > 30:
+            # this is a password hash (most likely)
+            pass
+        else:
+            passwd = util.hash_passwd(passwd, md5=1)
+
+        cmd = "%s %s /usr/sbin/usermod -p '%s' %s" % \
+              (cfg.CHROOT, self.vpsroot, passwd, userid)
+        s = commands.getoutput(cmd)
+
+    def make_hosts(self, hostname, ip):
+
+        fname = os.path.join(self.vpsroot, 'etc', 'hosts')
+        print 'Writing %s' % fname
+
+        fqdn = hostname
+        host = hostname.split('.')[0]
+
+        open(fname, 'w').write('%s %s %s localhost' % (ip, fqdn, host))
+
+        # /etc/sysconfig/network. at least xinetd service looks at it
+        fname = os.path.join(self.vpsroot, 'etc', 'sysconfig', 'network')
+        open(fname, 'w').write('NETWORKING=yes\nHOSTNAME=%s\n' % fqdn)
+
+    def fixup_rc(self):
+
+        # /etc/rc.d/rc needs to end with true
+
+        rc = os.path.join(self.vpsroot, 'etc/rc.d/rc')
+        lines = open(rc).readlines()
+        if not lines[-1] == 'true\n':
+            print 'Appending true to %s' % rc
+            lines.append('\ntrue\n')
+            open(rc, 'w').writelines(lines)
+        else:
+            print 'Not appending true to %s as it is already there' % rc
+
+    def stub_www_index_page(self):
+        """ Create a stub default www page """
+
+        fname = os.path.join(self.vpsroot, 'var', 'www', 'html', 'index.html')
+        print 'Writing %s' % fname
+
+        f = open(fname, 'w')
+        f.write(cfg.INDEX_HTML)
+        f.close()
+
+    def fix_services(self):
+        """ Disable certain services not necessary in vservers """
+
+        print 'Turning off some services...'
+
+        os.chdir(os.path.join(self.vpsroot, 'etc', 'init.d'))
+
+        services = os.listdir('.')
+
+        for service in services:
+            if service in self.NOT_SERVICES:
+                continue
+            else:
+                onoff = ['off', 'on'][service in self.SERVICES]
+                cmd = '%s %s /sbin/chkconfig --level 2345 %s %s' % (cfg.CHROOT, self.vpsroot, service, onoff)
+                print '  ', cmd
+                pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
+                s = pipe.read(1)
+                while s:
+                    sys.stdout.write(s); sys.stdout.flush()
+                    s = pipe.read(1)
+                pipe.close()
+
+    def make_ssl_cert(self, hostname):
+
+        if os.path.exists(os.path.join(self.vpsroot, 'etc/httpd/conf/ssl.crt/.ohcert')):
+            print 'NOT generating an SSL certificate, it appears to be there already.'
+            return
+
+        print 'Generating an SSL certificate...'
+
+        # now make a cert
+        ssl_conf = cfg.SSL_CONFIG.replace('@SSL_HOSTNAME@', hostname)
+        d = tempfile.mkdtemp()
+        f = open(os.path.join(d, "ssl.cfg"), 'w')
+        f.write(ssl_conf)
+        f.close()
+        s = commands.getoutput('openssl req -new -x509 -days 3650 -nodes -config %s '
+                           '-out %s/server.crt -keyout %s/server.key' % (os.path.join(d, 'ssl.cfg'), d, d))
+        print s
+        s = commands.getoutput('openssl x509 -subject -dates -fingerprint -noout -in %s/server.crt' %d)
+        print s
+        shutil.copy(os.path.join(d, 'server.crt'),  os.path.join(self.vpsroot, 'etc/httpd/conf/ssl.crt/server.crt'))
+        shutil.copy(os.path.join(d, 'server.key'),  os.path.join(self.vpsroot, 'etc/httpd/conf/ssl.key/server.key'))
+        os.chmod(os.path.join(self.vpsroot, 'etc/httpd/conf/ssl.crt/server.crt'), 0700)
+        os.chmod(os.path.join(self.vpsroot, 'etc/httpd/conf/ssl.key/server.key'), 0700)
+        commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
+                                               os.path.join(self.vpsroot, 'usr/share/ssl/certs/imapd.pem')))
+        commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
+                                               os.path.join(self.vpsroot, 'usr/share/ssl/certs/ipop3d.pem')))
+        commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
+                                               os.path.join(self.vpsroot, 'etc/webmin/miniserv.pem')))
+        commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
+                                               os.path.join(self.vpsroot, 'usr/share/ssl/certs/dovecot.pem')))
+        commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
+                                               os.path.join(self.vpsroot, 'usr/share/ssl/private/dovecot.pem')))
+        s = commands.getoutput('rm -rf %s' % d)
+        print s
+        open(os.path.join(self.vpsroot, 'etc/httpd/conf/ssl.crt/.ohcert'), 'w').write('')
+
+    def random_crontab(self):
+
+        print 'Adding rndsleep and randomized crontab'
+
+        fname = os.path.join(self.vpsroot, 'usr/local/bin/rndsleep')
+        open(fname, 'w').write(cfg.RNDSLEEP)
+        os.chmod(fname, 0755)
+
+        open(os.path.join(self.vpsroot, 'etc/crontab'), 'w').write(cfg.CRONTAB)
+
+    def webmin_passwd(self):
+
+        # copy root password to webmin
+
+        if not os.path.exists(os.path.join(self.vpsroot, 'etc/webmin')):
+            print 'webmin not installed, skipping'
+            return
+        else:
+            print 'Setting webmin password'
+
+        shadow = os.path.join(self.vpsroot, 'etc/shadow')
+        root_hash = ''
+        for line in open(shadow):
+            if line.startswith('root:'):
+                root_hash = line.split(':')[1]
+                break
+
+        musers = os.path.join(self.vpsroot, 'etc/webmin/miniserv.users')
+        open(musers, 'w').write('root:%s:0' % root_hash)
+        os.chmod(musers, 0600)
+
+    def fixup_libexec_openvps(self):
+
+        # This sets the right permissions for the files in
+        # usr/libexec/oh
+
+        print 'Setting flags in usr/libexec/openvps'
+
+        for file in ['traceroute',]:
+
+            path = os.path.join(self.vpsroot, 'usr/libexec/openvps/', file)
+            vsutil.set_file_immutable_unlink(path)
+
+    def customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
+
+        # call super
+        Distro.customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP)
+
+        self.fixup_rc()
+        self.webmin_passwd()
+        self.fixup_libexec_openvps()
+        

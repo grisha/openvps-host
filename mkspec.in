@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.26 2005/06/07 17:01:13 grisha Exp $
+# $Id: mkspec.in,v 1.27 2005/06/13 21:14:54 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -63,7 +63,7 @@ echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/oh"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/openvps"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/openvps/vsmon"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/openvps/disklimits"
-echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/%{_libdir}/@PYTHON@/site-packages/oh"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/%{_libdir}/@PYTHON@/site-packages/openvps"
 echo 'make install DESTDIR=$RPM_BUILD_ROOT'
 
 echo "%clean"
@@ -84,7 +84,6 @@ echo "/etc/init.d/openvps-mon"
 echo "/etc/openvps-release"
 echo "/usr/openvps"
 echo "/usr/sbin/ovbackup"
-echo "/usr/sbin/ohbwidth"
 echo "/usr/sbin/ovchkpwd"
 echo "/usr/sbin/ovdisk"
 echo "/usr/sbin/openvps"
@@ -95,7 +94,6 @@ echo "/usr/sbin/ovwrapper"
 echo "/usr/sbin/ovgenkey"
 echo "/usr/sbin/ovcheckproc"
 echo "/usr/sbin/ovuserfiles"
-echo "%dir /var/db/oh"
 echo "%dir /var/db/openvps"
 echo "%dir /var/db/openvps/vsmon"
 echo "%dir /var/db/openvps/disklimits"

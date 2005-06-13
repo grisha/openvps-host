@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: __init__.py,v 1.1 2005/06/08 20:49:38 grisha Exp $
+# $Id: __init__.py,v 1.2 2005/06/13 21:14:54 grisha Exp $
 
 import os
 
@@ -28,7 +28,7 @@ __all__ = []
 
 files = os.listdir(__path__[0])
 for file in files:
-    if file.endswith('.py') and file != 'util.py':
+    if file.endswith('.py') and file != 'distro_util.py':
         __all__.append(file[:-3])
 
 

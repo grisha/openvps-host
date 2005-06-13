@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.4 2005/06/10 21:36:59 grisha Exp $
+# $Id: Distro.py,v 1.5 2005/06/13 21:14:54 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -23,6 +23,12 @@ import urllib
 import os
 import commands
 import stat
+import shutil
+import sys
+import time
+
+from openvps.common import util
+from openvps.host import cfg, vsutil
 
 class Distro(object):
 
@@ -45,9 +51,7 @@ class Distro(object):
         except IOError:
             return None
 
-    ## reference-building methods
-
-    def buildref(self):
+    def buildref(self, bundles=None):
 
         if not self.distroot:
             raise 'Distroot not specified'
@@ -56,7 +60,7 @@ class Distro(object):
               (self.vpsroot, self.distroot)
 
         self.ref_make_root() 
-        self.ref_install()
+        self.ref_install(bundles)
         
         # set flags
         self.fixflags()
@@ -86,12 +90,14 @@ class Distro(object):
         return [getattr(self, bundle)(self.distroot, self.vpsroot) for bundle in bundles]
 
 
-    def ref_install(self):
+    def ref_install(self, bundles):
 
         # list our package bundles
-        bundles = self.get_bundle_list()
+        available_bundles = self.get_bundle_list()
 
-        for bundle in bundles:
+        for bundle in available_bundles:
+            if bundles and bundle.name not in bundles:
+                continue # skip it
             bundle.install()
             
         print "DONE"
@@ -100,6 +106,355 @@ class Distro(object):
 
         raise "NOT IMPLEMENTED"
 
+    def clone(self, dest):
+
+        raise "NOT IMPLEMENTED"
+
+    def match_path(self, path):
+        """Return copy, touch pair based on config rules for this path"""
+
+        # this could be made distro specific
+
+        # if the patch begins with a /, then assume that we want to
+        # match only at the beginning, otherwise it's just a regular
+        # exp
+
+        copy_exp, touch_exp, skip_exp = cfg.CLONE_RULES
+
+        return copy_exp and not not copy_exp.search(path), \
+               touch_exp and not not touch_exp.search(path), \
+               skip_exp and not not skip_exp.search(path)
+
+
+    def copyown(self, src, dst):
+        """Copy ownership"""
+        
+        st = os.lstat(src)
+        os.lchown(dst, st.st_uid, st.st_gid)
+
+
+    counter = {'bytes':0, 'lins':0, 'drs':0, 'syms':0, 'touchs':0,
+               'copys':0, 'devs':0}
+
+    def copy(self, src, dst, link=1, touch=0):
+        """Copy a file, a directory or a link.  When link is 1
+        (default), regular files will be hardlinked, as opposed to
+        being copied. When touch is 1, only the file, but not the
+        contents are copied (useful for logfiles).  """
+
+        if os.path.islink(src):
+
+            # if it is a symlink, always copy it (no sense in trying
+            # to hardlink a symlink)
+
+            os.symlink(os.readlink(src), dst)
+            self.copyown(src, dst)
+            self.counter['syms'] += 1
+
+        elif os.path.isdir(src):
+
+            # directories are also copied always
+
+            os.mkdir(dst)
+            self.copyown(src, dst)
+            shutil.copystat(src, dst)
+            self.counter['drs'] += 1
+
+        elif os.path.isfile(src):
+
+            # this a file, not a dir or symlink
+
+            if touch:
+
+                # means create a new file and copy perms
+
+                open(dst, 'w')
+                self.copyown(src, dst)
+                shutil.copystat(src, dst)
+                self.counter['touchs'] += 1
+
+            elif link:
+
+                # means we should hardlink
+
+                if vsutil.is_file_immutable_unlink(src):
+                    os.link(src, dst)
+                    self.counter['lins'] += 1
+                else:
+                    # since it is not iunlink, copy it anyway
+                    print 'Warning: not hardlinking %s because it is not iunlink' % src
+                    shutil.copy(src, dst)
+                    self.copyown(src, dst)
+                    shutil.copystat(src, dst)
+                    self.counter['bytes'] += os.path.getsize(dst)
+                    self.counter['copys'] += 1
+
+            else:
+
+                # else copy it
+
+                shutil.copy(src, dst)
+                self.copyown(src, dst)
+                shutil.copystat(src, dst)
+                self.counter['bytes'] += os.path.getsize(dst)
+                self.counter['copys'] += 1
+
+        else:
+
+            # this is a special device?
+
+            s = os.stat(src)
+            if stat.S_ISBLK(s.st_mode) or stat.S_ISCHR(s.st_mode) \
+               or stat.S_ISFIFO(s.st_mode):
+                os.mknod(dst, s.st_mode, os.makedev(os.major(s.st_rdev),
+                                                    os.minor(s.st_rdev)))
+                self.copyown(src, dst)
+                shutil.copystat(src, dst)
+                self.counter['devs'] += 1
+
+    def add_user(self, userid, passwd):
+        raise "NOT IMPLEMENTED"
+
+    def set_user_passwd(self, userid, passwd):
+        raise "NOT IMPLEMENTED"
+
+    def make_hosts(self, hostname, ip):
+        raise "NOT IMPLEMENTED"
+
+    def enable_sudo(self):
+        """ Enable sudoing for anyone in the wheel group """
+
+        print 'Enabling sudo access for wheel group'
+
+        sudoers = os.path.join(self.vpsroot, 'etc/sudoers')
+
+        lines = open(sudoers).readlines()
+
+        for n in range(len(lines)):
+            if lines[n].startswith('# %wheel') and 'NOPASSWD' not in lines[n]:
+                lines[n] = lines[n][2:]
+                break
+
+        open(sudoers, 'w').writelines(lines)
+        
+    def make_resolv_conf(self, dns1, dns2=None, search=None):
+
+        fname = os.path.join(self.vpsroot, 'etc', 'resolv.conf')
+        print 'Writing %s' % fname
+
+        f = open(fname, 'w')
+        f.write('nameserver %s\n' % dns1)
+        if dns2:
+            f.write('nameserver %s\n' % dns2)
+        if search:
+            f.write('search %s\n' % search)
+
+    def config_sendmail(self, hostname):
+
+        fname = os.path.join(self.vpsroot, 'etc', 'mail', 'local-host-names')
+        print 'Writing %s' % fname
+
+        fqdn = hostname
+        domain = hostname.split('.', 1)[-1]
+
+        f = open(fname, 'w')
+        f.write('\n%s\n' % fqdn)
+        if '.' in domain:
+            f.write('%s\n' % domain)
+        f.close()
+
+    def stub_www_index_page(self):
+        raise "NOT_IMPLEMENTED"
+
+    def make_motd(self):
+
+        fname = os.path.join(self.vpsroot, 'etc', 'motd')
+        print 'Writing %s' % fname
+
+        # customize motd
+        f = open(fname, 'w')
+        f.write(cfg.MOTD)
+        f.close()
+
+    def fix_services(self):
+        raise "NOT IMPLEMENTED"
+
+    def disk_limit(self, xid, limit, d_used=0, i_used=0):
+
+        dldb = os.path.join(cfg.VAR_DB_OPENVPS, 'disklimits', 'disklimits')
+        for line in open(dldb):
+            if '--xid %s ' % xid in line:
+                print 'NOT setting disk limits, they exist already for xid %s' % xid
+                return
+
+        print 'Setting disk limits...'
+
+        vsutil.set_disk_limits(xid, d_used, limit, i_used, cfg.INODES_LIM, 5, cfg.VSERVERS_ROOT)
+
+    def iptables_rule(self, dev, ip):
+
+        print 'Adding iptables rules for bandwidth montoring'
+
+        # make sure dummy traffic is counted
+        dev = dev.replace('dummy', 'eth')
+
+        cmd = 'iptables -D INPUT -i %s -d %s' % (dev, ip)
+        print ' ', cmd
+        commands.getoutput(cmd)
+        cmd = 'iptables -A INPUT -i %s -d %s' % (dev, ip)
+        print ' ', cmd
+        commands.getoutput(cmd)
+        cmd = 'iptables -D OUTPUT -o %s -s %s' % (dev, ip)
+        print ' ', cmd
+        commands.getoutput(cmd)
+        cmd = 'iptables -A OUTPUT -o %s -s %s' % (dev, ip)
+        print ' ', cmd
+        commands.getoutput(cmd)    
+
+    def make_ssl_cert(self):
+        raise "NOT IMPLEMENTED"
+
+    def random_crontab(self):
+        raise "NOT IMPLEMENTED"
+
+    def ohd_key(self, name):
+
+        # create an ohd key, and add it to
+        # allowed keys of the ohd user on the host
+
+        keyfile = os.path.join(self.vpsroot, 'etc/ohd_key')
+
+        if os.path.exists(keyfile):
+            print 'NOT touching already existing key', keyfile
+            return
+
+        print 'Generating ssh key', keyfile
+
+        cmd = 'ssh-keygen -t rsa -b 768 -N "" -f %s' % keyfile
+        commands.getoutput(cmd)
+
+        ohdkeys = '/home/ohd/.ssh/authorized_keys'
+        print 'Adding it to', ohdkeys
+
+        key = open(keyfile+'.pub').read()
+        s = 'from="127.0.0.1,::ffff:127.0.0.1",command="/usr/bin/sudo %s %s" %s' % \
+            (os.path.join(cfg.MISC_DIR, 'ohdexec'), name, key)
+
+        open(ohdkeys, 'a+').write(s)
+
+    def immutable_modules(self):
+
+        # make lib/modules immutable. we already have a fake kernel
+        # installed, but this will serve as a further deterrent against
+        # installing kernels and/or modules. This flag can be unset from
+        # within a vserver.
+
+        print 'Making lib/modules immutable'
+
+        cmd = 'chattr +i %s' % os.path.join(self.vpsroot, 'lib/modules')
+        s = commands.getoutput(cmd)
+        if s: print s
+
+    def make_snapshot_dir(self):
+
+        # This is used when you have a snaphosts backup server
+
+        snapshot = os.path.join(self.vpsroot, 'snapshot')
+
+        if not (os.path.isdir(snapshot)):
+
+            print 'Creating %s directory' % snapshot
+
+            os.mkdir(snapshot)
+            os.chmod(snapshot, 0500)
+
+        else:
+
+            print '%s already exists, not creating' % snapshot
+
+    def fixxids(self, xid, pace=cfg.PACE[0]):
+
+        # walk the root, and set all non-iunlink files to xid xid.  this
+        # means that when a non iunlink file is deleted, the proper amount
+        # of space is freed.
+
+        xid = int(xid)
+
+        print 'Fixing xids in %s for xid %d... (this may take a while)' % (self.vpsroot, xid)
+
+        p = 0
+        t, x = 0, 0
+
+        for root, dirs, files in os.walk(self.vpsroot):
+
+            for file in files + dirs:
+
+                path = os.path.join(root, file)
+
+                if pace and p >= pace:
+                    sys.stdout.write('.'); sys.stdout.flush()
+                    time.sleep(cfg.PACE[1])
+                    p = 0
+                else:
+                    p += 1
+
+                t += 1  # total file count
+
+                if os.path.isdir(path) or path.endswith('dev/null') or \
+                       path.endswith('etc/protocols') or path.endswith('etc/resolv.conf'):
+
+                    # do not set xid on directories, as this breaks the ohd
+                    # thing which would get permission denied trying to run
+                    # stuff from another context. since space (not security) is
+                    # the prime motivator for this, and dirs are tiny, this is ok
+                    # XXX and of course the dev/null and etc/protocols is a total
+                    # dirty hack to make traceroute work
+
+                    # XXX or is it?
+
+                    vsutil.set_file_xid(path, 0)
+
+                elif not vsutil.is_file_immutable_unlink(path):
+
+                    vsutil.set_file_xid(path, xid)
+
+                    x += 1 # setxid file count
+
+
+        print 'Done.\n%d xids of a total of %d has been set to %d' % (x, t, xid)
+
+    def customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
+
+        hostname = name + '.' + cfg.DEFAULT_DOMAIN
+
+        # first make a configuration
+        vsutil.save_vserver_config(name, ip, xid, hostname=hostname)
+
+        root = self.vpsroot
+
+        # no do this boring crap.....
+
+        self.set_user_passwd('root', passwd)
+        self.add_user(userid, passwd)
+        self.enable_sudo()
+        self.make_hosts(hostname, ip)
+
+        search = '.'.join(hostname.split('.')[1:])
+        if '.' not in search:
+            search = hostname
+        self.make_resolv_conf(root, dns, search=search)
+
+        self.config_sendmail(hostname)
+        self.stub_www_index_page()
+        self.make_motd()
+        self.fix_services()
+        self.disk_limit(xid, disklim)
+        self.iptables_rule(cfg.DFT_DEVICE, ip)
+        self.make_ssl_cert(hostname)
+        self.random_crontab()
+        self.ohd_key(name)
+        self.immutable_modules()
+        self.make_snapshot_dir()
 
 class Bundle(object):
 
