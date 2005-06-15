@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.10 2005/06/13 21:14:54 grisha Exp $
+# $Id: vds.py,v 1.11 2005/06/15 21:37:47 grisha Exp $
 
 """ VDS related functions """
 
@@ -174,8 +174,6 @@ def vserver_vroot_perms():
 
 def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
 
-    hostname = name + '.' + cfg.DEFAULT_DOMAIN
-
     vpsroot = os.path.join(cfg.VSERVERS_ROOT, name)
 
     print "Probing VPS version at %s..." % vpsroot
@@ -193,7 +191,34 @@ def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
 
     vserver_vroot_perms()
 
+def custcopy(name, srcpath):
+
+    print "Probing VPS version at %s..." % srcpath
+    src = distro_util.probe_vps(srcpath)
     
+    if not src:
+        print "ERROR: VPS version at %s is unknown to us" % srcpath
+        print "Exiting."
+        return
+    print "Detected %s" % src.get_desc()
+
+    if src.cancopy() != []:
+        print "ERROR: the source VPS does not have: %s" % `src.cancopy()`
+        return
+
+    vpsroot = os.path.join(cfg.VSERVERS_ROOT, name)
+    print "Probing VPS version at %s..." % vpsroot
+    vps = distro_util.probe_vps(vpsroot)
+
+    if not vps:
+        print "ERROR: VPS version at %s is unknown to us" % vpsroot
+        print "Exiting."
+        return
+    print "Detected %s" % vps.get_desc()
+
+    xid = vps.custcopy(src, name, name)
+    vps.fixxids(xid)
+
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.5 2005/06/13 21:14:54 grisha Exp $
+# $Id: Distro.py,v 1.6 2005/06/15 21:37:47 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -219,7 +219,16 @@ class Distro(object):
         raise "NOT IMPLEMENTED"
 
     def make_hosts(self, hostname, ip):
-        raise "NOT IMPLEMENTED"
+
+        fname = os.path.join(self.vpsroot, 'etc', 'hosts')
+        print 'Writing %s' % fname
+
+        fqdn = hostname
+        host = hostname.split('.')[0]
+
+        open(fname, 'w').write('%s %s %s localhost' % (ip, fqdn, host))
+
+        return fqdn
 
     def enable_sudo(self):
         """ Enable sudoing for anyone in the wheel group """
@@ -279,13 +288,14 @@ class Distro(object):
     def fix_services(self):
         raise "NOT IMPLEMENTED"
 
-    def disk_limit(self, xid, limit, d_used=0, i_used=0):
+    def disk_limit(self, xid, limit, d_used=0, i_used=0, force=False):
 
-        dldb = os.path.join(cfg.VAR_DB_OPENVPS, 'disklimits', 'disklimits')
-        for line in open(dldb):
-            if '--xid %s ' % xid in line:
-                print 'NOT setting disk limits, they exist already for xid %s' % xid
-                return
+        if not force:
+            dldb = os.path.join(cfg.VAR_DB_OPENVPS, 'disklimits', 'disklimits')
+            for line in open(dldb):
+                if '--xid %s ' % xid in line:
+                    print 'NOT setting disk limits, they exist already for xid %s' % xid
+                    return
 
         print 'Setting disk limits...'
 
@@ -442,7 +452,7 @@ class Distro(object):
         search = '.'.join(hostname.split('.')[1:])
         if '.' not in search:
             search = hostname
-        self.make_resolv_conf(root, dns, search=search)
+        self.make_resolv_conf(dns, search=search)
 
         self.config_sendmail(hostname)
         self.stub_www_index_page()
@@ -456,6 +466,99 @@ class Distro(object):
         self.immutable_modules()
         self.make_snapshot_dir()
 
+    def get_user_passwd(self, userid):
+
+        # read the password hash from /etc/shadow. if it is not there,
+        # None will be returned.
+        
+        passwd = None
+
+        lines = open(os.path.join(self.vpsroot, 'etc/shadow')).readlines()
+        for line in lines:
+            parts = line.split(':')
+            if len(parts) > 2 and parts[0] == userid:
+                passwd = parts[1]
+                break
+
+        return passwd
+
+    def cancopy(self):
+
+        # this method will examine ourselves to see if we have
+        # everything in place to get copied. it will return a list of
+        # missing elements that would need to be explicitely
+        # specified.
+
+        result = []
+        
+        if not self.get_user_passwd('root'):
+            result.append('root_passwd')
+
+        return result
+
+    def custcopy(self, source, name, userid, data={}, dns=cfg.PRIMARY_IP):
+
+        # this will customize a newly cloned VPS, but by copying files
+        # from the source VPS, which should be an instance of a Distro
+        # subclass.
+
+        config = vsutil.get_vserver_config(name)
+
+        # root password
+        if not data.has_key('root_passwd'):
+            data['root_passwd'] = source.get_user_passwd('root')
+            if not data['root_passwd']:
+                raise "Missing root password"
+        self.set_user_passwd('root', data['root_passwd'])
+
+        # user password
+        if not data.has_key('user_passwd'):
+            data['user_passwd'] = source.get_user_passwd('userid')
+            if not data['user_passwd']:
+                data['user_passwd'] = data['root_passwd']
+        self.add_user(userid, data['user_passwd'])
+
+        self.enable_sudo()
+        
+        hostname = config['hostname']
+        ip = config['interfaces'][0]['ip']
+        self.make_hosts(hostname, ip)
+
+        search = '.'.join(hostname.split('.')[1:])
+        if '.' not in search:
+            search = hostname
+        self.make_resolv_conf(dns, search=search)
+
+        self.config_sendmail(hostname)
+        self.stub_www_index_page()
+        self.make_motd()
+        self.fix_services()
+
+        xid = config['context']
+        disklim = vsutil.get_disk_limits(xid)['i_total']
+        self.disk_limit(xid, disklim, force=True)
+
+        # the rule should already be there
+        #self.iptables_rule(cfg.DFT_DEVICE, ip)
+        
+        self.make_ssl_cert(hostname)
+        self.random_crontab()
+
+        if os.path.exists(os.path.join(source.vpsroot, 'etc/ohd_key')) and \
+               os.path.exists(os.path.join(source.vpsroot, 'etc/ohd_key.pub')):
+            for file in ['etc/ohd_key', 'etc/ohd_key.pub']:
+                src = os.path.join(source.vpsroot, file)
+                dst = os.path.join(self.vpsroot, file)
+                shutil.copy(src, dst)
+                self.copyown(src, dst)
+                shutil.copystat(src, dst)
+        else:
+            self.ohd_key(name)
+        self.immutable_modules()
+        self.make_snapshot_dir()
+
+        return xid
+                                                                                                
 class Bundle(object):
 
     packages = []

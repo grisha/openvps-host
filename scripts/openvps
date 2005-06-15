@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.6 2005/01/12 21:24:43 grisha Exp $
+# $Id: openvps,v 1.7 2005/06/15 21:37:47 grisha Exp $
 
 
 """
@@ -92,6 +92,21 @@ def cmd_customize():
     # XXX some checking needs to go here?
 
     vds.customize(name, xid, ip, userid, passwd, disklim)
+
+def cmd_custcopy():
+
+    parser = OptionParser(usage="%prog custcopy <name> <sourcepath>\n"
+                          "  Copy customization from <sourcepath> to vps named <name>")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 2:
+        parser.error("Must specify all 2 arguments")
+
+    name, srcpath = args
+
+    # XXX some checking needs to go here?
+
+    vds.custcopy(name, srcpath)
 
 def cmd_fixflags():
 

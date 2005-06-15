@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.5 2005/06/13 21:14:54 grisha Exp $
+# $Id: RedHat.py,v 1.6 2005/06/15 21:37:47 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -618,13 +618,8 @@ class RedHat(Distro):
 
     def make_hosts(self, hostname, ip):
 
-        fname = os.path.join(self.vpsroot, 'etc', 'hosts')
-        print 'Writing %s' % fname
-
-        fqdn = hostname
-        host = hostname.split('.')[0]
-
-        open(fname, 'w').write('%s %s %s localhost' % (ip, fqdn, host))
+        # call super
+        fqdn = Distro.make_hosts(self, hostname, ip)
 
         # /etc/sysconfig/network. at least xinetd service looks at it
         fname = os.path.join(self.vpsroot, 'etc', 'sysconfig', 'network')
