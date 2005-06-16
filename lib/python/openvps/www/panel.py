@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.35 2005/06/16 11:28:53 grisha Exp $
+# $Id: panel.py,v 1.36 2005/06/16 19:14:09 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -32,7 +32,7 @@ import RRD
 from mod_python import apache, psp, util, Cookie
 
 from openvps.common import rrdutil, crypto, RSASignedCookie
-from openvps.host import cfg, vsutil, vsmon
+from openvps.host import cfg, vsutil, vsmon, vds
 
 ALLOWED_COMMANDS = ['index',
                     'graph',
@@ -50,6 +50,7 @@ ALLOWED_COMMANDS = ['index',
                     'cpu',
                     'mem',
                     'rebuild',
+                    'dorebuild',
                     'start',
                     'stop',
                     'logout']
@@ -204,13 +205,17 @@ def _navigation_map(req, vps):
 
     # tag, Text, link, icon_url, submenu
 
+    admin = [("status", "Status", "status", None, []),
+             ("rebuild", "Rebuild", "rebuild", None, []),
+             ]
+
     stats = [("bwidth", "Bandwidth", "bwidth", None, []),
              ("disk", "Disk", "disk", None, []),
              ("cpu", "CPU", "cpu", None, []),
              ("mem", "Memory", "mem", None, []),
              ]
 
-    global_menu = [("status", "Status", "status", None, []),
+    global_menu = [("admin", "Admin", "status", None, admin),
                    ("stats", "Stats", "stats", None, stats),
                    # note that /billing is expected to be on a different
                    # server, so no submenu here
@@ -363,7 +368,7 @@ def index(req, name, params):
 
 def status(req, name, params):
 
-    location = 'status'
+    location = 'admin:status'
 
     status = 'stopped'
     if vsutil.is_running(name):
@@ -419,13 +424,13 @@ def stats(req, name, params):
 
 def rebuild(req, name, params):
 
-    location = 'stats:traffic'
+    location = 'admin:rebuild'
 
     body_tmpl = _tmpl_path('rebuild_body.html')
 
     body_vars = {}
 
-    vars = {'global_menu': '',
+    vars = {'global_menu': _global_menu(req, name, location),
             'body':psp.PSP(req, body_tmpl, vars=body_vars),
             'name':name}
             
@@ -433,6 +438,42 @@ def rebuild(req, name, params):
                 vars=vars)
 
     p.run()
+
+    return apache.OK
+
+def dorebuild(req, name, params):
+
+    # make sure it is stopped
+    if vsutil.is_running(name):
+        return error(req, "ERROR: %s is running, you must first stop it" % name)
+
+    req.log_error('Rebuilding vds %s at request of %s' % (name, req.user))
+
+    req.content_type = 'text/html'
+    req.write('\n<h1>Rebuilding %s, please wait...</h1>\n' % name)
+    req.flush()
+
+    # only now is it OK to do our thing. we could check for "cannot
+    # rebuild" error, but since the only cause for that would be a
+    # broken shadow file, the user won't be able access the control
+    # panel in the first place.
+
+    cmd = '%s openvps-rebuild %s %s' % (cfg.OVWRAPPER, cfg.REFROOTS[0], name)
+
+    pipe = os.popen(cmd, 'r', 0)
+    s = pipe.readline()
+    while s:
+        req.log_error('%s: %s' % (name, s))
+        req.write('.'); req.flush()
+        s = pipe.readline()
+    pipe.close()
+
+    req.log_error('Rebuild of vds %s at request of %s DONE' % (name, req.user))
+
+    # redirect
+    req.write('<h1>Done!</h1>\n')
+    req.write('You will now be redirected to the <a href="status"> page.\n')
+    req.write('<meta http-equiv="Refresh" content="1;status">\n')
 
     return apache.OK
 

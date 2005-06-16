@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.6 2005/06/15 21:37:47 grisha Exp $
+# $Id: Distro.py,v 1.7 2005/06/16 19:14:09 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -473,12 +473,14 @@ class Distro(object):
         
         passwd = None
 
-        lines = open(os.path.join(self.vpsroot, 'etc/shadow')).readlines()
-        for line in lines:
-            parts = line.split(':')
-            if len(parts) > 2 and parts[0] == userid:
-                passwd = parts[1]
-                break
+        shadow = os.path.join(self.vpsroot, 'etc/shadow')
+        if os.path.exists(shadow):
+            lines = open(shadow).readlines()
+            for line in lines:
+                parts = line.split(':')
+                if len(parts) > 2 and parts[0] == userid:
+                    passwd = parts[1]
+                    break
 
         return passwd
 

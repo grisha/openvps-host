@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.13 2005/06/16 04:07:14 grisha Exp $
+# $Id: vds.py,v 1.14 2005/06/16 19:14:09 grisha Exp $
 
 """ VDS related functions """
 
@@ -225,23 +225,63 @@ def rebuild(refroot, name):
     if vsutil.is_running(name):
         print "ERROR: %s is running, you must first stop it" % name
         return
-
-    # rename it to something temporary
-    # XXX there is a bit of a race condition here?
-    d = tempfile.mkdtemp(prefix='.rebuild', dir=cfg.VSERVERS_ROOT)
-    os.rmdir(d)
+    
     vpspath = os.path.join(cfg.VSERVERS_ROOT, name)
-    temppath = d
-    print 'Renaming %s -> %s...' % (vpspath, temppath)
-    os.rename(vpspath, temppath)
 
-    # clone it
-    clone(refroot, vpspath)
+    # create a rebuild lock
+    lock = os.path.join(cfg.ETC_VSERVERS, name, '.rebuild')
+    if os.path.exists(lock):
+        print "ERROR: %s exists - is it being rebuilt?" % lock
+        print "Cannot rebuild, aborting..."
+        return
+    
+    # create the lock
+    open(lock, 'w')
 
-    #custcopy it
-    custcopy(name, temppath)
+    try:
 
-    print 'remember to delete %s' % temppath
+        print "Probing VPS version at %s..." % vpspath
+        vps = distro_util.probe_vps(vpspath)
+        if not vps:
+            print "ERROR: VPS version at %s is unknown to us" % vpspath
+            print "Exiting."
+            return
+        print "Detected %s" % vps.get_desc()
+
+        if vps.cancopy() != []:
+            print "ERROR: the source VPS does not have: %s" % `vps.cancopy()`
+            print "Cannot rebuild, aborting..."
+            return
+
+        # need to make sure reference server is good too
+        print "Probing VPS version at %s..." % refroot
+        ref = distro_util.probe_vps(refroot)
+        if not ref:
+            print "ERROR: VPS version at %s is unknown to us" % refroot
+            print "Exiting."
+            return
+        print "Detected %s" % vps.get_desc()
+        
+        # rename it to something temporary. there is a bit of a race
+        # condition here.
+
+        d = tempfile.mkdtemp(prefix='.rebuild', dir=cfg.VSERVERS_ROOT)
+        os.rmdir(d)
+        temppath = d
+
+        print 'Renaming %s -> %s...' % (vpspath, temppath)
+        os.rename(vpspath, temppath)
+
+        # clone it
+        clone(refroot, vpspath)
+
+        #custcopy it
+        custcopy(name, temppath)
+
+        print 'remember to delete %s' % temppath
+
+    finally:
+        os.remove(lock)
 
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""

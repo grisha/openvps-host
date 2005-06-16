@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.7 2005/06/15 21:37:47 grisha Exp $
+# $Id: openvps,v 1.8 2005/06/16 19:14:09 grisha Exp $
 
 
 """
@@ -107,6 +107,19 @@ def cmd_custcopy():
     # XXX some checking needs to go here?
 
     vds.custcopy(name, srcpath)
+
+def cmd_rebuild():
+
+    parser = OptionParser(usage="%prog rebuild <refroot> <name>\n"
+                          "  Rebuild vps named <name> using <refroot> as the reference server")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 2:
+        parser.error("Must specify all 2 arguments")
+
+    refroot, name = args
+
+    vds.rebuild(refroot, name)
 
 def cmd_fixflags():
 

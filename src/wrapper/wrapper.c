@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * $Id: wrapper.c,v 1.1 2005/01/11 21:42:32 grisha Exp $
+ * $Id: wrapper.c,v 1.2 2005/06/16 19:14:09 grisha Exp $
  *
  */
 
@@ -32,6 +32,7 @@ const char *VALID_COMMANDS[] = {
     "vserver-stop",
     "vserver-stat",
     "read-config",
+    "openvps-rebuild",
     NULL 
 };
 
@@ -110,7 +111,7 @@ int run_command(const char* command, int argc, char** argv) {
             NULL 
         };
 
-        if (argc >= 3)
+        if (argc >= 3) 
             /* this is vserver name */
             newargv[1] = argv[2];
 
@@ -127,12 +128,13 @@ int run_command(const char* command, int argc, char** argv) {
             NULL 
         };
 
-        if (argc >= 3)
+        if (argc >= 3) 
             /* this is vserver name */
             newargv[1] = argv[2];
 
         /* run it with empty environment */
         execve(VSERVER, newargv, ENV);
+
     }
     else if (!strcmp(command, "vserver-stat")) {
 
@@ -154,6 +156,25 @@ int run_command(const char* command, int argc, char** argv) {
 
         /* run it with empty environment */
         execve("/bin/cat", newargv, ENV);
+    }
+    else if (!strcmp(command, "openvps-rebuild")) {
+
+        char *newargv[] = {
+            OPENVPS,
+            "rebuild",
+            NULL,
+            NULL,
+            NULL
+        };
+
+        if (argc >= 4) {
+            newargv[2] = argv[2]; /* refroot */
+            newargv[3] = argv[3]; /* vps name */
+        }
+
+        /* run it with empty environment */
+        execve(OPENVPS, newargv, ENV);
+        
     }
 
     /* we failed if we got this far */

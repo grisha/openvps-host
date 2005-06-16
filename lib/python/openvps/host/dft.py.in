@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.18 2005/06/13 21:14:54 grisha Exp $
+# $Id: dft.py.in,v 1.19 2005/06/16 19:14:09 grisha Exp $
 
 """ Configuration Defaults
 
@@ -77,6 +77,10 @@ VDLIMIT = '@VDLIMIT@'
 
 # The partition where vservers live
 VSERVERS_ROOT = NOVAL
+
+# Reference servers. First one is the preferred one
+# XXX need to add this to openvps-configure
+REFROOTS = ['/vservers/REF-FC3', '/vservers/REF-FC2', '/vservers/REF-FC1']
 
 # Location of the vservers database
 # /var/db/oh will be obsoleted eventually
