@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.34 2005/06/03 20:35:46 grisha Exp $
+# $Id: panel.py,v 1.35 2005/06/16 11:28:53 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -49,6 +49,7 @@ ALLOWED_COMMANDS = ['index',
                     'disk',
                     'cpu',
                     'mem',
+                    'rebuild',
                     'start',
                     'stop',
                     'logout']
@@ -414,6 +415,26 @@ def start(req, name, params):
 def stats(req, name, params):
 
     return bwidth(req, name, params)
+
+
+def rebuild(req, name, params):
+
+    location = 'stats:traffic'
+
+    body_tmpl = _tmpl_path('rebuild_body.html')
+
+    body_vars = {}
+
+    vars = {'global_menu': '',
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
+            'name':name}
+            
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                vars=vars)
+
+    p.run()
+
+    return apache.OK
 
 
 def traffic(req, name, params):
