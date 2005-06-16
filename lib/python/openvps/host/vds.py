@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.11 2005/06/15 21:37:47 grisha Exp $
+# $Id: vds.py,v 1.12 2005/06/16 02:36:26 grisha Exp $
 
 """ VDS related functions """
 
@@ -218,6 +218,16 @@ def custcopy(name, srcpath):
 
     xid = vps.custcopy(src, name, name)
     vps.fixxids(xid)
+
+def rebuild(refroot, name):
+
+    # make sure it is stopped
+    if vsutil.is_running(name):
+        print "ERROR: %s is running, you must first stop it" % name
+        return
+
+    # rename it to something temporary
+    # ZZZ
 
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""
