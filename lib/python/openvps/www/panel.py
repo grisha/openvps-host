@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.37 2005/06/16 21:46:46 grisha Exp $
+# $Id: panel.py,v 1.38 2005/06/16 21:50:55 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -484,7 +484,7 @@ def dorebuild(req, name, params):
         # in parent
 
         try:
-            time.sleep(1)
+            time.sleep(3)
             util.redirect(req, 'status')
         finally:
             # wait on the child to avoid a defunct (zombie) process
