@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.12 2005/06/16 02:36:26 grisha Exp $
+# $Id: vds.py,v 1.13 2005/06/16 04:07:14 grisha Exp $
 
 """ VDS related functions """
 
@@ -227,7 +227,21 @@ def rebuild(refroot, name):
         return
 
     # rename it to something temporary
-    # ZZZ
+    # XXX there is a bit of a race condition here?
+    d = tempfile.mkdtemp(prefix='.rebuild', dir=cfg.VSERVERS_ROOT)
+    os.rmdir(d)
+    vpspath = os.path.join(cfg.VSERVERS_ROOT, name)
+    temppath = d
+    print 'Renaming %s -> %s...' % (vpspath, temppath)
+    os.rename(vpspath, temppath)
+
+    # clone it
+    clone(refroot, vpspath)
+
+    #custcopy it
+    custcopy(name, temppath)
+
+    print 'remember to delete %s' % temppath
 
 def match_path(path):
     """Return copy, touch pair based on config rules for this path"""
