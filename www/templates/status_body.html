@@ -1,4 +1,6 @@
 
+   <meta http-equiv="pragma" content="no-cache">
+
    <div style="text-align: center;">
 <%
 if status == 'running':
@@ -25,7 +27,7 @@ if status == 'running':
    </table>
 <%
 # end
-else:
+elif status == 'stopped':
     # begin
 %>
    <br><br><br><br>
@@ -48,7 +50,32 @@ else:
    </table>
 <%
 # end
+elif status == 'rebuilding':
+    # begin
 %>
+   <meta http-equiv="refresh" content="10">
 
+   <br><br><br><br>
+   
+   <table style="width: 300px; margin-left: auto; margin-right: auto;">
+   <tr>
+     <th style="border: 0;" colspan=3>
+       <h1>Status: <font color="orange">Rebuilding... Please Wait.</font></h1>
+       <br><br><br>
+     </th>
+   </tr>
+   <tr>
+     <td style="width: 100px; border: 0;"></td>
+     <td style="width: 100px;"><div class="stop"></div></td>
+     <td style="width: 100px; border:0;"></td>
+   </tr>
+   <tr>
+     <th style="border: 0;" colspan=3>
+       Click to stop.
+     </th>  
+   </table>
+
+<%
+# end
+%>
    </div>
-

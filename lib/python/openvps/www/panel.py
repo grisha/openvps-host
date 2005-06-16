@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.36 2005/06/16 19:14:09 grisha Exp $
+# $Id: panel.py,v 1.37 2005/06/16 21:46:46 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -373,6 +373,13 @@ def status(req, name, params):
     status = 'stopped'
     if vsutil.is_running(name):
         status = 'running'
+    elif os.path.exists(os.path.join(cfg.ETC_VSERVERS, name, '.rebuild')):
+        status = 'rebuilding'
+
+    # avoid caching at all costs
+    req.err_headers_out['Pragma'] = 'no-cache'
+    req.err_headers_out['Cache-Control'] = 'no-cache'
+    req.err_headers_out['Expires'] = 'Tue, 25 Jan 2000 10:30:00 GMT'
 
     body_tmpl = _tmpl_path('status_body.html')
     body_vars = {'status':status}
@@ -445,35 +452,43 @@ def dorebuild(req, name, params):
 
     # make sure it is stopped
     if vsutil.is_running(name):
-        return error(req, "ERROR: %s is running, you must first stop it" % name)
+        return error(req, "%s is running, you must first stop it" % name)
 
     req.log_error('Rebuilding vds %s at request of %s' % (name, req.user))
 
-    req.content_type = 'text/html'
-    req.write('\n<h1>Rebuilding %s, please wait...</h1>\n' % name)
-    req.flush()
+    # we could check for "cannot rebuild" error, but since the only
+    # cause for that would be a broken shadow file, the user won't be
+    # able access the control panel in the first place.
 
-    # only now is it OK to do our thing. we could check for "cannot
-    # rebuild" error, but since the only cause for that would be a
-    # broken shadow file, the user won't be able access the control
-    # panel in the first place.
+    pid = os.fork()
+    if pid == 0:
 
-    cmd = '%s openvps-rebuild %s %s' % (cfg.OVWRAPPER, cfg.REFROOTS[0], name)
+        # in child
 
-    pipe = os.popen(cmd, 'r', 0)
-    s = pipe.readline()
-    while s:
-        req.log_error('%s: %s' % (name, s))
-        req.write('.'); req.flush()
+        cmd = '%s openvps-rebuild %s %s' % (cfg.OVWRAPPER, cfg.REFROOTS[0], name)
+
+        pipe = os.popen(cmd, 'r', 0)
         s = pipe.readline()
-    pipe.close()
+        while s:
+            req.log_error('%s: %s' % (name, s))
+            s = pipe.readline()
+        pipe.close()
 
-    req.log_error('Rebuild of vds %s at request of %s DONE' % (name, req.user))
+        req.log_error('Rebuild of vds %s at request of %s DONE' % (name, req.user))
 
-    # redirect
-    req.write('<h1>Done!</h1>\n')
-    req.write('You will now be redirected to the <a href="status"> page.\n')
-    req.write('<meta http-equiv="Refresh" content="1;status">\n')
+        # exit child
+        os._exit(0)
+
+    else:
+
+        # in parent
+
+        try:
+            time.sleep(1)
+            util.redirect(req, 'status')
+        finally:
+            # wait on the child to avoid a defunct (zombie) process
+            os.wait()
 
     return apache.OK
 
