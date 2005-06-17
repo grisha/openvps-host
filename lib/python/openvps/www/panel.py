@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.39 2005/06/17 02:12:11 grisha Exp $
+# $Id: panel.py,v 1.40 2005/06/17 19:22:51 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -44,7 +44,6 @@ ALLOWED_COMMANDS = ['index',
                     'quarter_graph',
                     'status',
                     'stats',
-                    'traffic',
                     'bwidth',
                     'disk',
                     'cpu',
@@ -206,7 +205,7 @@ def _navigation_map(req, vps):
     # tag, Text, link, icon_url, submenu
 
     admin = [("status", "Status", "status", None, []),
-             #("rebuild", "Rebuild", "rebuild", None, []),
+             ("rebuild", "Rebuild", "rebuild", None, []),
              ]
 
     stats = [("bwidth", "Bandwidth", "bwidth", None, []),
@@ -489,71 +488,6 @@ def dorebuild(req, name, params):
         finally:
             # wait on the child to avoid a defunct (zombie) process
             os.wait()
-
-    return apache.OK
-
-
-def traffic(req, name, params):
-
-    location = 'stats:traffic'
-
-    body_tmpl = _tmpl_path('traffic_body.html')
-
-    rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
-    data = _load_rrd_data(rrd, ['in', 'out'])
-    body_vars = {'data':data}
-
-    vars = {'global_menu': _global_menu(req, name, location),
-            'body':psp.PSP(req, body_tmpl, vars=body_vars),
-            'name':name}
-            
-    p = psp.PSP(req, _tmpl_path('main_frame.html'),
-                vars=vars)
-
-    p.run()
-
-    return apache.OK
-
-
-def day_graph(req, name, params):
-
-    # location of the bandwidth rrd
-    rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
-
-    image = rrdutil.graph(rrd, back=86400, title='Last 24 hours',
-                          width=484, height=50)
-
-    req.content_type = 'image/gif'
-    req.sendfile(image)
-    os.unlink(image)
-
-    return apache.OK
-
-def month_graph(req, name, params):
-
-    # location of the bandwidth rrd
-    rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
-
-    image = rrdutil.graph(rrd, back=2592000, title='Last 30 days',
-                          width=484, height=50)
-
-    req.content_type = 'image/gif'
-    req.sendfile(image)
-    os.unlink(image)
-
-    return apache.OK
-
-def quarter_graph(req, name, params):
-
-    # location of the vsmon rrd
-    rrd = os.path.join(cfg.VAR_DB_OH, '%s.rrd' % name)
-
-    image = rrdutil.graph(rrd, back=7614000, title='Last 90 days',
-                          width=484, height=50)
-
-    req.content_type = 'image/gif'
-    req.sendfile(image)
-    os.unlink(image)
 
     return apache.OK
 

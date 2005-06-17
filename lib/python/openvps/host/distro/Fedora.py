@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.5 2005/06/13 21:14:54 grisha Exp $
+# $Id: Fedora.py,v 1.6 2005/06/17 19:22:51 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -58,13 +58,13 @@ class Fedora_Core(RedHat):
 class Fedora_Core_1(Fedora_Core):
     FC_VER = 1
 
-distro_util.register(Fedora_Core_1)
+#distro_util.register(Fedora_Core_1)
 
 
 class Fedora_Core_2(Fedora_Core):
     FC_VER = 2
 
-distro_util.register(Fedora_Core_2)
+#distro_util.register(Fedora_Core_2)
 
 
 class Fedora_Core_3(Fedora_Core):
