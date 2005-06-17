@@ -14,12 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * $Id: wrapper.h.in,v 1.1 2005/01/11 21:42:32 grisha Exp $
+ * $Id: wrapper.h.in,v 1.2 2005/06/17 02:12:11 grisha Exp $
  * 
  */
 
 static const char copyright[] = "Copyright 2005 OpenHosting, Inc.";
 
+#define OPENVPS "@prefix@/sbin/openvps"
 #define VSERVER "@VSERVER@"
 #define APACHE_GROUP "apache" /* XXX ./configure */
 #define CONFIG_FILE "/etc/openvps.conf" /* XXX ./configure */
