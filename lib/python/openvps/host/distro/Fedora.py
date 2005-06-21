@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.6 2005/06/17 19:22:51 grisha Exp $
+# $Id: Fedora.py,v 1.7 2005/06/21 21:52:19 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -72,6 +72,8 @@ class Fedora_Core_3(Fedora_Core):
     FC_VER = 3
 
     class _Bundle_base(RedHat_Bundle_base):
+
+        DISTRO_DIR = 'Fedora'
 
         name = 'base'
         desc = 'Fedora Core 3 Base'
@@ -328,4 +330,146 @@ class Fedora_Core_3(Fedora_Core):
 
 distro_util.register(Fedora_Core_3)
 
+class Fedora_Core_4(Fedora_Core_3):
+
+    FC_VER = 4
+
+    class _Bundle_base(RedHat_Bundle_base):
+
+        DISTRO_DIR = 'Fedora'
+
+        name = 'base'
+        desc = 'Fedora Core 4 Base'
+
+        packages = [
+            'libusb',
+            'SysVinit', 'acl', 'anacron', 'apr', #'apr-devel',
+            'apr-util', #'ash',
+                     'aspell', 'aspell-en', 'at', 'attr',
+            'authconfig', 'basesystem', 'bash', 'bc', 'beecrypt',
+            'bind-libs', 'bind-utils', 'bzip2', 'bzip2-libs',
+            'chkconfig', 'coreutils', 'cpio', 'cracklib',
+            'cracklib-dicts', 'crontabs', #'cups-libs',
+            'cyrus-sasl',
+            'cyrus-sasl-md5', 'db4', 'diffutils', 'dos2unix',
+            'e2fsprogs', 'ed', 'elfutils', 'elfutils-libelf',
+            'ethtool', 'expat', 'fedora-release', 'file',
+            'filesystem', 'findutils', 'finger', 'ftp', 'gawk',
+            'gdbm', 'glib', 'glib2', 'glibc', 'glibc-common', 'gmp',
+            'gnupg', 'gpm', 'grep', 'groff', 'gzip', 'hesiod',
+            'htmlview',
+            'http://www.openvps.org/dist/misc/openvps-bogus-kernel-2.9.0-3.i386.rpm',
+            'httpd', #'httpd-suexec',
+                     'info', 'initscripts', 'iproute',
+            'iputils', 'jwhois', 'krb5-libs', 'less', 'lftp', 'lha',
+            'libacl', 'libattr', 'libgcc', 'libgcrypt',
+            'libgpg-error', 'libjpeg', 'libpng', 'libselinux',
+            'libsepol', 'libstdc++', 'libtermcap', # 'libtiff',
+            'libuser', 'libwvstreams', 'libxml2', 'libxml2-python',
+            'logrotate', 'logwatch', 'lrzsz', 'lsof', 'm4', 'mailcap',
+            'mailx', 'make', 'man', 'man-pages', 'mingetty',
+            'mkinitrd',
+            'mktemp', 'module-init-tools', 'mtr', 'nano',
+            'nc', 'ncurses', 'net-tools', 'newt', 'nscd', 'nss_ldap',
+            'ntsysv', 'openldap', 'openssh', 'openssh-clients',
+            'openssh-server', 'openssl', 'pam', 'passwd', 'pax',
+            'pcre', 'pcre-devel', 'perl', 'perl-Filter', 'pinfo',
+            'popt', 'portmap', 'procmail', 'procps', 'psacct',
+            'psmisc', 'pyOpenSSL', 'python', 'rdist', 'readline',
+            'redhat-menus', 'rootfiles', 'rpm', 'rpm-libs',
+            'rpm-python', 'rsh', 'rsync', 'sed', 'sendmail', 'setup',
+            'setuptool', 'shadow-utils', 'slang', 'slocate',
+            'specspo', 'star', 'stunnel', 'sudo', 'symlinks',
+            'sysklogd', 'talk', 'tar', 'tcp_wrappers', 'tcsh',
+            'telnet', 'termcap', 'time', 'tmpwatch', 'traceroute',
+            'tzdata', 'unix2dos', 'unzip', 'usermode', 'utempter',
+            'util-linux', 'vim-common', 'vim-minimal', 'vixie-cron',
+            'wget', 'which', 'words', 'yum', 'zip', 'zlib',
+            # added:
+            'audit', 'audit-libs', 'desktop-file-utils', 'neon',
+            'sqlite', 'python-elementtree', 'python-sqlite',
+            'python-urlgrabber'
+
+            ]
+
+    class _Bundle_000_base2(RedHatBundle):
+
+        name = 'base2'
+        desc = 'Fedora Core 4 Base 2'
+        
+        packages = [ #'Glide3',
+            'Xaw3d', 'apr-util-devel', 'atk',
+                     'atk-devel', 'autoconf', 'automake',
+                     'bind-chroot', 'binutils', 'chkfontpath', 'cpp',
+                     'curl', 'curl-devel', 'cvs', 'cyrus-sasl-devel',
+                     'db4-devel', #'dbh',
+            'desktop-backgrounds-basic',
+                     'distcache', 'dovecot', 'e2fsprogs-devel',
+                     'emacs', 'emacs-common', 'expat-devel',
+                     'fetchmail', 'fontconfig', 'fontconfig-devel',
+                     'fonts-xorg-base', 'freetype', 'freetype-devel',
+                     'gcc', 'gcc-c++', 'gd', 'gd-devel', 'gdbm-devel',
+                     'glib-devel', 'glib2-devel', 'glibc-devel',
+                     'glibc-headers', 'glibc-kernheaders', 'gtk2',
+                     'gtk2-devel',
+                     'http://www.openvps.org/dist/misc/mirror/perl-Net-SSLeay-1.23-0.rhfc1.dag.i386.rpm',
+                     'http://www.openvps.org/dist/misc/mirror/proftpd-1.2.9-7.i386.rpm',
+                     'http://www.openvps.org/dist/misc/oh-bind-9.2.4-2.i386.rpm',
+                     'http://www.openvps.org/dist/misc/webmin-1.170-1_OH.noarch.rpm',
+                     'httpd-devel', 'krb5-devel', 'libc-client',
+                     'libidn', 'libstdc++-devel', 'libtool',
+                     #'libtool-libs',
+            'libungif', #'libxfce4mcs',
+                     #'libxfce4mcs-devel', 'libxfce4util',
+                     #'libxfcegui4',
+            'libxslt', 'lynx', 'mod_perl',
+                     'mod_perl-devel', 'mod_python', 'mod_ssl', 'mx',
+                     'mysql', 'mysql-devel', 'mysql-server',
+                     'openldap-devel', 'openssl-devel', 'pango',
+                     'pango-devel', 'patch', 'perl-DBD-MySQL',
+                     'perl-DBD-Pg', 'perl-DBI', 'perl-Digest-HMAC',
+                     'perl-Digest-SHA1', 'perl-HTML-Parser',
+                     'perl-HTML-Tagset', 'perl-Net-DNS',
+                     'perl-Time-HiRes', 'perl-URI', 'perl-XML-Parser',
+                     'perl-libwww-perl',
+                     #'php', 'php-devel',
+                     #'php-domxml', 'php-imap', 'php-ldap',
+                     #'php-mysql', 'php-pear', 'php-pgsql',
+                     #'php-xmlrpc', 'php-gd',
+                     'pkgconfig',
+                     'postgresql', 'postgresql-contrib',
+                     'postgresql-devel', 'postgresql-docs',
+                     'postgresql-jdbc', 'postgresql-libs',
+                     'postgresql-pl', 'postgresql-python',
+                     'postgresql-server', 'postgresql-tcl',
+                     'postgresql-test', 'python-devel', 'rcs',
+                     'rpm-build', 'rpm-devel', 'samba',
+                     'samba-client', 'samba-common', 'samba-swat',
+                     'screen', 'spamassassin', 'squid',
+                     'startup-notification', 'switchdesk', 'tcl',
+                     'tcl-devel', 'telnet-server', 'tk', 'ttmkfdir',
+                     'vim-enhanced', 'vnc-server', 'webalizer',
+                     #'xfce-mcs-manager', 'xfce-mcs-manager-devel',
+                     #'xfce-mcs-plugins', 'xfce-utils', 'xfce4-panel',
+                     #'xfdesktop', 'xffm', 'xffm-icons', 'xfwm4',
+                     #'xfwm4-themes',
+            'xinetd', 'xinitrc', 'xorg-x11',
+                     'xorg-x11-Mesa-libGL', 'xorg-x11-Mesa-libGLU',
+                     'xorg-x11-devel', 'xorg-x11-font-utils',
+                     'xorg-x11-libs', 'xorg-x11-tools',
+                     'xorg-x11-xauth', 'xorg-x11-xfs', 'xterm',
+                     'zlib-devel', ]
+
+    class _Bundle_100_PHP(RedHatBundle):
+
+        name = 'php'
+        desc = 'Fedora Core 3 PHP packages'
+        
+        packages = [ 'php', 'php-devel',
+                     'php-xml', 'php-imap', 'php-ldap',
+                     'php-mysql', 'php-pear', 'php-pgsql',
+                     'php-xmlrpc', 'php-gd',]
+
+
+distro_util.register(Fedora_Core_4)
 

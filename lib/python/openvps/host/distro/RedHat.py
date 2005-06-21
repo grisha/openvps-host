@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.6 2005/06/15 21:37:47 grisha Exp $
+# $Id: RedHat.py,v 1.7 2005/06/21 21:52:19 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -33,7 +33,24 @@ from openvps.host import cfg, vsutil
 
 class RedHatBundle(Bundle):
 
+    # when rpm's are pulled from a local disk, they would be stored in
+    # distroot/DISTRO_DIR/RPMS
+    DISTRO_DIR = 'RedHat'
+
     # this is an abstract class
+
+    def __init__(self, distroot, vpsroot):
+
+        if not distroot.startswith('http://') and not distroot.startswith('https://'):
+
+            # this is a local file, the RPMS directory is actually a couple of
+            # levels below
+
+            distroot = os.path.join(distroot, self.DISTRO_DIR, 'RPMS')
+
+        # call super
+        Bundle.__init__(self, distroot, vpsroot)
+        
 
     def install(self):
 
