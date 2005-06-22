@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.7 2005/06/21 21:52:19 grisha Exp $
+# $Id: Fedora.py,v 1.8 2005/06/22 18:57:45 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -414,7 +414,8 @@ class Fedora_Core_4(Fedora_Core_3):
                      'gtk2-devel',
                      'http://www.openvps.org/dist/misc/mirror/perl-Net-SSLeay-1.23-0.rhfc1.dag.i386.rpm',
                      'http://www.openvps.org/dist/misc/mirror/proftpd-1.2.9-7.i386.rpm',
-                     'http://www.openvps.org/dist/misc/oh-bind-9.2.4-2.i386.rpm',
+            #'http://www.openvps.org/dist/misc/oh-bind-9.2.4-2.i386.rpm',
+            'bind',
                      'http://www.openvps.org/dist/misc/webmin-1.170-1_OH.noarch.rpm',
                      'httpd-devel', 'krb5-devel', 'libc-client',
                      'libidn', 'libstdc++-devel', 'libtool',
@@ -458,12 +459,18 @@ class Fedora_Core_4(Fedora_Core_3):
                      'xorg-x11-devel', 'xorg-x11-font-utils',
                      'xorg-x11-libs', 'xorg-x11-tools',
                      'xorg-x11-xauth', 'xorg-x11-xfs', 'xterm',
-                     'zlib-devel', ]
+                     'zlib-devel',
+
+            'apr-devel', 'libidn-devel', 'fonts-xorg-75dpi', 'libtiff', 'libjpeg-devel',
+            'libpng-devel', 'openssl097a', 'neon-devel', 'sqlite-devel',
+            'perl-BSD-Resource', 'libselinux-devel', 'cups-libs', 'freeglut',
+            'perl-Compress-Zlib'
+            ]
 
     class _Bundle_100_PHP(RedHatBundle):
 
         name = 'php'
-        desc = 'Fedora Core 3 PHP packages'
+        desc = 'Fedora Core 4 PHP packages'
         
         packages = [ 'php', 'php-devel',
                      'php-xml', 'php-imap', 'php-ldap',
