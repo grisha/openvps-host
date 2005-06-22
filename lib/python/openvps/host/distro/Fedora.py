@@ -14,13 +14,15 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.8 2005/06/22 18:57:45 grisha Exp $
+# $Id: Fedora.py,v 1.9 2005/06/22 19:43:25 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
 import os
 import sys
 import commands
+import tempfile
+import shutil
 
 from openvps.host import cfg
 from RedHat import RedHat, RedHatBundle, RedHat_Bundle_base
@@ -476,6 +478,45 @@ class Fedora_Core_4(Fedora_Core_3):
                      'php-xml', 'php-imap', 'php-ldap',
                      'php-mysql', 'php-pear', 'php-pgsql',
                      'php-xmlrpc', 'php-gd',]
+
+    def make_ssl_cert(self, hostname):
+
+        if os.path.exists(os.path.join(self.vpsroot, 'etc/pki/tls/certs/.openvps-cert')):
+            print 'NOT generating an SSL certificate, it appears to be there already.'
+            return
+
+        print 'Generating an SSL certificate...'
+
+        # now make a cert
+        ssl_conf = cfg.SSL_CONFIG.replace('@SSL_HOSTNAME@', hostname)
+        d = tempfile.mkdtemp()
+        f = open(os.path.join(d, "ssl.cfg"), 'w')
+        f.write(ssl_conf)
+        f.close()
+        s = commands.getoutput('openssl req -new -x509 -days 3650 -nodes -config %s '
+                           '-out %s/server.crt -keyout %s/server.key' % (os.path.join(d, 'ssl.cfg'), d, d))
+        print s
+        s = commands.getoutput('openssl x509 -subject -dates -fingerprint -noout -in %s/server.crt' %d)
+        print s
+        shutil.copy(os.path.join(d, 'server.crt'),  os.path.join(self.vpsroot, 'etc/pki/tls/certs/localhost.crt'))
+        shutil.copy(os.path.join(d, 'server.key'),  os.path.join(self.vpsroot, 'etc/pki/tls/private/localhost.key'))
+        os.chmod(os.path.join(self.vpsroot, 'etc/pki/tls/certs/localhost.crt'), 0700)
+        os.chmod(os.path.join(self.vpsroot, 'etc/pki/tls/private/localhost.key'), 0700)
+
+
+        shutil.copy(os.path.join(d, 'server.crt'),  os.path.join(self.vpsroot, 'etc/pki/dovecot/dovecot.pem'))
+        shutil.copy(os.path.join(d, 'server.key'),  os.path.join(self.vpsroot, 'etc/pki/dovecot/private/dovecot.pem'))
+        os.chmod(os.path.join(self.vpsroot, 'etc/pki/dovecot/dovecot.pem'), 0700)
+        os.chmod(os.path.join(self.vpsroot, 'etc/pki/dovecot/private/dovecot.pem'), 0700)
+
+        commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
+                                               os.path.join(self.vpsroot, 'etc/webmin/miniserv.pem')))
+
+        s = commands.getoutput('rm -rf %s' % d)
+        print s
+        open(os.path.join(self.vpsroot, 'etc/pki/tls/certs/.openvps-cert'), 'w').write('')
+
+
 
 
 distro_util.register(Fedora_Core_4)
