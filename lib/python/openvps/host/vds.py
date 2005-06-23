@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.14 2005/06/16 19:14:09 grisha Exp $
+# $Id: vds.py,v 1.15 2005/06/23 15:05:47 grisha Exp $
 
 """ VDS related functions """
 
@@ -857,7 +857,7 @@ def addip(vserver, ip, dev, mask):
     # add a second ip address to a vserver
     
     vsutil.add_vserver_ip(vserver, ip, dev, mask)
-    vserver_iptables_rule(dev, ip)
+    vsutil.iptables_rule(dev, ip)
 
 def rpm_which_package(ts, root, file):
 

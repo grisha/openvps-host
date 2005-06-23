@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.10 2005/06/07 17:12:41 grisha Exp $
+# $Id: vsutil.py,v 1.11 2005/06/23 15:05:47 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -440,6 +440,28 @@ def stop(vserver):
         return commands.getoutput('%s %s stop' % (cfg.VSERVER, vserver))
     else:
         return commands.getoutput('%s vserver-stop %s' % (cfg.OVWRAPPER, vserver))
+
+
+def iptables_rule(dev, ip):
+
+    print 'Adding iptables rules for bandwidth montoring'
+
+    # make sure dummy traffic is counted
+    dev = dev.replace('dummy', 'eth')
+
+    cmd = 'iptables -D INPUT -i %s -d %s' % (dev, ip)
+    print ' ', cmd
+    commands.getoutput(cmd)
+    cmd = 'iptables -A INPUT -i %s -d %s' % (dev, ip)
+    print ' ', cmd
+    commands.getoutput(cmd)
+    cmd = 'iptables -D OUTPUT -o %s -s %s' % (dev, ip)
+    print ' ', cmd
+    commands.getoutput(cmd)
+    cmd = 'iptables -A OUTPUT -o %s -s %s' % (dev, ip)
+    print ' ', cmd
+    commands.getoutput(cmd)    
+
 
 #
 # XXX These are obsolete with vs 1.9.x and up

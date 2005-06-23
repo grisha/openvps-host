@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.7 2005/06/16 19:14:09 grisha Exp $
+# $Id: Distro.py,v 1.8 2005/06/23 15:05:47 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -303,23 +303,7 @@ class Distro(object):
 
     def iptables_rule(self, dev, ip):
 
-        print 'Adding iptables rules for bandwidth montoring'
-
-        # make sure dummy traffic is counted
-        dev = dev.replace('dummy', 'eth')
-
-        cmd = 'iptables -D INPUT -i %s -d %s' % (dev, ip)
-        print ' ', cmd
-        commands.getoutput(cmd)
-        cmd = 'iptables -A INPUT -i %s -d %s' % (dev, ip)
-        print ' ', cmd
-        commands.getoutput(cmd)
-        cmd = 'iptables -D OUTPUT -o %s -s %s' % (dev, ip)
-        print ' ', cmd
-        commands.getoutput(cmd)
-        cmd = 'iptables -A OUTPUT -o %s -s %s' % (dev, ip)
-        print ' ', cmd
-        commands.getoutput(cmd)    
+        vsutil.iptables_rule(dev, ip)
 
     def make_ssl_cert(self):
         raise "NOT IMPLEMENTED"
