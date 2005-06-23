@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.9 2005/06/22 19:43:25 grisha Exp $
+# $Id: Fedora.py,v 1.10 2005/06/23 21:52:36 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -152,6 +152,8 @@ class Fedora_Core_3(Fedora_Core):
 
 
         def enable_shadow(self):
+
+            print 'Enabling shadow and MD5 hashes'
 
             # enable shadow and md5 (I wonder why it isn't by default)
             cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, self.vpsroot)
@@ -336,7 +338,7 @@ class Fedora_Core_4(Fedora_Core_3):
 
     FC_VER = 4
 
-    class _Bundle_base(RedHat_Bundle_base):
+    class _Bundle_base(Fedora_Core_3._Bundle_base):
 
         DISTRO_DIR = 'Fedora'
 
@@ -414,11 +416,10 @@ class Fedora_Core_4(Fedora_Core_3):
                      'glib-devel', 'glib2-devel', 'glibc-devel',
                      'glibc-headers', 'glibc-kernheaders', 'gtk2',
                      'gtk2-devel',
-                     'http://www.openvps.org/dist/misc/mirror/perl-Net-SSLeay-1.23-0.rhfc1.dag.i386.rpm',
+                     'http://www.openvps.org/dist/misc/mirror/perl-Net-SSLeay-1.26-2.i386.rpm',
                      'http://www.openvps.org/dist/misc/mirror/proftpd-1.2.9-7.i386.rpm',
-            #'http://www.openvps.org/dist/misc/oh-bind-9.2.4-2.i386.rpm',
-            'bind',
-                     'http://www.openvps.org/dist/misc/webmin-1.170-1_OH.noarch.rpm',
+            'http://www.openvps.org/dist/misc/oh-bind-9.3.1-4.i386.rpm',
+                     'http://www.openvps.org/dist/misc/webmin-1.210-1_OH.noarch.rpm',
                      'httpd-devel', 'krb5-devel', 'libc-client',
                      'libidn', 'libstdc++-devel', 'libtool',
                      #'libtool-libs',
