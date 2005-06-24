@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: distro_util.py,v 1.1 2005/06/13 21:14:54 grisha Exp $
+# $Id: distro_util.py,v 1.2 2005/06/24 17:55:43 grisha Exp $
 
 # this module contains a register function that gives an opportunity
 # for distro modules in this package to register their
@@ -26,7 +26,15 @@ def register(klass):
     _registered.append(klass)
 
 # this should trigger the registrations
-from openvps.host.distro import *
+try:
+    from openvps.host.distro import *
+except AttributeError:
+    
+    # not sure what the problem is, but this will fail depending on
+    # how the module is imported.
+    print 'WARNING: Registrations probably failed. Make sure distro_util is import like this:'
+    print 'from openvps.host.distro import distro_util'
+
 
 def probe_distro(vpsroot, distroot):
 

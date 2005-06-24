@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.7 2005/06/21 21:52:19 grisha Exp $
+# $Id: RedHat.py,v 1.8 2005/06/24 17:55:43 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -30,6 +30,8 @@ import tempfile
 
 from openvps.common import util
 from openvps.host import cfg, vsutil
+
+header_info_cache = None
 
 class RedHatBundle(Bundle):
 
@@ -107,10 +109,18 @@ class RedHatBundle(Bundle):
             ### the distroot is a url
 
             # we rely on header.info file
-            hi_url = os.path.join(self.distroot, 'headers/header.info')
-            print 'Getting '+hi_url
+            global header_info_cache
 
-            hi = urllib.urlopen(hi_url).readlines()
+            if header_info_cache:
+                hi = header_info_cache
+            else:
+                hi_url = os.path.join(self.distroot, 'headers/header.info')
+                print 'Getting '+hi_url
+
+                hi = urllib.urlopen(hi_url).readlines()
+
+                # cache it
+                header_info_cache = hi
 
             for line in hi:
                 rpm_name, rpm_path = line.strip().split(':')[1].split('=')
