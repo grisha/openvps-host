@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.8 2005/06/24 17:55:43 grisha Exp $
+# $Id: RedHat.py,v 1.9 2005/06/29 20:50:13 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -787,3 +787,12 @@ class RedHat(Distro):
         self.webmin_passwd()
         self.fixup_libexec_openvps()
         
+    def custcopy(self, source, name, userid, data={}, dns=cfg.PRIMARY_IP):
+
+        xid = Distro.custcopy(self, source, name, userid, data, dns)
+
+        self.fixup_rc()
+        self.webmin_passwd()
+        self.fixup_libexec_openvps()
+
+        return xid

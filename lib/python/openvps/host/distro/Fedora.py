@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.11 2005/06/24 17:55:43 grisha Exp $
+# $Id: Fedora.py,v 1.12 2005/06/29 20:50:13 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -318,6 +318,15 @@ class Fedora_Core_3(Fedora_Core):
         self.disable_pam_limits()
         self.fix_vncserver(name)
 
+    def custcopy(self, source, name, userid, data={}, dns=cfg.PRIMARY_IP):
+
+        xid = RedHat.custcopy(self, source, name, userid, data, dns)
+
+        self.enable_imaps()
+        self.disable_pam_limits()
+        self.fix_vncserver(name)
+
+        return xid
 
 distro_util.register(Fedora_Core_3)
 
