@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.11 2005/06/23 15:05:47 grisha Exp $
+# $Id: vsutil.py,v 1.12 2005/07/08 19:48:36 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -463,36 +463,92 @@ def iptables_rule(dev, ip):
     commands.getoutput(cmd)    
 
 
-#
-# XXX These are obsolete with vs 1.9.x and up
-#
+def is_tc_base_up():
 
-# def set_file_immutable_link_legacy(path):
-#     """ Sets the ext2 immutable flag. This is the special
-#         flag that only exists in a vserver kernel."""
+    # is the basic tc stuff there?
 
-#     f = open(path)
-#     # 0x00008010 is EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL
-#     rec = struct.pack('L', 0x00008010)
-#     # 0x40046602 is EXT2_IOC_SETFLAGS
-#     fcntl.ioctl(f.fileno(), 0x40046602, rec)
+    cmd = 'tc class ls dev %s | grep "class htb 10:2 root"' % cfg.DFT_DEVICE
+    s = commands.getoutput(cmd)
 
-# def is_file_immutable_link_legacy(path):
-#     """ Does this file have immutable_file and immutable_link
-#         flags set, which would mean it is a safe bet that it
-#         cannot be modified from within a vserver """
+    return 'class htb' in s
 
-#     ## this should really be
-#     # EXT2_IOC_GETFLAGS = 0x80046601
-#     # but because of a FutureWarnig for 2.4, we have this
-#     EXT2_IOC_GETFLAGS = struct.unpack('i',
-#                                       struct.pack('L', 0x80046601L))[0]
+def set_tc_class(vserver):
 
-#     f = open(path)
-#     flags = struct.unpack('L',
-#                           fcntl.ioctl(f.fileno(),
-#                                       EXT2_IOC_GETFLAGS, '    '))[0]
-    
-#     # 0x00008010 is EXT2_IMMUTABLE_FILE_FL | EXT2_IMMUTABLE_LINK_FL
-#     return flags & 0x00008010 == 0x00008010
+    if not is_tc_base_up():
 
+        print 'tc (traffic shaping) base not set up, skipping it. try "service ovtc start"'
+
+    else:
+
+        print 'Setting tc (traffic shaping) class for', vserver
+
+        # is there a file? the format is ceil[:n], e.g. "5mbit" or "5mbit:12"
+        n, ceil = None, cfg.DFT_VS_CEIL
+        try:
+            parts  = open(os.path.join(cfg.VAR_DB_OPENVPS, 'tc', vserver)).read().strip().split(':')
+            if len(parts) == 1:
+                 ceil = parts[0]
+            else:
+                 ceil, n = parts[:2]
+        except IOError: pass
+
+        vs = list_vservers()
+
+        if n is None:
+            # default to 1 + last three digits of the xid
+            n = '1' + vs[vserver]['context'][-3:]
+
+        # is there a filter by this id?
+
+        cmd = 'tc filter ls dev %s parent 10: | grep "flowid 10:%s"' % (cfg.DFT_DEVICE, n)
+        s = commands.getoutput(cmd)
+        
+        if 'flowid' in s:
+
+            # kill them (see http://mailman.ds9a.nl/pipermail/lartc/2004q4/014500.html)
+
+            for filter in s.splitlines():
+
+                # find the prio, handle, kind
+                parts = filter.split()
+                handle = parts[parts.index('fh')+1]
+                prio = parts[parts.index('pref')+1]
+                kind = parts[parts.index('pref')+2]
+
+                cmd = 'tc filter del dev %s parent 10: prio %s handle %s %s' % \
+                      (cfg.DFT_DEVICE, prio, handle, kind)
+                print cmd
+                print commands.getoutput(cmd)
+
+        # is there a classes ?
+
+        cmd = 'tc class ls dev %s parent 10:2 | grep "htb 10:%s"' % (cfg.DFT_DEVICE, n)
+        s = commands.getoutput(cmd)
+
+        if 'class' in s:
+
+            # kill it too
+            cmd = 'tc class del dev %s parent 10:2 classid 10:%s' % (cfg.DFT_DEVICE, n)
+            print cmd
+            print commands.getoutput(cmd)
+
+        # now we can do our thing
+
+        cmd = 'tc class add dev %s parent 10:2 classid 10:%s htb rate %s ceil %s burst 15k' % \
+              (cfg.DFT_DEVICE, n, cfg.DFT_VS_RATE, ceil)
+        print cmd
+        print commands.getoutput(cmd)
+
+        U32 = 'tc filter add dev %s protocol ip parent 10:0 prio 1 u32' % cfg.DFT_DEVICE
+        
+        for i in vs[vserver]['interfaces']:
+            if i['dev'] == cfg.DFT_DEVICE or i[dev].startwith['dummy']:
+
+                # dummy is here because its packets actually enter via DFT_DEVICE in
+                # a DSR load-balancing scenario
+                
+                cmd = '%s match ip src %s/32 flowid 10:%s' % (U32, i['ip'], n)
+                print cmd
+                print commands.getoutput(cmd)
+
+        
