@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.19 2005/06/16 19:14:09 grisha Exp $
+# $Id: dft.py.in,v 1.20 2005/07/08 17:32:35 grisha Exp $
 
 """ Configuration Defaults
 
@@ -221,6 +221,27 @@ DFT_SCHED = {'fill-rate': 30,
 
 # Device on which vservers get their IPs
 DFT_DEVICE = 'eth0'
+
+# Traffic shaping things. This is default per-server bandwidth for all
+# vservers. This means that the sum of all of vservers bandwidth is
+# not to exceed this value. Note that this is only applicable to the
+# vserver htb, traffic from the main server IP (xid 0) is restricted
+# by another htb to 100mbit. See /etc/init.d/ovtc.
+
+DFT_VS_RATE_TOT = '10mbit'
+
+# The per-vserver rate and ceil. Note that the sum of all children
+# must not exceed the DFT_VS_RATE_TOT. So if we plan on putting 40 or
+# less VPS's on a box and the DFT_VS_RATE_TOT is 10mbit, this value is
+# 10mbit / 40 = 256kbit. This does not mean that the bandwith is
+# restricted to this, the restriction is the ceil parameter. This is
+# in effect the guaranteed rate.
+
+DFT_VS_RATE = '256kbit'
+
+# This is the default per-server ceiling. A vps can never exceed this.
+
+DFT_VS_CEIL = '5mbit'
 
 # Which "commands" are allowed to run with elevated capabilities and
 # what are those caps. The path is absolute inside a vserver.

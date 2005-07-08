@@ -1,0 +1,122 @@
+#!/bin/sh
+# chkconfig: 345 30 70
+# description: This sets up traffic shaping (tc) rules for \
+#   vservers
+#
+
+#
+# Copyright 2005 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: ovtc,v 1.1 2005/07/08 17:32:35 grisha Exp $
+
+DFT_DEVICE=`python -c 'from openvps.host import cfg; print cfg.DFT_DEVICE'`
+DFT_VS_RATE_TOT=`python -c 'from openvps.host import cfg; print cfg.DFT_VS_RATE_TOT'`
+DFT_VS_RATE=`python -c 'from openvps.host import cfg; print cfg.DFT_VS_RATE'`
+DFT_VS_CEIL=`python -c 'from openvps.host import cfg; print cfg.DFT_VS_CEIL'`
+VAR_DB_OPENVPS=`python -c 'from openvps.host import cfg; print cfg.VAR_DB_OPENVPS'`
+
+# See how we were called.
+case "$1" in
+  start)
+
+	echo "Creating tc (traffic shaping) rules"
+
+        # make sure tc dir is there
+	mkdir -p $VAR_DB_OPENVPS/tc
+
+	# clear any rules we have
+	tc qdisc del dev $DFT_DEVICE root > /dev/null 2>&1
+
+	# first we have an "emergency clamp" for the whole server. you
+        # can tweak it with:
+        # tc class change dev eth0 parent 1: classid 1:1 htb rate 10mbit burst 2k
+	
+	tc qdisc add dev $DFT_DEVICE root handle 1: htb default 1
+	tc class add dev $DFT_DEVICE parent 1: classid 1:1 htb rate 100mbit burst 2k
+
+	# then we start our second htb
+	tc qdisc add dev $DFT_DEVICE parent 1:1 handle 10: htb default 1
+
+        # an internal class that only we can use (default above)
+	tc class add dev $DFT_DEVICE parent 10: classid 10:1 htb rate 90mbit ceil 100mbit burst 15k
+
+        # container for all vservers
+	tc class add dev $DFT_DEVICE parent 10: classid 10:2 htb rate 10mbit ceil $DFT_VS_RATE_TOT burst 15k
+
+	python <<EOF | sh -x
+
+import os
+from openvps.host import vsutil
+from openvps.host import cfg
+
+vs = vsutil.list_vservers()
+
+U32="tc filter add dev eth0 protocol ip parent 10:0 prio 1 u32"
+
+for v in vs:
+
+    # is there a file? the format is ceil[:n], e.g. "5mbit" or "5mbit:12"
+    n, ceil = None, "$DFT_VS_CEIL"
+    try:
+        parts  = open(os.path.join(cfg.VAR_DB_OPENVPS, 'tc', v)).read().strip().split(':')
+        if len(parts) == 1:
+             ceil = parts[0]
+        else:
+             ceil, n = parts[:2]
+    except IOError: pass
+
+    if n is None:
+        # default to 1 + last three digits of the xid
+        n = '1' + vs[v]['context'][-3:]
+
+    print "tc class add dev $DFT_DEVICE parent 10:2 classid 10:%s htb rate $DFT_VS_RATE ceil %s burst 15k" % (n, ceil)
+
+    for i in vs[v]['interfaces']:
+        if i['dev'] == 'eth0':
+            print U32, "match ip src %s/32 flowid 10:%s" % (i['ip'], n)
+
+
+EOF
+
+	;;
+  stop)
+	# clear any rules we have
+	tc qdisc del dev $DFT_DEVICE root > /dev/null 2>&1
+	;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  reload)
+	echo Not implemented
+	;;
+  force-reload)
+	$0 stop
+	$0 start
+        ;;
+  status)
+	echo Not implemented
+	;;
+  *)
+	echo "Usage: ovtc {start|stop|restart|reload|status}"
+	exit 1
+esac
+
+exit 0
+
+
+
+

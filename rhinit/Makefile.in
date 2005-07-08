@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.7 2005/01/20 19:49:34 grisha Exp $
+# $Id: Makefile.in,v 1.8 2005/07/08 17:32:35 grisha Exp $
 
 INSTALL=@INSTALL@
 CHKCONFIG=/sbin/chkconfig
@@ -30,6 +30,7 @@ distclean: clean
 
 install:
 	$(INSTALL) ovresources $(DESTDIR)$(INITD)/ovresources
+	$(INSTALL) ovtc $(DESTDIR)$(INITD)/ovtc
 	$(INSTALL) ohd $(DESTDIR)$(INITD)/ohd
 	$(INSTALL) ovfixproc $(DESTDIR)$(INITD)/ovfixproc
 	$(INSTALL) openvps-mon $(DESTDIR)$(INITD)/openvps-mon

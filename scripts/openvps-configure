@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-configure,v 1.13 2005/05/16 14:45:49 grisha Exp $
+# $Id: openvps-configure,v 1.14 2005/07/08 17:32:35 grisha Exp $
 
 #
 #This script initially sets up the system.
@@ -408,7 +408,7 @@ def fix_services():
 
     for srv in ['network', 'sshd', 'syslog', 'atd', 'random', 'iptables',
                 'crond', 'anacron', 'httpd', 'named', 'vservers-default',
-                'ovresources', 'ohd', 'ohfixproc', 'openvps-mon', 'netfs']:
+                'ovresources', 'ohd', 'ovtc', 'ohfixproc', 'openvps-mon', 'netfs']:
         print srv,
         commands.getoutput('/sbin/chkconfig %s on' % srv)
 
