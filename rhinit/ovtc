@@ -20,13 +20,10 @@
 # limitations under the License.
 #
 
-# $Id: ovtc,v 1.1 2005/07/08 17:32:35 grisha Exp $
+# $Id: ovtc,v 1.2 2005/07/08 19:59:52 grisha Exp $
 
 DFT_DEVICE=`python -c 'from openvps.host import cfg; print cfg.DFT_DEVICE'`
 DFT_VS_RATE_TOT=`python -c 'from openvps.host import cfg; print cfg.DFT_VS_RATE_TOT'`
-DFT_VS_RATE=`python -c 'from openvps.host import cfg; print cfg.DFT_VS_RATE'`
-DFT_VS_CEIL=`python -c 'from openvps.host import cfg; print cfg.DFT_VS_CEIL'`
-VAR_DB_OPENVPS=`python -c 'from openvps.host import cfg; print cfg.VAR_DB_OPENVPS'`
 
 # See how we were called.
 case "$1" in
@@ -56,38 +53,15 @@ case "$1" in
         # container for all vservers
 	tc class add dev $DFT_DEVICE parent 10: classid 10:2 htb rate 10mbit ceil $DFT_VS_RATE_TOT burst 15k
 
-	python <<EOF | sh -x
+	python <<EOF
 
 import os
 from openvps.host import vsutil
-from openvps.host import cfg
 
 vs = vsutil.list_vservers()
 
-U32="tc filter add dev eth0 protocol ip parent 10:0 prio 1 u32"
-
 for v in vs:
-
-    # is there a file? the format is ceil[:n], e.g. "5mbit" or "5mbit:12"
-    n, ceil = None, "$DFT_VS_CEIL"
-    try:
-        parts  = open(os.path.join(cfg.VAR_DB_OPENVPS, 'tc', v)).read().strip().split(':')
-        if len(parts) == 1:
-             ceil = parts[0]
-        else:
-             ceil, n = parts[:2]
-    except IOError: pass
-
-    if n is None:
-        # default to 1 + last three digits of the xid
-        n = '1' + vs[v]['context'][-3:]
-
-    print "tc class add dev $DFT_DEVICE parent 10:2 classid 10:%s htb rate $DFT_VS_RATE ceil %s burst 15k" % (n, ceil)
-
-    for i in vs[v]['interfaces']:
-        if i['dev'] == 'eth0':
-            print U32, "match ip src %s/32 flowid 10:%s" % (i['ip'], n)
-
+    vsutil.set_tc_class(v)
 
 EOF
 
