@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.8 2005/06/23 15:05:47 grisha Exp $
+# $Id: Distro.py,v 1.9 2005/07/12 14:48:46 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -521,7 +521,7 @@ class Distro(object):
         self.fix_services()
 
         xid = config['context']
-        disklim = vsutil.get_disk_limits(xid)['i_total']
+        disklim = vsutil.get_disk_limits(xid)['b_total']
         self.disk_limit(xid, disklim, force=True)
 
         # the rule should already be there
