@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.28 2005/07/08 17:32:35 grisha Exp $
+# $Id: mkspec.in,v 1.29 2005/07/12 18:14:16 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -64,6 +64,7 @@ echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/openvps"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/openvps/vsmon"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/var/db/openvps/disklimits"
 echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/%{_libdir}/@PYTHON@/site-packages/openvps"
+echo "mkdir -p -m 755 \$RPM_BUILD_ROOT/etc/vservers/.defaults/scripts/pre-start.d"
 echo 'make install DESTDIR=$RPM_BUILD_ROOT'
 
 echo "%clean"
@@ -82,6 +83,7 @@ echo "/etc/init.d/ovfixproc"
 echo "/etc/init.d/ovresources"
 echo "/etc/init.d/ovtc"
 echo "/etc/init.d/openvps-mon"
+echo "/etc/vservers/.defaults/scripts/pre-start.d/openvps"
 echo "/etc/openvps-release"
 echo "/usr/openvps"
 echo "/usr/sbin/ovbackup"

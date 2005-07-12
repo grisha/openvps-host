@@ -20,7 +20,7 @@
 # limitations under the License.
 #
 
-# $Id: ovtc,v 1.2 2005/07/08 19:59:52 grisha Exp $
+# $Id: ovtc,v 1.3 2005/07/12 18:14:16 grisha Exp $
 
 DFT_DEVICE=`python -c 'from openvps.host import cfg; print cfg.DFT_DEVICE'`
 DFT_VS_RATE_TOT=`python -c 'from openvps.host import cfg; print cfg.DFT_VS_RATE_TOT'`
@@ -55,7 +55,6 @@ case "$1" in
 
 	python <<EOF
 
-import os
 from openvps.host import vsutil
 
 vs = vsutil.list_vservers()
