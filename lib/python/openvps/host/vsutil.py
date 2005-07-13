@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.12 2005/07/08 19:48:36 grisha Exp $
+# $Id: vsutil.py,v 1.13 2005/07/13 18:07:24 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -542,7 +542,7 @@ def set_tc_class(vserver):
         U32 = 'tc filter add dev %s protocol ip parent 10:0 prio 1 u32' % cfg.DFT_DEVICE
         
         for i in vs[vserver]['interfaces']:
-            if i['dev'] == cfg.DFT_DEVICE or i[dev].startwith['dummy']:
+            if i['dev'] == cfg.DFT_DEVICE or i['dev'].startswith('dummy'):
 
                 # dummy is here because its packets actually enter via DFT_DEVICE in
                 # a DSR load-balancing scenario
