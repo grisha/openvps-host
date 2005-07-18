@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.40 2005/06/17 19:22:51 grisha Exp $
+# $Id: panel.py,v 1.41 2005/07/18 20:25:16 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -26,6 +26,7 @@ import time
 import sys
 import binascii
 import tempfile
+import random
 
 import RRD
 
@@ -139,6 +140,15 @@ def handler(req):
         name, command = parts[2:]
 
         return getstats(req, name, command)
+
+    elif parts[1] == 'graph':
+
+        if len(parts) != 4:
+            return error(req, 'request not understood')
+
+        name, command = parts[2:]
+
+        return graph(req, name, command)
 
     else:
         return error(req, 'request not understood')
@@ -845,3 +855,232 @@ def getstats(req, name, command):
 
 
     return apache.OK
+
+def graph(req, name, command):
+
+    if not req.args:
+        return error(req, 'Not sure what you mean')
+
+    qargs = util.parse_qs(req.args)
+        
+    if not qargs.has_key('s'):
+        return error(req, 'Where do I start?')
+
+    start = '-'+qargs['s'][0]
+    width = 484
+    height = 60
+    nolegend = ''
+    if qargs.has_key('l'):
+        nolegend = '-g'  # no legend
+
+    # how many days back?
+    secs = abs(int(start))
+    if secs < 60*60*24:
+        # we're talking hours
+        title = 'last %d hours' % (secs/(60*60))
+    else:
+        title = 'last %d days' % (secs/(60*60*24))
+
+    if command == 'bwidth':
+        # here we need to draw a nice little graph....
+
+        tfile, tpath = tempfile.mkstemp('.gif', 'oh')
+        os.close(tfile)
+
+        args = [tpath, '--start', start,
+                '--title', title,
+                '-w', str(width),
+                '-h', str(height),
+                '-c', 'SHADEB#FFFFFF',
+                '-c', 'SHADEA#FFFFFF',
+                '-l', '0']
+
+        vservers = vsutil.list_vservers()
+        cg = ColorGenerator()
+        colors = ['%x%x%x' % c for c in cg.rainbow()]
+
+        for x in 'abcdef':
+            vservers['zzzz'+x] = vservers['zzzz']
+
+        keys = vservers.keys()
+        keys.sort()
+
+        for vs in keys:
+        
+            #rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % vs)
+            rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/zzzz.rrd')
+            args = args + [
+                'DEF:%s_in=%s:vs_in:AVERAGE' % (vs, rrd),
+                'DEF:%s_out=%s:vs_out:AVERAGE' % (vs, rrd),
+                'CDEF:%s_inb=%s_in,-8,*' % (vs, vs),
+                'CDEF:%s_outb=%s_out,8,*' % (vs, vs) ]
+
+        # incoming
+        ci = 0
+        args = args + [
+            'AREA:%s_outb#%s:%s bps out' % (keys[0], colors[ci], keys[0])
+            ]
+            
+        for vs in keys[1:]:
+            ci += 1
+            args = args + [
+                'STACK:%s_outb#%s:%s bps out' % (vs, colors[ci], vs)
+                ]
+
+        # outgoing
+        keys.reverse()
+        ci = 0
+        args = args + [
+            'AREA:%s_inb#%s:%s bps in' % (keys[0], colors[ci], keys[0])
+            ]
+            
+        for vs in keys[1:]:
+            ci += 1
+            args = args + [
+                'STACK:%s_inb#%s:%s bps in' % (vs, colors[ci], vs)
+                ]
+
+        if qargs.has_key('l'):
+            args.append('-g')  # no legend
+        
+        RRD.graph(*args)
+        
+        req.content_type = 'image/gif'
+        req.sendfile(tpath)
+        os.unlink(tpath)
+        
+        return apache.OK
+    else:
+        return error(req, 'request not understood')
+
+
+class ColorGenerator:
+    """ This class gives out a new color every time
+    you ask, in the same order. You can give it a 
+    list of colors to give out first. The colors are
+    (R,G,B) tuples.
+    """
+
+    def __init__( self, first=[] ):
+	""" Build a list of Colors"""
+
+	# smaller step will result in more colors
+	self.step = 64
+	# different seed will order colors differently
+	self.seed = 8
+
+	colors = self.rainbow()
+
+	# get rid of colors that are in first
+	# this is a tedious operation
+	diff = self.step
+	delthis = []
+	for c in colors:
+	    for f in first:
+		if abs( f[0] - c[0] ) < diff:
+		    if abs( f[1] - c[1] ) < diff:
+			if abs( f[2] - c[2] ) < diff:
+			    delthis.append( c )
+	for d in delthis:
+            pass # XXX WTF?
+	    #del colors[ colors.index(d) ]
+
+	# now stuff it in self.colors in random order
+	# colors given as parameters first.
+
+	self.colors = first
+	random.seed( self.seed ) # any number
+	
+	while len( colors ) > 0:
+	    c = random.choice( colors )
+	    if c not in self.colors:
+		self.colors.append( c )
+	    del colors[colors.index(c)]
+
+
+    def manycolors( self ):
+	colors = [] 
+	step = 16384
+	for i in range( 0, 16777215, step ):
+	    h = '%06x' % i
+	    print '.',
+	    colors.append( ( atoi( h[0:2], 16 ), \
+			     atoi( h[2:4], 16 ), \
+			     atoi( h[4:6], 16 ) ) )
+	return colors
+
+    def makecolors( self ):
+
+	rgb = ['r', 'rg', 'rb', 'rgb', 'g', 'gb', 'b']
+	colors = []
+	r,g,b = 0,0,0
+	step = self.step
+
+	for x in rgb:
+	    # increment
+	    for i in range ( 255 / step ):
+		if 'r' in x:
+		    r = r + step
+		if 'g' in x:
+		    g = g + step
+		if 'b' in x:
+		    b = b + step
+		colors.append( (r,g,b) )
+	    # decrement
+	    for i in range ( 255 / step ):
+		if 'r' in x:
+		    r = r - step
+		if 'g' in x:
+		    g = g - step
+		if 'b' in x:
+		    b = b - step
+		colors.append( (r,g,b) )
+
+	return colors
+
+    def rainbow( self ):
+
+	colors = []
+	step = self.step
+
+	# red -> yellow
+	r,g,b = 255,0,0 
+	while g <= 255:
+	    colors.append( ( r, g, b ) )
+	    g = g + step
+
+	# yellow -> green
+	r,g,b = 255,255,0 
+	while r >= 0:
+	    colors.append( ( r, g, b ) )
+	    r = r - step
+
+	# green -> sky blue
+	r,g,b = 0,255,0 
+	while b <= 255:
+	    colors.append( ( r, g, b ) )
+	    b = b + step
+
+	# sky blue -> blue
+	r,g,b = 0,255,255 
+	while g >=0:
+	    colors.append( ( r, g, b ) )
+	    g = g - step
+
+	# blue -> purple
+	r,g,b = 0,0,255 
+	while r <= 255:
+	    colors.append( ( r, g, b ) )
+	    r = r + step
+
+	# purple -> red
+	r,g,b = 255,0,255 
+	while b >= 0:
+	    colors.append( ( r, g, b ) )
+	    b = b - step
+
+	return colors
+
+
+
+
