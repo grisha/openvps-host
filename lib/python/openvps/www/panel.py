@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.41 2005/07/18 20:25:16 grisha Exp $
+# $Id: panel.py,v 1.42 2005/07/19 17:49:54 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -866,9 +866,19 @@ def graph(req, name, command):
     if not qargs.has_key('s'):
         return error(req, 'Where do I start?')
 
+    # exclude these vps's
+    exclude = []
+    if qargs.has_key('exclude'):
+        exclude = qargs['exclude'][0].split()
+
+    # limit to only these vps's
+    limit = []
+    if qargs.has_key('limit'):
+        limit = qargs['limit'][0].split()
+
     start = '-'+qargs['s'][0]
-    width = 484
-    height = 60
+    width = 600
+    height = 400
     nolegend = ''
     if qargs.has_key('l'):
         nolegend = '-g'  # no legend
@@ -896,19 +906,20 @@ def graph(req, name, command):
                 '-l', '0']
 
         vservers = vsutil.list_vservers()
-        cg = ColorGenerator()
-        colors = ['%x%x%x' % c for c in cg.rainbow()]
 
-        for x in 'abcdef':
-            vservers['zzzz'+x] = vservers['zzzz']
+        if limit:
+            keys = limit
+        else:
+            keys = vservers.keys()
 
-        keys = vservers.keys()
+        keys = [k for k in keys if k not in exclude]
+
         keys.sort()
 
         for vs in keys:
-        
-            #rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % vs)
-            rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/zzzz.rrd')
+
+            rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % vs)
+            
             args = args + [
                 'DEF:%s_in=%s:vs_in:AVERAGE' % (vs, rrd),
                 'DEF:%s_out=%s:vs_out:AVERAGE' % (vs, rrd),
@@ -918,26 +929,33 @@ def graph(req, name, command):
         # incoming
         ci = 0
         args = args + [
-            'AREA:%s_outb#%s:%s bps out' % (keys[0], colors[ci], keys[0])
+            'AREA:%s_outb#%s:%s bps out' % (keys[0], COLORS[ci], keys[0].ljust(10)),
+            'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
+            'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (vs, ),
+            'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (vs, ),
+            'GPRINT:%s_outb:AVERAGE:Avg OUT\\: %%8.2lf%%s\\n' % (vs, )
             ]
             
         for vs in keys[1:]:
             ci += 1
             args = args + [
-                'STACK:%s_outb#%s:%s bps out' % (vs, colors[ci], vs)
+                'STACK:%s_outb#%s:%s bps out' % (vs, COLORS[ci], vs.ljust(10)),
+                'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
+                'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (vs, ),
+                'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (vs, ),
+                'GPRINT:%s_outb:AVERAGE:Avg OUT\\: %%8.2lf%%s\\n' % (vs, )
                 ]
 
         # outgoing
         keys.reverse()
-        ci = 0
         args = args + [
-            'AREA:%s_inb#%s:%s bps in' % (keys[0], colors[ci], keys[0])
+            'AREA:%s_inb#%s::' % (keys[0], COLORS[ci]),
             ]
             
         for vs in keys[1:]:
-            ci += 1
+            ci -= 1
             args = args + [
-                'STACK:%s_inb#%s:%s bps in' % (vs, colors[ci], vs)
+                'STACK:%s_inb#%s::' % (vs, COLORS[ci]),
                 ]
 
         if qargs.has_key('l'):
@@ -954,133 +972,11 @@ def graph(req, name, command):
         return error(req, 'request not understood')
 
 
-class ColorGenerator:
-    """ This class gives out a new color every time
-    you ask, in the same order. You can give it a 
-    list of colors to give out first. The colors are
-    (R,G,B) tuples.
-    """
-
-    def __init__( self, first=[] ):
-	""" Build a list of Colors"""
-
-	# smaller step will result in more colors
-	self.step = 64
-	# different seed will order colors differently
-	self.seed = 8
-
-	colors = self.rainbow()
-
-	# get rid of colors that are in first
-	# this is a tedious operation
-	diff = self.step
-	delthis = []
-	for c in colors:
-	    for f in first:
-		if abs( f[0] - c[0] ) < diff:
-		    if abs( f[1] - c[1] ) < diff:
-			if abs( f[2] - c[2] ) < diff:
-			    delthis.append( c )
-	for d in delthis:
-            pass # XXX WTF?
-	    #del colors[ colors.index(d) ]
-
-	# now stuff it in self.colors in random order
-	# colors given as parameters first.
-
-	self.colors = first
-	random.seed( self.seed ) # any number
-	
-	while len( colors ) > 0:
-	    c = random.choice( colors )
-	    if c not in self.colors:
-		self.colors.append( c )
-	    del colors[colors.index(c)]
-
-
-    def manycolors( self ):
-	colors = [] 
-	step = 16384
-	for i in range( 0, 16777215, step ):
-	    h = '%06x' % i
-	    print '.',
-	    colors.append( ( atoi( h[0:2], 16 ), \
-			     atoi( h[2:4], 16 ), \
-			     atoi( h[4:6], 16 ) ) )
-	return colors
-
-    def makecolors( self ):
-
-	rgb = ['r', 'rg', 'rb', 'rgb', 'g', 'gb', 'b']
-	colors = []
-	r,g,b = 0,0,0
-	step = self.step
-
-	for x in rgb:
-	    # increment
-	    for i in range ( 255 / step ):
-		if 'r' in x:
-		    r = r + step
-		if 'g' in x:
-		    g = g + step
-		if 'b' in x:
-		    b = b + step
-		colors.append( (r,g,b) )
-	    # decrement
-	    for i in range ( 255 / step ):
-		if 'r' in x:
-		    r = r - step
-		if 'g' in x:
-		    g = g - step
-		if 'b' in x:
-		    b = b - step
-		colors.append( (r,g,b) )
-
-	return colors
-
-    def rainbow( self ):
-
-	colors = []
-	step = self.step
-
-	# red -> yellow
-	r,g,b = 255,0,0 
-	while g <= 255:
-	    colors.append( ( r, g, b ) )
-	    g = g + step
-
-	# yellow -> green
-	r,g,b = 255,255,0 
-	while r >= 0:
-	    colors.append( ( r, g, b ) )
-	    r = r - step
-
-	# green -> sky blue
-	r,g,b = 0,255,0 
-	while b <= 255:
-	    colors.append( ( r, g, b ) )
-	    b = b + step
-
-	# sky blue -> blue
-	r,g,b = 0,255,255 
-	while g >=0:
-	    colors.append( ( r, g, b ) )
-	    g = g - step
-
-	# blue -> purple
-	r,g,b = 0,0,255 
-	while r <= 255:
-	    colors.append( ( r, g, b ) )
-	    r = r + step
-
-	# purple -> red
-	r,g,b = 255,0,255 
-	while b >= 0:
-	    colors.append( ( r, g, b ) )
-	    b = b - step
-
-	return colors
-
-
-
-
+COLORS = [
+    'FF0000', 'FF9900', 'FFFF00', '00FF00', '00CCCC', '0000FF', '9900FF',
+    'CC0000', 'CC6600', 'FF9966', '669900', '336699', '003399', '990099',
+    'FF00CC', 'FF99CC', 'FFCCCC', '99FF99', 'CCFFFF', '66FFFF', 'CCCCFF',
+    '993300', 'CC3300', 'FFCC66', '666600', '339966', '006666', '993399',
+    'FF0099', 'FF9999', 'FFFF99', '00FF99', '6699CC', '6600CC', '9900CC',
+    'FF0066', 'FFCC99', 'FFFFCC', 'CCFFCC', '99CCCC', '66CCCC', '9966CC'
+    ]
