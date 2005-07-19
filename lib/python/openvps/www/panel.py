@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.43 2005/07/19 18:06:45 grisha Exp $
+# $Id: panel.py,v 1.44 2005/07/19 18:24:31 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -913,7 +913,7 @@ def graph(req, name, command):
         colors = {}
         ci = 0
         for vs in keys:
-            colors[vs] = COLORS[ci]
+            colors[vs.replace('-', '')] = COLORS[ci]
             ci += 1
 
         # process limit and exclude
@@ -930,7 +930,8 @@ def graph(req, name, command):
         for vs in keys:
 
             rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % vs)
-            
+
+            vs = vs.replace('-', '')
             args = args + [
                 'DEF:%s_in=%s:vs_in:AVERAGE' % (vs, rrd),
                 'DEF:%s_out=%s:vs_out:AVERAGE' % (vs, rrd),
@@ -947,6 +948,7 @@ def graph(req, name, command):
             ]
             
         for vs in keys[1:]:
+            vs = vs.replace('-', '')
             args = args + [
                 'STACK:%s_outb#%s:%s bps out' % (vs, colors[vs], vs.ljust(10)),
                 'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
@@ -962,6 +964,7 @@ def graph(req, name, command):
             ]
             
         for vs in keys[1:]:
+            vs = vs.replace('-', '')
             args = args + [
                 'STACK:%s_inb#%s::' % (vs, colors[vs]),
                 ]
