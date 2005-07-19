@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.42 2005/07/19 17:49:54 grisha Exp $
+# $Id: panel.py,v 1.43 2005/07/19 18:06:45 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -905,14 +905,25 @@ def graph(req, name, command):
                 '-c', 'SHADEA#FFFFFF',
                 '-l', '0']
 
+        # list vservers
         vservers = vsutil.list_vservers()
+        keys = vservers.keys()
 
+        # assign colors
+        colors = {}
+        ci = 0
+        for vs in keys:
+            colors[vs] = COLORS[ci]
+            ci += 1
+
+        # process limit and exclude
         if limit:
-            keys = limit
-        else:
-            keys = vservers.keys()
-
+            keys = [k for k in keys if k in limit]
         keys = [k for k in keys if k not in exclude]
+
+        # we only have so many colors
+        if len(keys) > len(COLORS):
+            return error(req, 'Not enough colors for VPSs, exclude some:\n%s' % `keys`)
 
         keys.sort()
 
@@ -927,9 +938,8 @@ def graph(req, name, command):
                 'CDEF:%s_outb=%s_out,8,*' % (vs, vs) ]
 
         # incoming
-        ci = 0
         args = args + [
-            'AREA:%s_outb#%s:%s bps out' % (keys[0], COLORS[ci], keys[0].ljust(10)),
+            'AREA:%s_outb#%s:%s bps out' % (keys[0], colors[vs], keys[0].ljust(10)),
             'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
             'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (vs, ),
             'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (vs, ),
@@ -937,9 +947,8 @@ def graph(req, name, command):
             ]
             
         for vs in keys[1:]:
-            ci += 1
             args = args + [
-                'STACK:%s_outb#%s:%s bps out' % (vs, COLORS[ci], vs.ljust(10)),
+                'STACK:%s_outb#%s:%s bps out' % (vs, colors[vs], vs.ljust(10)),
                 'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
                 'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (vs, ),
                 'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (vs, ),
@@ -949,13 +958,12 @@ def graph(req, name, command):
         # outgoing
         keys.reverse()
         args = args + [
-            'AREA:%s_inb#%s::' % (keys[0], COLORS[ci]),
+            'AREA:%s_inb#%s::' % (keys[0], colors[vs]),
             ]
             
         for vs in keys[1:]:
-            ci -= 1
             args = args + [
-                'STACK:%s_inb#%s::' % (vs, COLORS[ci]),
+                'STACK:%s_inb#%s::' % (vs, colors[vs]),
                 ]
 
         if qargs.has_key('l'):
