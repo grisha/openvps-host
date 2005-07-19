@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.44 2005/07/19 18:24:31 grisha Exp $
+# $Id: panel.py,v 1.45 2005/07/19 18:31:31 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -918,12 +918,15 @@ def graph(req, name, command):
 
         # process limit and exclude
         if limit:
-            keys = [k for k in keys if k in limit]
+            keys = [k for k in limit if k in keys]
         keys = [k for k in keys if k not in exclude]
 
         # we only have so many colors
         if len(keys) > len(COLORS):
             return error(req, 'Not enough colors for VPSs, exclude some:\n%s' % `keys`)
+
+        if not keys:
+            return error(req, 'No VPSs selected')
 
         keys.sort()
 
@@ -940,7 +943,7 @@ def graph(req, name, command):
 
         # incoming
         args = args + [
-            'AREA:%s_outb#%s:%s bps out' % (keys[0], colors[vs], keys[0].ljust(10)),
+            'AREA:%s_outb#%s:%s bps out' % (keys[0], colors[keys[0]], keys[0].ljust(10)),
             'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
             'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (vs, ),
             'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (vs, ),
@@ -960,7 +963,7 @@ def graph(req, name, command):
         # outgoing
         keys.reverse()
         args = args + [
-            'AREA:%s_inb#%s::' % (keys[0], colors[vs]),
+            'AREA:%s_inb#%s::' % (keys[0], colors[keys[0]]),
             ]
             
         for vs in keys[1:]:
