@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.46 2005/07/20 13:25:05 grisha Exp $
+# $Id: panel.py,v 1.47 2005/07/20 16:49:50 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -936,6 +936,8 @@ def graph(req, name, command):
 
             rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % vs)
 
+            vs = vs.replace('-', '') # rrdtool does not like dashes
+
             if command == 'bwidth':
 
                 args = args + [
@@ -957,15 +959,17 @@ def graph(req, name, command):
         if command == 'bwidth':
 
             # incoming
+            vs = keys[0].replace('-', '')
             args = args + [
-                'AREA:%s_outb#%s:%s bps out' % (keys[0], colors[keys[0]], keys[0].ljust(10)),
-                'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (keys[0], ),
-                'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (keys[0], ),
-                'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (keys[0], ),
-                'GPRINT:%s_outb:AVERAGE:Avg OUT\\: %%8.2lf%%s\\n' % (keys[0], )
+                'AREA:%s_outb#%s:%s bps out' % (vs, colors[vs], vs.ljust(10)),
+                'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
+                'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (vs, ),
+                'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (vs, ),
+                'GPRINT:%s_outb:AVERAGE:Avg OUT\\: %%8.2lf%%s\\n' % (vs, )
                 ]
 
             for vs in keys[1:]:
+                vs = vs.replace('-', '')
                 args = args + [
                     'STACK:%s_outb#%s:%s bps out' % (vs, colors[vs], vs.ljust(10)),
                     'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
@@ -976,11 +980,13 @@ def graph(req, name, command):
 
             # outgoing
             keys.reverse()
+            vs = keys[0].replace('-', '')
             args = args + [
-                'AREA:%s_inb#%s::' % (keys[0], colors[keys[0]]),
+                'AREA:%s_inb#%s::' % (vs, colors[vs]),
                 ]
 
             for vs in keys[1:]:
+                vs = vs.replace('-', '')
                 args = args + [
                     'STACK:%s_inb#%s::' % (vs, colors[vs]),
                     ]
@@ -988,15 +994,17 @@ def graph(req, name, command):
         elif command == 'mem':
 
             # rss (displayed at bottom)
+            vs = keys[0].replace('-', '')
             args = args + [
-                'AREA:%s_rssbg#%s:%s RSS bytes' % (keys[0], colors[keys[0]], keys[0].ljust(10)),
-                'GPRINT:%s_rssb:MAX:Max RSS\\: %%8.2lf%%s' % (keys[0], ),
-                'GPRINT:%s_rssb:AVERAGE:Avg RSS\\: %%8.2lf%%s' % (keys[0], ),
-                'GPRINT:%s_vmb:MAX:Max VM\\: %%8.2lf%%s' % (keys[0], ),
-                'GPRINT:%s_vmb:AVERAGE:Avg VM\\: %%8.2lf%%s\\n' % (keys[0], )
+                'AREA:%s_rssbg#%s:%s RSS bytes' % (vs, colors[vs], vs.ljust(10)),
+                'GPRINT:%s_rssb:MAX:Max RSS\\: %%8.2lf%%s' % (vs, ),
+                'GPRINT:%s_rssb:AVERAGE:Avg RSS\\: %%8.2lf%%s' % (vs, ),
+                'GPRINT:%s_vmb:MAX:Max VM\\: %%8.2lf%%s' % (vs, ),
+                'GPRINT:%s_vmb:AVERAGE:Avg VM\\: %%8.2lf%%s\\n' % (vs, )
                 ]
 
             for vs in keys[1:]:
+                vs = vs.replace('-', '')
                 args = args + [
                     'STACK:%s_rssbg#%s:%s RSS bytes' % (vs, colors[vs], vs.ljust(10)),
                     'GPRINT:%s_rssb:MAX:Max RSS\\: %%8.2lf%%s' % (vs, ),
@@ -1006,11 +1014,13 @@ def graph(req, name, command):
                     ]
             # vm
             keys.reverse()
+            vs = keys[0].replace('-', '')
             args = args + [
-                'AREA:%s_vmb#%s::' % (keys[0], colors[keys[0]]),
+                'AREA:%s_vmb#%s::' % (vs, colors[vs]),
                 ]
 
             for vs in keys[1:]:
+                vs = vs.replace('-', '')
                 args = args + [
                     'STACK:%s_vmb#%s::' % (vs, colors[vs]),
                     ]
