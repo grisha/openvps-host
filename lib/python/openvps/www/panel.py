@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.45 2005/07/19 18:31:31 grisha Exp $
+# $Id: panel.py,v 1.46 2005/07/20 13:25:05 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -865,6 +865,7 @@ def graph(req, name, command):
         
     if not qargs.has_key('s'):
         return error(req, 'Where do I start?')
+    start = '-'+qargs['s'][0]
 
     # exclude these vps's
     exclude = []
@@ -876,12 +877,13 @@ def graph(req, name, command):
     if qargs.has_key('limit'):
         limit = qargs['limit'][0].split()
 
-    start = '-'+qargs['s'][0]
     width = 600
+    if qargs.has_key('w'):
+        width = int(qargs['w'][0])
+
     height = 400
-    nolegend = ''
-    if qargs.has_key('l'):
-        nolegend = '-g'  # no legend
+    if qargs.has_key('h'):
+        height = int(qargs['h'][0])
 
     # how many days back?
     secs = abs(int(start))
@@ -891,7 +893,7 @@ def graph(req, name, command):
     else:
         title = 'last %d days' % (secs/(60*60*24))
 
-    if command == 'bwidth':
+    if command in ['bwidth', 'mem']:
         # here we need to draw a nice little graph....
 
         tfile, tpath = tempfile.mkstemp('.gif', 'oh')
@@ -905,6 +907,9 @@ def graph(req, name, command):
                 '-c', 'SHADEA#FFFFFF',
                 '-l', '0']
 
+        if qargs.has_key('l'):
+            args.append('-g')  # no legend
+        
         # list vservers
         vservers = vsutil.list_vservers()
         keys = vservers.keys()
@@ -913,20 +918,17 @@ def graph(req, name, command):
         colors = {}
         ci = 0
         for vs in keys:
-            colors[vs.replace('-', '')] = COLORS[ci]
+            colors[vs] = COLORS[ci]
             ci += 1
 
         # process limit and exclude
         if limit:
-            keys = [k for k in limit if k in keys]
+            keys = [k for k in keys if k in limit]
         keys = [k for k in keys if k not in exclude]
 
         # we only have so many colors
         if len(keys) > len(COLORS):
             return error(req, 'Not enough colors for VPSs, exclude some:\n%s' % `keys`)
-
-        if not keys:
-            return error(req, 'No VPSs selected')
 
         keys.sort()
 
@@ -934,47 +936,85 @@ def graph(req, name, command):
 
             rrd = os.path.join(cfg.VAR_DB_OPENVPS, 'vsmon/%s.rrd' % vs)
 
-            vs = vs.replace('-', '')
-            args = args + [
-                'DEF:%s_in=%s:vs_in:AVERAGE' % (vs, rrd),
-                'DEF:%s_out=%s:vs_out:AVERAGE' % (vs, rrd),
-                'CDEF:%s_inb=%s_in,-8,*' % (vs, vs),
-                'CDEF:%s_outb=%s_out,8,*' % (vs, vs) ]
+            if command == 'bwidth':
 
-        # incoming
-        args = args + [
-            'AREA:%s_outb#%s:%s bps out' % (keys[0], colors[keys[0]], keys[0].ljust(10)),
-            'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
-            'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (vs, ),
-            'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (vs, ),
-            'GPRINT:%s_outb:AVERAGE:Avg OUT\\: %%8.2lf%%s\\n' % (vs, )
-            ]
-            
-        for vs in keys[1:]:
-            vs = vs.replace('-', '')
+                args = args + [
+                    'DEF:%s_in=%s:vs_in:AVERAGE' % (vs, rrd),
+                    'DEF:%s_out=%s:vs_out:AVERAGE' % (vs, rrd),
+                    'CDEF:%s_inb=%s_in,-8,*' % (vs, vs),
+                    'CDEF:%s_outb=%s_out,8,*' % (vs, vs) ]
+                
+            elif command == 'mem':
+
+                args = args + [
+                    'DEF:%s_vm=%s:vs_vm:AVERAGE' % (vs, rrd),
+                    'DEF:%s_rss=%s:vs_rss:AVERAGE' % (vs, rrd),
+                    'CDEF:%s_vmb=%s_vm,1024,*' % (vs, vs),
+                    'CDEF:%s_rssb=%s_rss,1024,*' % (vs, vs),
+                    'CDEF:%s_rssbg=%s_rss,-1024,*' % (vs, vs),
+                    ]
+
+        if command == 'bwidth':
+
+            # incoming
             args = args + [
-                'STACK:%s_outb#%s:%s bps out' % (vs, colors[vs], vs.ljust(10)),
-                'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
-                'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (vs, ),
-                'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (vs, ),
-                'GPRINT:%s_outb:AVERAGE:Avg OUT\\: %%8.2lf%%s\\n' % (vs, )
+                'AREA:%s_outb#%s:%s bps out' % (keys[0], colors[keys[0]], keys[0].ljust(10)),
+                'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (keys[0], ),
+                'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (keys[0], ),
+                'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (keys[0], ),
+                'GPRINT:%s_outb:AVERAGE:Avg OUT\\: %%8.2lf%%s\\n' % (keys[0], )
                 ]
 
-        # outgoing
-        keys.reverse()
-        args = args + [
-            'AREA:%s_inb#%s::' % (keys[0], colors[keys[0]]),
-            ]
-            
-        for vs in keys[1:]:
-            vs = vs.replace('-', '')
+            for vs in keys[1:]:
+                args = args + [
+                    'STACK:%s_outb#%s:%s bps out' % (vs, colors[vs], vs.ljust(10)),
+                    'GPRINT:%s_inb:MAX:Max IN\\: %%8.2lf%%s' % (vs, ),
+                    'GPRINT:%s_inb:AVERAGE:Avg IN\\: %%8.2lf%%s' % (vs, ),
+                    'GPRINT:%s_outb:MAX:Max OUT\\: %%8.2lf%%s' % (vs, ),
+                    'GPRINT:%s_outb:AVERAGE:Avg OUT\\: %%8.2lf%%s\\n' % (vs, )
+                    ]
+
+            # outgoing
+            keys.reverse()
             args = args + [
-                'STACK:%s_inb#%s::' % (vs, colors[vs]),
+                'AREA:%s_inb#%s::' % (keys[0], colors[keys[0]]),
                 ]
 
-        if qargs.has_key('l'):
-            args.append('-g')  # no legend
-        
+            for vs in keys[1:]:
+                args = args + [
+                    'STACK:%s_inb#%s::' % (vs, colors[vs]),
+                    ]
+
+        elif command == 'mem':
+
+            # rss (displayed at bottom)
+            args = args + [
+                'AREA:%s_rssbg#%s:%s RSS bytes' % (keys[0], colors[keys[0]], keys[0].ljust(10)),
+                'GPRINT:%s_rssb:MAX:Max RSS\\: %%8.2lf%%s' % (keys[0], ),
+                'GPRINT:%s_rssb:AVERAGE:Avg RSS\\: %%8.2lf%%s' % (keys[0], ),
+                'GPRINT:%s_vmb:MAX:Max VM\\: %%8.2lf%%s' % (keys[0], ),
+                'GPRINT:%s_vmb:AVERAGE:Avg VM\\: %%8.2lf%%s\\n' % (keys[0], )
+                ]
+
+            for vs in keys[1:]:
+                args = args + [
+                    'STACK:%s_rssbg#%s:%s RSS bytes' % (vs, colors[vs], vs.ljust(10)),
+                    'GPRINT:%s_rssb:MAX:Max RSS\\: %%8.2lf%%s' % (vs, ),
+                    'GPRINT:%s_rssb:AVERAGE:Avg RSS\\: %%8.2lf%%s' % (vs, ),
+                    'GPRINT:%s_vmb:MAX:Max VM\\: %%8.2lf%%s' % (vs, ),
+                    'GPRINT:%s_vmb:AVERAGE:Avg VM\\: %%8.2lf%%s\\n' % (vs, )
+                    ]
+            # vm
+            keys.reverse()
+            args = args + [
+                'AREA:%s_vmb#%s::' % (keys[0], colors[keys[0]]),
+                ]
+
+            for vs in keys[1:]:
+                args = args + [
+                    'STACK:%s_vmb#%s::' % (vs, colors[vs]),
+                    ]
+
         RRD.graph(*args)
         
         req.content_type = 'image/gif'
