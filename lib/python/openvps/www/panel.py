@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.47 2005/07/20 16:49:50 grisha Exp $
+# $Id: panel.py,v 1.48 2005/07/20 16:55:48 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -918,7 +918,7 @@ def graph(req, name, command):
         colors = {}
         ci = 0
         for vs in keys:
-            colors[vs] = COLORS[ci]
+            colors[vs.replace('-', '')] = COLORS[ci]
             ci += 1
 
         # process limit and exclude
