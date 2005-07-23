@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovuserfiles,v 1.3 2005/05/23 16:29:09 grisha Exp $
+# $Id: ovuserfiles,v 1.4 2005/07/23 16:22:14 grisha Exp $
 
 
 """
@@ -58,6 +58,8 @@ for vserver in vservers:
         # this is a reference server, skip it
         continue
 
+    # always print the VPS root!
+    print vserver
     
     for root, dirs, files in os.walk(os.path.join(cfg.VSERVERS_ROOT, vserver)):
 
