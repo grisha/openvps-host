@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovuserfiles,v 1.4 2005/07/23 16:22:14 grisha Exp $
+# $Id: ovuserfiles,v 1.5 2005/07/25 17:08:46 grisha Exp $
 
 
 """
@@ -77,25 +77,32 @@ for vserver in vservers:
             relpath =  os.path.join(root, path)[vr_len+1:]
 
             abspath = os.path.join(root, path)
-            stat = os.lstat(abspath)
 
-            if stat.st_nlink == 1:
-                # definitely a user file
-                print relpath
-            else:
-                found = 0
-                for refroot in refroots:
-                    # is there a file like this
-                    r_abspath = os.path.join(refroot, '/'.join(relpath.split('/')[1:]))
-                    if os.path.exists(r_abspath):
-                        # inodes match?
-                        if os.stat(r_abspath).st_ino == stat.st_ino:
-                            found = 1
-                            break
+            try:
+            
+                stat = os.lstat(abspath)
 
-                if not found:
+                if stat.st_nlink == 1:
+                    # definitely a user file
                     print relpath
+                else:
+                    found = 0
+                    for refroot in refroots:
+                        # is there a file like this
+                        r_abspath = os.path.join(refroot, '/'.join(relpath.split('/')[1:]))
+                        if os.path.exists(r_abspath):
+                            # inodes match?
+                            if os.stat(r_abspath).st_ino == stat.st_ino:
+                                found = 1
+                                break
 
+                    if not found:
+                        print relpath
+                        
+            except OSError:
+                # sometimes a file may dissapear while we're looking at it,
+                # this would throw OSError, just ignore it.
+                pass
 
 ###
 # do not edit this if you like using emacs
