@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovuserfiles,v 1.5 2005/07/25 17:08:46 grisha Exp $
+# $Id: ovuserfiles,v 1.6 2005/07/25 21:21:25 grisha Exp $
 
 
 """
@@ -53,6 +53,10 @@ vr_len = len(cfg.VSERVERS_ROOT)
 vservers = os.listdir(cfg.VSERVERS_ROOT)
 
 for vserver in vservers:
+
+    if vserver.startswith('.'):
+        # this is a temporary file of some sort
+        continue
 
     if vserver in [r.split('/')[-1] for r in refroots]:
         # this is a reference server, skip it
