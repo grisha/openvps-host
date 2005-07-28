@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.12 2005/06/29 20:50:13 grisha Exp $
+# $Id: Fedora.py,v 1.13 2005/07/28 14:07:59 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -345,7 +345,9 @@ class Fedora_Core_4(Fedora_Core_3):
             'SysVinit', 'acl', 'anacron', 'apr', 'apr-util', 'aspell',
             'aspell-en', 'at', 'attr', 'audit', 'audit-libs',
             'authconfig', 'basesystem', 'bash', 'bc', 'beecrypt',
-            'bind-libs', 'bind-utils', 'bzip2', 'bzip2-libs',
+            'http://www.openvps.org/dist/misc/bind-libs-9.3.1-8.OHFC4.i386.rpm',
+            'http://www.openvps.org/dist/misc/bind-utils-9.3.1-8.OHFC4.i386.rpm',
+            'bzip2', 'bzip2-libs',
             'chkconfig', 'coreutils', 'cpio', 'cracklib',
             'cracklib-dicts', 'crontabs', 'cyrus-sasl',
             'cyrus-sasl-md5', 'db4', 'desktop-file-utils',
@@ -391,7 +393,9 @@ class Fedora_Core_4(Fedora_Core_3):
         
         packages = [
             'Xaw3d', 'apr-util-devel', 'atk', 'atk-devel', 'autoconf',
-            'automake', 'bind-chroot', 'binutils', 'chkfontpath',
+            'automake',
+            'http://www.openvps.org/dist/misc/bind-chroot-9.3.1-8.OHFC4.i386.rpm',
+            'binutils', 'chkfontpath',
             'cpp', 'curl', 'curl-devel', 'cvs', 'cyrus-sasl-devel',
             'db4-devel', 'distcache', 'dovecot', 'e2fsprogs-devel',
             'emacs', 'emacs-common', 'expat-devel', 'fetchmail',
@@ -401,7 +405,7 @@ class Fedora_Core_4(Fedora_Core_3):
             'glibc-devel', 'glibc-headers', 'glibc-kernheaders',
             'gtk2', 'gtk2-devel',
             'http://www.openvps.org/dist/misc/mirror/proftpd-1.2.9-7.i386.rpm',
-            'http://www.openvps.org/dist/misc/oh-bind-9.3.1-4.i386.rpm',
+            'http://www.openvps.org/dist/misc/bind-9.3.1-8.OHFC4.i386.rpm',
             'httpd-devel', 'krb5-devel', 'libc-client', 'libidn',
             'libstdc++-devel', 'libtool', 'libungif', 'libxslt',
             'lynx', 'mod_perl', 'mod_perl-devel', 'mod_python',
