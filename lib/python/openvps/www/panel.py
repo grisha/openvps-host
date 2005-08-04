@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.48 2005/07/20 16:55:48 grisha Exp $
+# $Id: panel.py,v 1.49 2005/08/04 20:16:41 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -46,6 +46,7 @@ ALLOWED_COMMANDS = ['index',
                     'status',
                     'stats',
                     'bwidth',
+                    'bwlimit',
                     'disk',
                     'cpu',
                     'mem',
@@ -216,6 +217,7 @@ def _navigation_map(req, vps):
 
     admin = [("status", "Status", "status", None, []),
              ("rebuild", "Rebuild", "rebuild", None, []),
+             ("bwlimit", "B-width Limit", "bwlimit", None, []),
              ]
 
     stats = [("bwidth", "Bandwidth", "bwidth", None, []),
@@ -501,6 +503,36 @@ def dorebuild(req, name, params):
 
     return apache.OK
 
+
+def bwlimit(req, name, params):
+
+    location = 'admin:bwlimit'
+
+    # read in the limits.
+
+    # is there a per-vserver cap ('name-CAP', since caps are not used
+    # in VPS names, this should work)
+
+    capfile = os.path.join(cfg.VAR_DB_OPENVPS, 'tc', vserver+'-CAP')
+    if os.path.exists(capfile):
+        bw_cap = open(capfile).read().strip()
+    else:
+        bw_cap = cfg.DFT_VS_RATE_CAP
+
+    body_tmpl = _tmpl_path('bwlimit_body.html')
+
+    body_vars = {}
+
+    vars = {'global_menu': _global_menu(req, name, location),
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
+            'name':name}
+            
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                vars=vars)
+
+    p.run()
+
+    return apache.OK
 
 def cpu(req, name, params):
 

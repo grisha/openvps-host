@@ -20,10 +20,11 @@
 # limitations under the License.
 #
 
-# $Id: ovtc,v 1.3 2005/07/12 18:14:16 grisha Exp $
+# $Id: ovtc,v 1.4 2005/08/04 20:16:41 grisha Exp $
 
 DFT_DEVICE=`python -c 'from openvps.host import cfg; print cfg.DFT_DEVICE'`
 DFT_VS_RATE_TOT=`python -c 'from openvps.host import cfg; print cfg.DFT_VS_RATE_TOT'`
+VAR_DB_OPENVPS=`python -c 'from openvps.host import cfg; print cfg.VAR_DB_OPENVPS'`
 
 # See how we were called.
 case "$1" in
