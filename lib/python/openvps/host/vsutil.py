@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.13 2005/07/13 18:07:24 grisha Exp $
+# $Id: vsutil.py,v 1.14 2005/08/05 20:02:06 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -467,7 +467,7 @@ def is_tc_base_up():
 
     # is the basic tc stuff there?
 
-    cmd = 'tc class ls dev %s | grep "class htb 10:2 root"' % cfg.DFT_DEVICE
+    cmd = '/sbin/tc class ls dev %s | grep "class htb 10:2 root"' % cfg.DFT_DEVICE
     s = commands.getoutput(cmd)
 
     return 'class htb' in s
@@ -490,6 +490,12 @@ def set_tc_class(vserver):
                  ceil = parts[0]
             else:
                  ceil, n = parts[:2]
+
+            # is there a cap? a cap a "shadow" overriding limit not visible to the VPS user.
+            cap_path = os.path.join(cfg.VAR_DB_OPENVPS, 'tc', vserver+'-CAP')
+            if os.path.exists(cap_path):
+                ceil = open(cap_path).read().strip()
+                 
         except IOError: pass
 
         vs = list_vservers()
@@ -500,7 +506,7 @@ def set_tc_class(vserver):
 
         # is there a filter by this id?
 
-        cmd = 'tc filter ls dev %s parent 10: | grep "flowid 10:%s"' % (cfg.DFT_DEVICE, n)
+        cmd = '/sbin/tc filter ls dev %s parent 10: | grep "flowid 10:%s"' % (cfg.DFT_DEVICE, n)
         s = commands.getoutput(cmd)
         
         if 'flowid' in s:
@@ -515,31 +521,31 @@ def set_tc_class(vserver):
                 prio = parts[parts.index('pref')+1]
                 kind = parts[parts.index('pref')+2]
 
-                cmd = 'tc filter del dev %s parent 10: prio %s handle %s %s' % \
+                cmd = '/sbin/tc filter del dev %s parent 10: prio %s handle %s %s' % \
                       (cfg.DFT_DEVICE, prio, handle, kind)
                 print cmd
                 print commands.getoutput(cmd)
 
         # is there a classes ?
 
-        cmd = 'tc class ls dev %s parent 10:2 | grep "htb 10:%s"' % (cfg.DFT_DEVICE, n)
+        cmd = '/sbin/tc class ls dev %s parent 10:2 | grep "htb 10:%s"' % (cfg.DFT_DEVICE, n)
         s = commands.getoutput(cmd)
 
         if 'class' in s:
 
             # kill it too
-            cmd = 'tc class del dev %s parent 10:2 classid 10:%s' % (cfg.DFT_DEVICE, n)
+            cmd = '/sbin/tc class del dev %s parent 10:2 classid 10:%s' % (cfg.DFT_DEVICE, n)
             print cmd
             print commands.getoutput(cmd)
 
         # now we can do our thing
 
-        cmd = 'tc class add dev %s parent 10:2 classid 10:%s htb rate %s ceil %s burst 15k' % \
+        cmd = '/sbin/tc class add dev %s parent 10:2 classid 10:%s htb rate %s ceil %s burst 15k' % \
               (cfg.DFT_DEVICE, n, cfg.DFT_VS_RATE, ceil)
         print cmd
         print commands.getoutput(cmd)
 
-        U32 = 'tc filter add dev %s protocol ip parent 10:0 prio 1 u32' % cfg.DFT_DEVICE
+        U32 = '/sbin/tc filter add dev %s protocol ip parent 10:0 prio 1 u32' % cfg.DFT_DEVICE
         
         for i in vs[vserver]['interfaces']:
             if i['dev'] == cfg.DFT_DEVICE or i['dev'].startswith('dummy'):
@@ -551,4 +557,53 @@ def set_tc_class(vserver):
                 print cmd
                 print commands.getoutput(cmd)
 
-        
+
+def set_bwlimit(vserver, limit, cap=None):
+
+    # just write the limit to a file. to activate, call set_tc_class
+
+    tc_path = os.path.join(cfg.VAR_DB_OPENVPS, 'tc', vserver)
+
+    n, ceil = None, limit
+    if os.path.exists(tc_path):
+       # read them in 
+       parts  = open(tc_path).read().strip().split(':')
+       if len(parts) > 1:
+           n = parts[1]
+
+    # write it
+    if n:
+        open(tc_path, 'w').write('%s:%s' % (ceil, n))
+    else:
+        open(tc_path, 'w').write('%s' % ceil)
+    print 'wrote', ceil, tc_path
+
+    # is there a cap?
+    if cap:
+        tc_path = os.path.join(cfg.VAR_DB_OPENVPS, 'tc', vserver+'-CAP')
+        open(tc_path, 'w').write('%s' % cap)
+
+
+def get_bwlimit(vserver):
+
+    # return tuple (limit, cap)
+
+    tc_path = os.path.join(cfg.VAR_DB_OPENVPS, 'tc', vserver)
+
+    limit = None
+    if os.path.exists(tc_path):
+
+       parts  = open(tc_path).read().strip().split(':')
+       if len(parts) == 1:
+           limit = parts[0]
+       else:
+           limit, n = parts[:2]
+
+    # is there a cap? a cap a "shadow" overriding limit not visible to the VPS user.
+    cap_path = os.path.join(cfg.VAR_DB_OPENVPS, 'tc', vserver+'-CAP')
+
+    cap = None
+    if os.path.exists(cap_path):
+        cap = open(cap_path).read().strip()
+
+    return limit, cap

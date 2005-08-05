@@ -1,10 +1,48 @@
 
-<h4>Rebuild VPS (Beta)</h4>
+<h4>Bandwidth Limit</h4>
 
 <div style="text-align: left; padding-left: 3em; border: 0; color: #708491;">
 
-<p> This is where you send bandwidth limits.
+<p> This page allows you to set outgoing bandwidth limit. If you do
+not expect high traffic on your VPS, it is a good idea to set a low
+bandwidth limit (e.g. 256Kbit). A low bandwidth limit will protect you
+from unanticipated high bandwidth charges.
+
+</div>
+
+<div style="text-align: center;">
+
+<form method="GET" action="bwlimit_set">
+
+<p>
+   <br><br>
+   Outgoing Bandidth Limit:
+   <select name="limit">
+<%
+for band in bands:
+    x = band[0]
+    selected = ''
+    if x.lower() == limit:
+        selected = 'selected'
+    # begin
+%>
+   <option value="<%=x.lower()%>" <%=selected%>><%=x%></option>
+<%
+# end
+%>
+    </select>
+    <input type="submit" value="set">
+
+</form>
 
 
 </div>
 
+<div style="text-align: left; padding-left: 3em; border: 0; color: #708491;">
+
+<p> <br><br>Note that setting a high limit does not guarantee you the
+bandwidth. Actual throughput is subject to various complex Internet
+networking conditions that are often beyond our control.
+
+
+</div>

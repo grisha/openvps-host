@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.15 2005/06/23 15:05:47 grisha Exp $
+# $Id: vds.py,v 1.16 2005/08/05 20:02:06 grisha Exp $
 
 """ VDS related functions """
 
@@ -858,6 +858,15 @@ def addip(vserver, ip, dev, mask):
     
     vsutil.add_vserver_ip(vserver, ip, dev, mask)
     vsutil.iptables_rule(dev, ip)
+
+def set_bwlimit(vserver, limit):
+
+    vss = vsutil.list_vservers()
+    if not vss.has_key(vserver):
+        print 'ERROR: No such vserver: %s' % vserver
+
+    vsutil.set_bwlimit(vserver, limit)
+    vsutil.set_tc_class(vserver)
 
 def rpm_which_package(ts, root, file):
 

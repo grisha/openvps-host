@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.21 2005/08/04 20:16:41 grisha Exp $
+# $Id: dft.py.in,v 1.22 2005/08/05 20:02:06 grisha Exp $
 
 """ Configuration Defaults
 
@@ -244,9 +244,9 @@ DFT_VS_RATE = '256kbit'
 DFT_VS_CEIL = '5mbit'
 
 # This is a cap on how high the users are allowed to set their
-# bandwidth from the OpenVPS control panel.
+# bandwidth from the OpenVPS control panel, _in bits_.
 
-DFT_VS_RATE_CAP = DFT_VS_CEIL
+DFT_VS_RATE_CAP = 52428800 # 5mbit
 
 # Which "commands" are allowed to run with elevated capabilities and
 # what are those caps. The path is absolute inside a vserver.

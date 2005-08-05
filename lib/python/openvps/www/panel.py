@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.49 2005/08/04 20:16:41 grisha Exp $
+# $Id: panel.py,v 1.50 2005/08/05 20:02:06 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -47,6 +47,7 @@ ALLOWED_COMMANDS = ['index',
                     'stats',
                     'bwidth',
                     'bwlimit',
+                    'bwlimit_set',
                     'disk',
                     'cpu',
                     'mem',
@@ -508,20 +509,28 @@ def bwlimit(req, name, params):
 
     location = 'admin:bwlimit'
 
-    # read in the limits.
+    # enumerate bands from lowest to the CAP in 256kbit
+    # increments, then moving to 512kbit increments
 
-    # is there a per-vserver cap ('name-CAP', since caps are not used
-    # in VPS names, this should work)
+    bands = [('256Kbit', 1024*256), ('512Kbit', 1024*512)]
+    for x in range(1, 10):
+        bands.append(('%dMbit' % x, 1024*1024*x))
+    for x in range(10, 100, 10):
+        bands.append(('%dMbit' % x, 1024*1024*x))
+    for x in range(100, 1100, 100):
+        bands.append(('%dMbit' % x, 1024*1024*x))
 
-    capfile = os.path.join(cfg.VAR_DB_OPENVPS, 'tc', vserver+'-CAP')
-    if os.path.exists(capfile):
-        bw_cap = open(capfile).read().strip()
-    else:
-        bw_cap = cfg.DFT_VS_RATE_CAP
+    # now weed out everything above the cap
+    bands = [x for x in bands if x[1] <= cfg.DFT_VS_RATE_CAP]
+
+    # get current limit
+    limit, cap = vsutil.get_bwlimit(name)
+    if not limit:
+        limit  = cfg.DFT_VS_CEIL
 
     body_tmpl = _tmpl_path('bwlimit_body.html')
 
-    body_vars = {}
+    body_vars = {'bands':bands, 'limit':limit}
 
     vars = {'global_menu': _global_menu(req, name, location),
             'body':psp.PSP(req, body_tmpl, vars=body_vars),
@@ -531,6 +540,27 @@ def bwlimit(req, name, params):
                 vars=vars)
 
     p.run()
+
+    return apache.OK
+
+def bwlimit_set(req, name, params):
+
+    # ok time to do wrapper shit.ZZZ
+    fs = util.FieldStorage(req)
+    limit = fs.getfirst('limit')
+
+    req.log_error('Setting bwlimit on vds %s to %s at request of %s' % (name, limit, req.user))
+
+    cmd = '%s openvps-bwlimit %s %s' % (cfg.OVWRAPPER, name, limit)
+    
+    pipe = os.popen(cmd, 'r', 0)
+    s = pipe.readline()
+    while s:
+        req.log_error('%s: %s' % (name, s))
+        s = pipe.readline()
+    pipe.close()
+
+    util.redirect(req, 'bwlimit')
 
     return apache.OK
 
