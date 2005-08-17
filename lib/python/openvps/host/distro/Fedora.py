@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.13 2005/07/28 14:07:59 grisha Exp $
+# $Id: Fedora.py,v 1.14 2005/08/17 21:18:05 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -485,6 +485,15 @@ class Fedora_Core_4(Fedora_Core_3):
         
         packages = [
             'vnc-server'
+            ]
+
+    class _Bundle_130_subversion(RedHatBundle):
+
+        name = 'subversion'
+        desc = 'Fedora Core 4 Subversion packages'
+        
+        packages = [
+            'subversion'
             ]
 
     def make_ssl_cert(self, hostname):
