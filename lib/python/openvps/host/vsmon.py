@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.14 2005/05/05 18:05:07 grisha Exp $
+# $Id: vsmon.py,v 1.15 2005/09/02 17:47:11 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -287,9 +287,9 @@ def collect_stats():
 
             update_rrd(server, data)
 
-        except AttributeError:
+        except ValueError, AttributeError:
             # vserver no longer running
-            log('Vserver %s(%s) does not appear to be running' % (server, xid))
+            log('Vserver %s(%s) does not appear to be running or not enterable' % (server, xid))
 
     return
 
