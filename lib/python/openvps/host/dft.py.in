@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.22 2005/08/05 20:02:06 grisha Exp $
+# $Id: dft.py.in,v 1.23 2005/09/09 21:28:30 grisha Exp $
 
 """ Configuration Defaults
 
@@ -99,6 +99,10 @@ PEERIP = '127.0.0.1'
 
 # DSA key that allows login to peer as ohbackup
 OHB_DSA_KEY = '@prefix@/etc/ohbackup_dsa'
+
+# whom to send notification that RAID has problems
+# empty means don't check raid at all
+NOTIFY_EMAIL = ''
 
 # User used to login to remote server for backup
 BACKUP_USER = 'ohbackup'
