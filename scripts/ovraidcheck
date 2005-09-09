@@ -1,0 +1,87 @@
+#!/bin/sh
+
+#
+# Copyright 2004 OpenHosting, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# $Id: ovraidcheck,v 1.1 2005/09/09 21:28:30 grisha Exp $
+
+# currently, this only works on I2O and megaraid
+
+NOTIFY_EMAIL=`python -c 'from openvps.host import cfg; print cfg.NOTIFY_EMAIL'`
+
+if [ -z "$NOTIFY_EMAIL" ]; then
+    # we don't want to be notified
+    exit
+fi
+
+if [ ! -z "`df | grep /dev/i2o`" ]; then
+
+    # this is a raidutil
+
+    if [ -z "`which raidutil 2>&1`" ]; then
+	echo "This appears to be an I2O-based machine, but raidutil is not installed."
+	exit
+    fi
+
+    # if device is not there
+    mknod /dev/i2o/ctl c 10 166 > /dev/null 2>&1
+
+    # if the modules is not loaded
+    modprobe i2o_config
+
+    # kill all other raideng
+    if [ ! -z "`ps -ax | grep -v ps | grep raideng`" ]; then
+	killall raideng
+	sleep 5
+	killall -9 raideng
+    fi
+
+    # now do the check
+
+    if [ ! -z "`raidutil -L Logical | grep Degrade`" ]; then
+	echo "`raidutil -L Logical`" | mail -s "RAID problem on `hostname -s`" $NOTIFY_EMAIL
+    fi
+
+elif [ ! -z "`grep megadev /proc/devices`" ]; then
+
+    # this is a megaraid
+
+    if [ -z "`which megarc.bin 2>&1`" ]; then
+	echo "This appears to be a Megaraid-based machine, but megarc.bin is not installed."
+	exit
+    fi
+
+    # this was taken from the megarc script that ships with megarc.bin
+
+    # Get the major number of the megadev ioctl node
+    MAJOR=`grep megadev /proc/devices|awk '{print $1}'`
+
+    if [ ! x$MAJOR = x ]
+    then
+	# major device number found
+	rm -f /dev/megadev0 	# remove if already there, ignore if not.
+	mknod /dev/megadev0  c $MAJOR 0
+    fi
+
+    # now do the check
+
+    # this will delete non-prints: tr -cd '[:alnum:] \n'
+
+    if [ ! -z "`megarc.bin -ldInfo -a0 -Lall -nolog | grep FAIL`" ]; then
+	echo "`megarc.bin -ldInfo -a0 -Lall -nolog | grep -v Scannin`" | mail -s "RAID problem on `hostname -s`" $NOTIFY_EMAIL
+    fi
+
+fi
