@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovraidcheck,v 1.1 2005/09/09 21:28:30 grisha Exp $
+# $Id: ovraidcheck,v 1.2 2005/09/09 21:32:23 grisha Exp $
 
 # currently, this only works on I2O and megaraid
 
@@ -40,13 +40,13 @@ if [ ! -z "`df | grep /dev/i2o`" ]; then
     mknod /dev/i2o/ctl c 10 166 > /dev/null 2>&1
 
     # if the modules is not loaded
-    modprobe i2o_config
+    modprobe i2o_config > /dev/null 2&1
 
     # kill all other raideng
-    if [ ! -z "`ps -ax | grep -v ps | grep raideng`" ]; then
-	killall raideng
+    if [ ! -z "`ps -ax | grep raideng | gerp -v grep`" ]; then
+	killall raideng > /dev/null 2&1
 	sleep 5
-	killall -9 raideng
+	killall -9 raideng > /dev/null 2&1
     fi
 
     # now do the check
