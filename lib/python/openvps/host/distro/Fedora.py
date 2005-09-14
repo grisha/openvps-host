@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.14 2005/08/17 21:18:05 grisha Exp $
+# $Id: Fedora.py,v 1.15 2005/09/14 15:38:49 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -56,6 +56,15 @@ class Fedora_Core(RedHat):
     def get_desc(self):
 
         return "Fedora Core %d" % self.FC_VER
+
+
+    def fixup_crontab(self):
+
+        RedHat.fixup_crontab(self)
+
+        # disable slocate
+        os.chmod(os.path.join(self.vpsroot, 'etc/cron.daily/slocate.cron'), 0644)
+
 
 class Fedora_Core_1(Fedora_Core):
     FC_VER = 1
@@ -328,6 +337,13 @@ class Fedora_Core_3(Fedora_Core):
 
         return xid
 
+    def fixup_crontab(self):
+
+        Fedora_Core.fixup_crontab(self)
+
+        # disable weekly makewhatis
+        os.chmod(os.path.join(self.vpsroot, 'etc/cron.weekly/00-makewhatis.cron'), 0644)
+
 distro_util.register(Fedora_Core_3)
 
 class Fedora_Core_4(Fedora_Core_3):
@@ -532,6 +548,13 @@ class Fedora_Core_4(Fedora_Core_3):
         s = commands.getoutput('rm -rf %s' % d)
         print s
         open(os.path.join(self.vpsroot, 'etc/pki/tls/certs/.openvps-cert'), 'w').write('')
+
+    def fixup_crontab(self):
+
+        Fedora_Core.fixup_crontab(self)
+
+        # disable weekly makewhatis
+        os.chmod(os.path.join(self.vpsroot, 'etc/cron.weekly/makewhatis.cron'), 0644)
 
 
 distro_util.register(Fedora_Core_4)

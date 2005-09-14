@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.10 2005/07/25 19:32:07 grisha Exp $
+# $Id: Distro.py,v 1.11 2005/09/14 15:38:49 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -308,7 +308,7 @@ class Distro(object):
     def make_ssl_cert(self):
         raise "NOT IMPLEMENTED"
 
-    def random_crontab(self):
+    def fixup_crontab(self):
         raise "NOT IMPLEMENTED"
 
     def ohd_key(self, name):
@@ -445,7 +445,7 @@ class Distro(object):
         self.disk_limit(xid, disklim)
         self.iptables_rule(cfg.DFT_DEVICE, ip)
         self.make_ssl_cert(hostname)
-        self.random_crontab()
+        self.fixup_crontab()
         self.ohd_key(name)
         self.immutable_modules()
         self.make_snapshot_dir()
@@ -533,7 +533,7 @@ class Distro(object):
         #self.iptables_rule(cfg.DFT_DEVICE, ip)
         
         self.make_ssl_cert(hostname)
-        self.random_crontab()
+        self.fixup_crontab()
 
         if os.path.exists(os.path.join(source.vpsroot, 'etc/ohd_key')) and \
                os.path.exists(os.path.join(source.vpsroot, 'etc/ohd_key.pub')):

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.9 2005/06/29 20:50:13 grisha Exp $
+# $Id: RedHat.py,v 1.10 2005/09/14 15:38:49 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -735,7 +735,7 @@ class RedHat(Distro):
         print s
         open(os.path.join(self.vpsroot, 'etc/httpd/conf/ssl.crt/.ohcert'), 'w').write('')
 
-    def random_crontab(self):
+    def fixup_crontab(self):
 
         print 'Adding rndsleep and randomized crontab'
 
