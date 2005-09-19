@@ -1,7 +1,7 @@
-#!/usr/bin/env python2.3
+#!/usr/bin/env python
 
 #
-# Copyright 2004 OpenHosting, Inc.
+# Copyright 2005 OpenHosting, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps-mon,v 1.4 2005/02/01 21:01:31 grisha Exp $
+# $Id: openvps-mon,v 1.5 2005/09/19 21:43:14 grisha Exp $
 
 # This is a daemon script that runs in the background, collects
 # datapoints (using openvps.host.mon) and sends them out to a central
@@ -47,8 +47,20 @@ EXIT = 0
 
 def exit_handler(signum, frame):
    global EXIT
+
+   # ok so here we need to send an 'administrative down' packet to the
+   # recv agent.
+
    log('Received SIGTERM.')
    EXIT = 1
+
+   # send admin_down command to mon server. upon receiving this, the
+   # server should disable the check for 'gone-silent' device. any
+   # further packet from us would reenable it
+   
+   data = mon.cmd_admin_down()
+   send_data(data)
+   
                    
 def daemonize(pidfile=None):
    """
@@ -199,6 +211,15 @@ def startstop(pidfile='%s.pid' % os.path.basename(sys.argv[0])):
    sys.exit(2)
 
 
+def send_data(data):
+
+   if type(cfg.MON_TARGET_IP) == type([]):
+      for target_ip in cfg.MON_TARGET_IP:
+         udp_sock.sendto(data, (target_ip, cfg.MON_TARGET_PORT))
+   else:
+      udp_sock.sendto(data, (cfg.MON_TARGET_IP, cfg.MON_TARGET_PORT))
+
+
 def work():
 
    try:
@@ -224,11 +245,7 @@ def do_work():
 
    # send to mon server
    data = mon.collect_stats()
-   if type(cfg.MON_TARGET_IP) == type([]):
-      for target_ip in cfg.MON_TARGET_IP:
-         udp_sock.sendto(data, (target_ip, cfg.MON_TARGET_PORT))
-   else:
-      udp_sock.sendto(data, (cfg.MON_TARGET_IP, cfg.MON_TARGET_PORT))
+   send_data(data)
 
    # local vserver stats
    vsmon.collect_stats()

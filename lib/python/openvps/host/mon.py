@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: mon.py,v 1.3 2005/02/07 19:10:02 grisha Exp $
+# $Id: mon.py,v 1.4 2005/09/19 21:43:14 grisha Exp $
 
 # This file contains functions to retrieve various server statistics
 # (mostly) from the /proc filesystem. It also contains functions to
@@ -31,16 +31,21 @@ import cfg
 
 KEYS = [x[0] for x in cfg.MON_DATA_DEF]
 
-def result(data):
+def pack_dict(data):
 
-    # pack, sign and marshal
+    # since UDP packets should be less than 512 bytes in length, we
+    # save space by converting the dictionary to a list where the
+    # position in the list dtermines what the value is. the definition
+    # for this stored in cfg.MON_DATA_DEF, which means it better match
+    # on both ends. It should be OK to send a longer packet than
+    # expected, or receive a shorter packet than expected - the
+    # trailing stuff is just ignored. So it should be safe to tack
+    # elements onto the end of the list.
 
-    # the resulting "packed" string is a list, values matching the
-    # keys listed in KEYS from cfg.MOD_DATA_DEF (above); since
-    # position in the resulting list indicates what it is, absense of
-    # value should be denoted by None
-    
     r = []
+
+    # since position in the resulting list indicates what it is,
+    # absense of value should be denoted by None
 
     for k in KEYS:
         if data.has_key(k):
@@ -48,14 +53,17 @@ def result(data):
         else:
             r.append(None)
 
-    # as tempting as it is to have the sig inside the list
-    # it's important that on the reciving end you check sig
-    # _first_ and only _then_ try to unmarshal
+    return r
+
+
+def marshal_sign(data):
+
+    # marshal sign
     
-    m_data = marshal.dumps(r)
+    m_data = marshal.dumps(data)
     sig = hmac.new(cfg.MON_SECRET, m_data).digest()
 
-    return sig+m_data
+    return sig + m_data
 
 
 def procopen(path):
@@ -275,6 +283,26 @@ def collect_stats():
     data.update(ipcs())
     data.update(file_handlers())
 
-    return result(data)
+    packed = pack_dict(data)
 
+    return marshal_sign(packed)
+
+
+
+def cmd_admin_down(data):
+
+    # create a packet that says "we're going administratively
+    # down". This would effectively make every reboot "administrative"
+    # downtime since all processes receive a TERM signal, but that's
+    # about right - servers do not normally get nicely reboot for no
+    # reason.
+
+    # the receiver will look at the packet length, anything of length
+    # 3 will be expected to be ['hostname', command_id, data], where
+    # data is command-specific stuff.
+
+    data = [hostname(), cfg.MON_CMD_ADMIN_DOWN, None]
+
+    return marshal_sign(data)
+    
 
