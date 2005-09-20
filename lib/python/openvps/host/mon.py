@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: mon.py,v 1.4 2005/09/19 21:43:14 grisha Exp $
+# $Id: mon.py,v 1.5 2005/09/20 18:02:05 grisha Exp $
 
 # This file contains functions to retrieve various server statistics
 # (mostly) from the /proc filesystem. It also contains functions to
@@ -289,7 +289,7 @@ def collect_stats():
 
 
 
-def cmd_admin_down(data):
+def cmd_admin_down():
 
     # create a packet that says "we're going administratively
     # down". This would effectively make every reboot "administrative"
@@ -301,7 +301,7 @@ def cmd_admin_down(data):
     # 3 will be expected to be ['hostname', command_id, data], where
     # data is command-specific stuff.
 
-    data = [hostname(), cfg.MON_CMD_ADMIN_DOWN, None]
+    data = [hostname()['hostname'], cfg.MON_CMD_ADMIN_DOWN, None]
 
     return marshal_sign(data)
     
