@@ -14,8 +14,11 @@
 # limitations under the License.
 #
 #
-# $Id: openvps.in,v 1.7 2005/09/09 21:28:30 grisha Exp $
+# $Id: openvps.in,v 1.8 2005/09/22 20:28:25 grisha Exp $
 #
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
 * * * * * root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits
 0 * * * * root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits.hour
 0 0 * * * root @prefix@/sbin/ovdisk > /var/db/openvps/disklimits/disklimits.day
