@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.23 2005/09/09 21:28:30 grisha Exp $
+# $Id: dft.py.in,v 1.24 2005/09/29 21:09:52 grisha Exp $
 
 """ Configuration Defaults
 
@@ -27,6 +27,9 @@ for CONFIG_FILE for the exact value).
 import os, sys
 
 PREFIX = '@prefix@' 
+
+# This is sytem is live. Only live systems send heartbeats to admin.
+LIVE_SYSTEM = False
 
 # The main oh directory
 OV_DIR = os.path.join(PREFIX, 'openvps')
