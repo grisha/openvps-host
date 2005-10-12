@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.24 2005/09/29 21:09:52 grisha Exp $
+# $Id: dft.py.in,v 1.25 2005/10/12 20:41:24 grisha Exp $
 
 """ Configuration Defaults
 
@@ -172,7 +172,7 @@ PANEL_SUPERUSER_PW = '*' # disable by default
 # into a triple of (copy, touch, skip) re objects.
 
 CLONE_RULES = {
-    'copy' : ['/etc', '/var', '/root', '^/dev'],
+    'copy' : ['/etc', '/var', '/root', '^/dev', '/usr/share/pear'],
     'touch' : ['/var/log', '/var/run', '\.bash_history'],
     'skip' : ['ssh_host_', '.pem$', '/proc/', '/var/tmp/', '/var/cache/.*/.+'] 
     }
