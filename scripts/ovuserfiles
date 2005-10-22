@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.3
+#!/usr/bin/env python
 
 #
 # Copyright 2005 OpenHosting, Inc.
@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovuserfiles,v 1.6 2005/07/25 21:21:25 grisha Exp $
+# $Id: ovuserfiles,v 1.7 2005/10/22 19:49:50 grisha Exp $
 
 
 """

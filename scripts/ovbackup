@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.3
+#!/usr/bin/env python
 
 #
 # Copyright 2004 OpenHosting, Inc.
@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovbackup,v 1.8 2005/05/11 14:56:25 grisha Exp $
+# $Id: ovbackup,v 1.9 2005/10/22 19:49:50 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
