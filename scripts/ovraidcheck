@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovraidcheck,v 1.4 2005/09/09 21:35:06 grisha Exp $
+# $Id: ovraidcheck,v 1.5 2005/11/07 02:30:22 grisha Exp $
 
 # currently, this only works on I2O and megaraid
 
@@ -52,7 +52,7 @@ if [ ! -z "`df | grep /dev/i2o`" ]; then
     # now do the check
 
     if [ ! -z "`raidutil -L Logical | grep Degrade`" ]; then
-	echo "`raidutil -L Logical`" | mail -s "RAID problem on `hostname -s`" $NOTIFY_EMAIL
+	echo "`raidutil -L all`" | mail -s "RAID problem on `hostname -s`" $NOTIFY_EMAIL
     fi
 
 elif [ ! -z "`grep megadev /proc/devices`" ]; then

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: configure.in,v 1.25 2005/07/22 19:39:14 grisha Exp $
+# $Id: configure.in,v 1.26 2005/11/07 02:30:22 grisha Exp $
 
 AC_INIT
 
@@ -102,10 +102,10 @@ fi
 
 # check for rrdtool
 
-AC_PATH_PROG(RRDTOOL, rrdtool)
-if test -z "$RRDTOOL"; then
-  AC_MSG_ERROR([not found. Please install RRDTool])
-fi
+#AC_PATH_PROG(RRDTOOL, rrdtool)
+#if test -z "$RRDTOOL"; then
+#  AC_MSG_ERROR([not found. Please install RRDTool])
+#fi
 
 # check for vserver kernel
 

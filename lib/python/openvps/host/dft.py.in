@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.25 2005/10/12 20:41:24 grisha Exp $
+# $Id: dft.py.in,v 1.26 2005/11/07 02:30:22 grisha Exp $
 
 """ Configuration Defaults
 
@@ -183,7 +183,7 @@ CHROOT = '/usr/sbin/chroot' # XXX conf
 
 # location of rrdtool
 
-RRDTOOL = '/usr/bin/rrdtool' # XXX conf
+#RRDTOOL = '/usr/bin/rrdtool' # XXX conf
 
 # The /etc/motd file
 
