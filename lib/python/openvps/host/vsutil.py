@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.14 2005/08/05 20:02:06 grisha Exp $
+# $Id: vsutil.py,v 1.15 2005/11/14 19:45:54 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -124,6 +124,12 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
 
     # nice
     open(os.path.join(dirname, 'nice'), 'w').write(cfg.DFT_NICE+'\n')
+
+    # bcapabilities
+    # XXX
+    # This may be FC4-pam-specific, see thread on "audit interface" on
+    # VServer list these are CAP_AUDIT_WRITE and CAP_AUDIT_CONTROL
+    open(os.path.join(dirname, 'bcapabilities'), 'w').write('^29\n^30\n')
 
     # ccapabilities
     open(os.path.join(dirname, 'ccapabilities'), 'w').write('mount\n')

@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovbackup,v 1.9 2005/10/22 19:49:50 grisha Exp $
+# $Id: ovbackup,v 1.10 2005/11/14 19:45:54 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -110,9 +110,9 @@ def other_stuff():
     # 10 days daily
     n = now[2] % 10
 
-    fname = os.path.join(cfg.BACKUP, HOST+'_var_db_oh-daily%d.tar.bz2' % n)
+    fname = os.path.join(cfg.BACKUP, HOST+'_var_db_openvps-daily%d.tar.bz2' % n)
     cmd = 'cd /; %s cjvf - %s %s' % \
-          (TAR, cfg.VAR_DB_OH, get_target(fname))
+          (TAR, cfg.VAR_DB_OPENVPS, get_target(fname))
     run_cmd(cmd)
 
     fname = os.path.join(cfg.BACKUP, HOST+'_etc_vservers-daily%d.tar.bz2' % n)
@@ -123,9 +123,9 @@ def other_stuff():
     # 1st of every month
     if now[2] == 1:
         
-        fname = os.path.join(cfg.BACKUP, HOST+'_var_db_oh-monthly.tar.bz2')
+        fname = os.path.join(cfg.BACKUP, HOST+'_var_db_openvps-monthly.tar.bz2')
         cmd = 'cd /; %s cjvf - %s %s' % \
-              (TAR, cfg.VAR_DB_OH, get_target(fname))
+              (TAR, cfg.VAR_DB_OPENVPS, get_target(fname))
         run_cmd(cmd)
 
         
