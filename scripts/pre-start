@@ -16,13 +16,14 @@
 # limitations under the License.
 #
 
-# $Id: pre-start,v 1.1 2005/07/12 18:22:33 grisha Exp $
+# $Id: pre-start,v 1.2 2005/11/17 21:31:16 grisha Exp $
 
 python <<EOF
 
 from openvps.host import vsutil
 
 vsutil.set_tc_class("$2")
+vsutil.iptables_rules("$2")
 
 EOF
 

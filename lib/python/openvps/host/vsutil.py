@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.15 2005/11/14 19:45:54 grisha Exp $
+# $Id: vsutil.py,v 1.16 2005/11/17 21:31:16 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -224,14 +224,14 @@ def list_vservers():
 
     return result
 
-def print_vserver_ips():
+## def print_vserver_ips():
 
-    # this is used by the /etc/init.d/ohresources shell script
+##     # this is used by the /etc/init.d/ohresources shell script
 
-    vl = list_vservers()
-    for v in vl.keys():
-        for i in vl[v]['interfaces']:
-            print '%s:%s' % (i['dev'], i['ip'])
+##     vl = list_vservers()
+##     for v in vl.keys():
+##         for i in vl[v]['interfaces']:
+##             print '%s:%s' % (i['dev'], i['ip'])
 
 def guess_vserver_device():
     """ Guess which device is the one mounting our vservers partition """
@@ -448,25 +448,34 @@ def stop(vserver):
         return commands.getoutput('%s vserver-stop %s' % (cfg.OVWRAPPER, vserver))
 
 
-def iptables_rule(dev, ip):
+def iptables_rules(vserver):
 
     print 'Adding iptables rules for bandwidth montoring'
 
-    # make sure dummy traffic is counted
-    dev = dev.replace('dummy', 'eth')
+    # get vserver IPs
+    ips = [x['ip'] for x in get_vserver_config(vserver)['interfaces']]
 
-    cmd = 'iptables -D INPUT -i %s -d %s' % (dev, ip)
-    print ' ', cmd
-    commands.getoutput(cmd)
-    cmd = 'iptables -A INPUT -i %s -d %s' % (dev, ip)
-    print ' ', cmd
-    commands.getoutput(cmd)
-    cmd = 'iptables -D OUTPUT -o %s -s %s' % (dev, ip)
-    print ' ', cmd
-    commands.getoutput(cmd)
-    cmd = 'iptables -A OUTPUT -o %s -s %s' % (dev, ip)
-    print ' ', cmd
-    commands.getoutput(cmd)    
+    for ip in ips:
+
+        # does the rule exist?
+        cmd = 'iptables -L -n | grep %s' % ip
+        if not commands.getoutput(cmd):
+
+            #cmd = 'iptables -D INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
+            #print ' ', cmd
+            #commands.getoutput(cmd)
+            cmd = 'iptables -A INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
+            print ' ', cmd
+            commands.getoutput(cmd)
+            #cmd = 'iptables -D OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
+            #print ' ', cmd
+            #commands.getoutput(cmd)
+            cmd = 'iptables -A OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
+            print ' ', cmd
+            commands.getoutput(cmd)    
+
+        else:
+            print 'Rules already exist for %s, skipping' % ip
 
 
 def is_tc_base_up():
@@ -529,8 +538,10 @@ def set_tc_class(vserver):
 
                 cmd = '/sbin/tc filter del dev %s parent 10: prio %s handle %s %s' % \
                       (cfg.DFT_DEVICE, prio, handle, kind)
-                print cmd
-                print commands.getoutput(cmd)
+                print '   ', cmd
+                s = commands.getoutput(cmd)
+                if s:
+                    print s
 
         # is there a classes ?
 
@@ -541,15 +552,19 @@ def set_tc_class(vserver):
 
             # kill it too
             cmd = '/sbin/tc class del dev %s parent 10:2 classid 10:%s' % (cfg.DFT_DEVICE, n)
-            print cmd
-            print commands.getoutput(cmd)
+            print '   ', cmd
+            s = commands.getoutput(cmd)
+            if s:
+                print s
 
         # now we can do our thing
 
         cmd = '/sbin/tc class add dev %s parent 10:2 classid 10:%s htb rate %s ceil %s burst 15k' % \
               (cfg.DFT_DEVICE, n, cfg.DFT_VS_RATE, ceil)
-        print cmd
-        print commands.getoutput(cmd)
+        print '   ', cmd
+        s = commands.getoutput(cmd)
+        if s:
+            print s
 
         U32 = '/sbin/tc filter add dev %s protocol ip parent 10:0 prio 1 u32' % cfg.DFT_DEVICE
         
@@ -560,8 +575,10 @@ def set_tc_class(vserver):
                 # a DSR load-balancing scenario
                 
                 cmd = '%s match ip src %s/32 flowid 10:%s' % (U32, i['ip'], n)
-                print cmd
-                print commands.getoutput(cmd)
+                print '   ', cmd
+                s = commands.getoutput(cmd)
+                if s:
+                    print s
 
 
 def set_bwlimit(vserver, limit, cap=None):

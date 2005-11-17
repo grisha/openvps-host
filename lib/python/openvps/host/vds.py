@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.16 2005/08/05 20:02:06 grisha Exp $
+# $Id: vds.py,v 1.17 2005/11/17 21:31:16 grisha Exp $
 
 """ VDS related functions """
 
@@ -857,7 +857,6 @@ def addip(vserver, ip, dev, mask):
     # add a second ip address to a vserver
     
     vsutil.add_vserver_ip(vserver, ip, dev, mask)
-    vsutil.iptables_rule(dev, ip)
 
 def set_bwlimit(vserver, limit):
 

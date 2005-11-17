@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.11 2005/09/14 15:38:49 grisha Exp $
+# $Id: Distro.py,v 1.12 2005/11/17 21:31:16 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -301,10 +301,6 @@ class Distro(object):
 
         vsutil.set_disk_limits(xid, d_used, limit, i_used, cfg.INODES_LIM, 5, cfg.VSERVERS_ROOT)
 
-    def iptables_rule(self, dev, ip):
-
-        vsutil.iptables_rule(dev, ip)
-
     def make_ssl_cert(self):
         raise "NOT IMPLEMENTED"
 
@@ -443,7 +439,6 @@ class Distro(object):
         self.make_motd()
         self.fix_services()
         self.disk_limit(xid, disklim)
-        self.iptables_rule(cfg.DFT_DEVICE, ip)
         self.make_ssl_cert(hostname)
         self.fixup_crontab()
         self.ohd_key(name)
@@ -529,9 +524,6 @@ class Distro(object):
         
         self.disk_limit(xid, disklim, force=True)
 
-        # the rule should already be there
-        #self.iptables_rule(cfg.DFT_DEVICE, ip)
-        
         self.make_ssl_cert(hostname)
         self.fixup_crontab()
 
@@ -602,5 +594,8 @@ class Bundle(object):
         hdv1 = os.path.join(dev, 'hdv1')
         open(hdv1, 'w')
         os.chmod(hdv1, 0644)
+
+        # make the fd symlink
+        os.symlink('../proc/self/fd', os.path.join(dev, 'fd'))
         
 
