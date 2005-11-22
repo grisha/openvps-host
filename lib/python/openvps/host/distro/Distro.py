@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.12 2005/11/17 21:31:16 grisha Exp $
+# $Id: Distro.py,v 1.13 2005/11/22 20:54:08 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -404,11 +404,14 @@ class Distro(object):
 
                     vsutil.set_file_xid(path, 0)
 
-                elif not vsutil.is_file_immutable_unlink(path):
+                elif not vsutil.is_file_immutable_unlink(path) and os.stat(path).st_nlink == 1:
 
                     vsutil.set_file_xid(path, xid)
 
                     x += 1 # setxid file count
+
+                else:
+                    vsutil.set_file_xid(path, 0)
 
 
         print 'Done.\n%d xids of a total of %d has been set to %d' % (x, t, xid)
