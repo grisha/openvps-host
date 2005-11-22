@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.10 2005/09/14 15:38:49 grisha Exp $
+# $Id: RedHat.py,v 1.11 2005/11/22 20:19:38 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -477,6 +477,7 @@ class RedHat(Distro):
                             # (do not make symlinks and dirs immutable)
 
                             vsutil.set_file_immutable_unlink(abspath)
+                            vsutil.set_file_xid(path, 0)
 
                             # NOTE that under no circumstances we *unset* the flag. This
                             # is because e.g. usr/libexec/oh stuff must be iunlink, but
