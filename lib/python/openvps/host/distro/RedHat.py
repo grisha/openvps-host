@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.11 2005/11/22 20:19:38 grisha Exp $
+# $Id: RedHat.py,v 1.12 2005/12/03 19:31:29 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -67,6 +67,7 @@ class RedHatBundle(Bundle):
             print "Installing %s from %s to %s" % (self.desc, self.distroot, self.vpsroot)
 
             cmd = 'rpm --root %s -Uvh %s' % (self.vpsroot, ' '.join(self.resolve_packages()))
+            print cmd
             pipe = os.popen('{ ' + cmd + '; } ', 'r', 0)
             s = pipe.read(1)
             while s:
@@ -477,7 +478,7 @@ class RedHat(Distro):
                             # (do not make symlinks and dirs immutable)
 
                             vsutil.set_file_immutable_unlink(abspath)
-                            vsutil.set_file_xid(path, 0)
+                            vsutil.set_file_xid(abspath, 0)
 
                             # NOTE that under no circumstances we *unset* the flag. This
                             # is because e.g. usr/libexec/oh stuff must be iunlink, but

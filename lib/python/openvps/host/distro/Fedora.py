@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.15 2005/09/14 15:38:49 grisha Exp $
+# $Id: Fedora.py,v 1.16 2005/12/03 19:31:29 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -479,19 +479,19 @@ class Fedora_Core_4(Fedora_Core_3):
         packages = [
             'desktop-backgrounds-basic',
             'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/dbh-1.0.24-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfce4mcs-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfce4mcs-devel-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfce4util-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfcegui4-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce-mcs-manager-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce-mcs-manager-devel-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce-mcs-plugins-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce-utils-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce4-panel-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfdesktop-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xffm-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfwm4-4.2.2-1.fc4.i386.rpm',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfwm4-themes-4.2.2-1.fc4.noarch.rpm'
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfce4mcs-4.2.3-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfce4mcs-devel-4.2.3-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfce4util-4.2.3.2-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfcegui4-4.2.3-2.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce-mcs-manager-4.2.3-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce-mcs-manager-devel-4.2.3-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce-mcs-plugins-4.2.3-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce-utils-4.2.3-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfce4-panel-4.2.3-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfdesktop-4.2.3-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xffm-4.2.3-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfwm4-4.2.3.2-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/xfwm4-themes-4.2.3-1.fc4.noarch.rpm'
             ]
 
     class _Bundle_120_Xfce(RedHatBundle):

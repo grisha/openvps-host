@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.14 2005/11/22 21:04:15 grisha Exp $
+# $Id: Distro.py,v 1.15 2005/12/03 19:31:29 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -412,9 +412,11 @@ class Distro(object):
 
                     x += 1 # setxid file count
 
-                else not os.path.islink(path):
-                    vsutil.set_file_xid(path, 0)
+                elif not os.path.islink(path):
 
+                    # default to 0
+                    vsutil.set_file_xid(path, 0)
+                    
 
         print 'Done.\n%d xids of a total of %d has been set to %d' % (x, t, xid)
 
