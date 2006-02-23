@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.31 2005/11/07 02:30:22 grisha Exp $
+# $Id: mkspec.in,v 1.32 2006/02/23 22:13:38 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -98,6 +98,7 @@ echo "/usr/sbin/ovgenkey"
 echo "/usr/sbin/ovcheckproc"
 echo "/usr/sbin/ovuserfiles"
 echo "/usr/sbin/ovraidcheck"
+echo "/usr/sbin/ovcleanrebuilds"
 echo "%dir /var/db/openvps"
 echo "%dir /var/db/openvps/vsmon"
 echo "%dir /var/db/openvps/disklimits"

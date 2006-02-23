@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 #
-# $Id: openvps.in,v 1.8 2005/09/22 20:28:25 grisha Exp $
+# $Id: openvps.in,v 1.9 2006/02/23 22:13:38 grisha Exp $
 #
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
@@ -34,4 +34,7 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 5 0,4,8,16,20 * * * root @prefix@/sbin/ovraidcheck
 
 #
-0 0 * * * root @prefix@/sbin/ovgenkey
+15 * * * * root @prefix@/sbin/ovgenkey
+
+# clean rebuilds
+15 7 * * * root @prefix@/sbin/ovcleanrebuilds
