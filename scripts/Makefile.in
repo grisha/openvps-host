@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.20 2006/02/23 22:13:38 grisha Exp $
+# $Id: Makefile.in,v 1.21 2006/03/03 15:41:51 grisha Exp $
 
 INSTALL=@INSTALL@
 SBINDIR=@prefix@/sbin
@@ -36,5 +36,6 @@ install:
 	$(INSTALL) -m 0550 ovuserfiles $(DESTDIR)$(SBINDIR)/ovuserfiles
 	$(INSTALL) -m 0550 ovraidcheck $(DESTDIR)$(SBINDIR)/ovraidcheck
 	$(INSTALL) -m 0550 ovcleanrebuilds $(DESTDIR)$(SBINDIR)/ovcleanrebuilds
+	$(INSTALL) -m 0550 ssh-pass $(DESTDIR)$(SBINDIR)/ssh-pass
 # XXX this shouldn't be hard-coded
 	$(INSTALL) -m 0550 pre-start $(DESTDIR)/etc/vservers/.defaults/scripts/pre-start.d/openvps
