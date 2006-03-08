@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovcleanrebuilds,v 1.1 2006/02/23 22:13:38 grisha Exp $
+# $Id: ovcleanrebuilds,v 1.2 2006/03/08 15:00:11 grisha Exp $
 
 # This script removes the .reuild* directories left after a VPS has
 # been rebuilt.
@@ -24,9 +24,25 @@
 VSERVERS=/vservers/
 DAYS=2
 
-find $VSERVERS -maxdepth 1 -name ".rebuild*" -ctime +$DAYS -exec rm -rf {} \; > /dev/null 2>&1
+REBUILDS=`find /vservers/ -maxdepth 1 -name ".rebuild*"`
 
-find $VSERVERS -maxdepth 1 -name ".rebuild*" -ctime +$DAYS -exec chattr -R -i {} \;
-find $VSERVERS -maxdepth 1 -name ".rebuild*" -ctime +$DAYS -exec rm -rf {} \; 
+for REBUILD in $REBUILDS ; do
+    rm -rf "$REBUILD" > /dev/null 2>&1
+    chattr -R -i "$REBUILD" > /dev/null 2>&1
+    rm -rf "$REBUILD"
+done
+
+# just in case, fix flags in reference servers
+
+REFROOTS=`python -c 'from openvps.host import cfg; print " ".join(cfg.REFROOTS)'`
+
+for REFROOT in $REFROOTS ; do
+    if [ -d $REFROOT ] ; then
+	openvps fixflags $REFROOT > /dev/null 2>&1
+    fi
+done
+
+
+
 
 
