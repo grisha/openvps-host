@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: mon.py,v 1.5 2005/09/20 18:02:05 grisha Exp $
+# $Id: mon.py,v 1.6 2006/04/11 23:58:05 grisha Exp $
 
 # This file contains functions to retrieve various server statistics
 # (mostly) from the /proc filesystem. It also contains functions to
@@ -161,7 +161,8 @@ def df():
     global disks
     devs = []
 
-    lines = commands.getoutput('/bin/df -k').splitlines()
+    # -t ext2 -t ext3 prevents it from hanging when NFS is hosed
+    lines = commands.getoutput('/bin/df -k -t ext2 -t ext3').splitlines()
 
     for line in lines:
 
