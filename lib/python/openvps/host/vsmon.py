@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.15 2005/09/02 17:47:11 grisha Exp $
+# $Id: vsmon.py,v 1.16 2006/05/03 20:13:39 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -168,12 +168,14 @@ def bandwidth(server, input, output, vservers):
             if input.has_key(ip):
                 i += long(input[ip])
             else:
-                log('WARNING: No iptables INPUT rule exist for ip %s of %s' % (ip, server))
+                log('WARNING: No iptables INPUT rule exist for ip %s of %s, creating...' % (ip, server))
+                vsutil.iptables_rules(server)
 
             if output.has_key(ip):
                 o += long(output[ip])
             else:
-                log('WARNING: No iptables OUTPUT rule exist for ip %s of %s' % (ip, server))
+                log('WARNING: No iptables OUTPUT rule exist for ip %s of %s, creating...' % (ip, server))
+                vsutil.iptables_rules(server)
 
     return {'vs_in':i, 'vs_out':o}
 

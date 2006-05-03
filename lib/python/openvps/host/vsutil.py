@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.16 2005/11/17 21:31:16 grisha Exp $
+# $Id: vsutil.py,v 1.17 2006/05/03 20:13:39 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -458,7 +458,7 @@ def iptables_rules(vserver):
     for ip in ips:
 
         # does the rule exist?
-        cmd = 'iptables -L -n | grep %s' % ip
+        cmd = 'iptables -L INPUT -n | grep %s' % ip
         if not commands.getoutput(cmd):
 
             #cmd = 'iptables -D INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
@@ -467,6 +467,14 @@ def iptables_rules(vserver):
             cmd = 'iptables -A INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
             print ' ', cmd
             commands.getoutput(cmd)
+
+        else:
+            print 'INPUT rules already exists for %s, skipping' % ip
+            
+        # does the rule exist?
+        cmd = 'iptables -L OUTPUT -n | grep %s' % ip
+        if not commands.getoutput(cmd):
+            
             #cmd = 'iptables -D OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
             #print ' ', cmd
             #commands.getoutput(cmd)
@@ -475,7 +483,7 @@ def iptables_rules(vserver):
             commands.getoutput(cmd)    
 
         else:
-            print 'Rules already exist for %s, skipping' % ip
+            print 'OUTPUT rule already exists for %s, skipping' % ip
 
 
 def is_tc_base_up():
