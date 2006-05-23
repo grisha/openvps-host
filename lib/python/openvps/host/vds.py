@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.17 2005/11/17 21:31:16 grisha Exp $
+# $Id: vds.py,v 1.18 2006/05/23 14:43:29 grisha Exp $
 
 """ VDS related functions """
 
@@ -271,6 +271,10 @@ def rebuild(refroot, name):
 
         print 'Renaming %s -> %s...' % (vpspath, temppath)
         os.rename(vpspath, temppath)
+
+        # touch it, so that it does not get wiped by the
+        # ovcleanrebuilds cron script
+        os.utime(temppath, None)
 
         # clone it
         clone(refroot, vpspath)
