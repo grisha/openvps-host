@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.17 2006/06/30 20:37:54 grisha Exp $
+# $Id: Fedora.py,v 1.18 2006/06/30 21:03:21 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -457,7 +457,7 @@ class Fedora_Core_4(Fedora_Core_3):
         desc = 'OpenVPS-ized Webmin'
         
         packages = [
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/perl-Net-SSLeay-1.26-3.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/perl-Net-SSLeay-1.26-3.fc4.i386.rpm',
             'http://www.openvps.org/dist/misc/webmin-1.210-1_OH.noarch.rpm'
             ]
 
@@ -478,7 +478,7 @@ class Fedora_Core_4(Fedora_Core_3):
         
         packages = [
             'desktop-backgrounds-basic',
-            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/dbh-1.0.24-1.fc4.i386.rpm',
+            'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/dbh-1.0.24-3.fc4.i386.rpm',
             'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfce4mcs-4.2.3-1.fc4.i386.rpm',
             'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfce4mcs-devel-4.2.3-1.fc4.i386.rpm',
             'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/libxfce4util-4.2.3.2-1.fc4.i386.rpm',
