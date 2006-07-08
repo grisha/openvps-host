@@ -13,7 +13,7 @@
  * implied.  See the License for the specific language governing
  * permissions and limitations under the License.
  *
- * $Id: _vserver.c,v 1.3 2005/03/26 05:57:31 grisha Exp $
+ * $Id: _vserver.c,v 1.4 2006/07/08 19:21:24 grisha Exp $
  *
  */
 
@@ -37,24 +37,24 @@ _vs_vc_get_version(PyObject *self)
   return PyInt_FromLong(vc_get_version());
 }
 
-static PyObject * 
-_vs_vc_new_s_context(PyObject *self, PyObject *argv)
-{
+/* static PyObject *  */
+/* _vs_vc_new_s_context(PyObject *self, PyObject *argv) */
+/* { */
 
-  xid_t xid;
-  int remove_cap, flags;
+/*   xid_t xid; */
+/*   int remove_cap, flags; */
 
-  if (! PyArg_ParseTuple(argv, "iii", &xid, &remove_cap, &flags))
-    return NULL;
+/*   if (! PyArg_ParseTuple(argv, "iii", &xid, &remove_cap, &flags)) */
+/*     return NULL; */
 
 
-  xid = vc_new_s_context(xid, remove_cap, flags);
-  if (xid == VC_NOCTX) {
-    return PyErr_SetFromErrno(PyExc_OSError);
-  }
+/*   xid = vc_new_s_context(xid, remove_cap, flags); */
+/*   if (xid == VC_NOCTX) { */
+/*     return PyErr_SetFromErrno(PyExc_OSError); */
+/*   } */
 
-  return PyInt_FromLong(xid);
-}
+/*   return PyInt_FromLong(xid); */
+/* } */
 
 static PyObject * 
 _vs_vc_get_iattr(PyObject *self, PyObject *argv)
@@ -96,7 +96,7 @@ _vs_vc_set_iattr(PyObject *self, PyObject *argv)
 
 struct PyMethodDef _vs_module_methods[] = {
     {"vc_get_version",     (PyCFunction) _vs_vc_get_version,   METH_NOARGS},
-    {"vc_new_s_context",   (PyCFunction) _vs_vc_new_s_context, METH_VARARGS},
+    //    {"vc_new_s_context",   (PyCFunction) _vs_vc_new_s_context, METH_VARARGS},
     {"vc_get_iattr",       (PyCFunction) _vs_vc_get_iattr,     METH_VARARGS},
     {"vc_set_iattr",       (PyCFunction) _vs_vc_set_iattr,     METH_VARARGS},
     {NULL, NULL}

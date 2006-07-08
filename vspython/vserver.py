@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vserver.py,v 1.2 2004/11/08 23:01:44 grisha Exp $
+# $Id: vserver.py,v 1.3 2006/07/08 19:21:24 grisha Exp $
 
 import _vserver
 
@@ -108,8 +108,8 @@ VC_IATTR_IMMUTABLE              = 0x00040000
 def get_version():
     return _vserver.vc_get_version()
 
-def change_context(xid=VC_SAMECTX, remove_cap=0, flags=0):
-    return _vserver.vc_new_s_context(xid, remove_cap, flags)
+#def change_context(xid=VC_SAMECTX, remove_cap=0, flags=0):
+#    return _vserver.vc_new_s_context(xid, remove_cap, flags)
 
 def get_file_xid(name):
     return _vserver.vc_get_iattr(name)[0]

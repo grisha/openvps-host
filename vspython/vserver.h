@@ -1,4 +1,4 @@
-/* $Id: vserver.h,v 1.1 2004/11/07 05:11:10 grisha Exp $
+/* $Id: vserver.h,v 1.2 2006/07/08 19:21:24 grisha Exp $
 
 *  Copyright (C) 2003 Enrico Scholz <enrico.scholz@informatik.tu-chemnitz.de>
 *   
@@ -254,7 +254,7 @@ extern "C" {
      *	          will be set appropriately
      *
      *  See http://vserver.13thfloor.at/Stuff/Logic.txt for details */
-  xid_t	vc_new_s_context(xid_t ctx, unsigned int remove_cap, unsigned int flags);
+  //  xid_t	vc_new_s_context(xid_t ctx, unsigned int remove_cap, unsigned int flags);
 
     /** \brief  Sets the ipv4root information.
      *  \ingroup syscalls
