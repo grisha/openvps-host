@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovbackup,v 1.10 2005/11/14 19:45:54 grisha Exp $
+# $Id: ovbackup,v 1.11 2006/07/25 00:01:31 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -67,8 +67,18 @@ def which_level():
 
     shuffle = int(cfg.PRIMARY_IP.split('.')[-1][-1])
     day = time.localtime()[2] + shuffle
-    levels = [9,0,3,2,5,4,7,6,9,8]
-    return levels[day % 10]
+
+    # classical tower sequence
+    #levels = [9,0,3,2,5,4,7,6,9,8]
+
+    # these backups are now ordered sequentially, which means that the
+    # files will be smaller, but a restore may take twice as many dump
+    # files to go through. This is a compromise to save space on the
+    # backup server. 
+    
+    levels = [9,0,1,2,3,4,5,6,7,8]
+    
+    return levels[day % len(levels)]
 
 def get_target(fname):
 
