@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.11 2007/03/19 19:18:19 grisha Exp $
+# $Id: openvps,v 1.12 2007/03/19 19:41:35 grisha Exp $
 
 
 """
@@ -182,40 +182,21 @@ def cmd_addip():
 
     vds.addip(vserver, ip, dev, mask)
 
-def cmd_addip():
+def cmd_suspend():
 
-    parser = OptionParser(usage="%prog addip <vserver> <ip>\n"
-                          "  Add ip <ip> to vserver <vserver>\n"
-                          "    where <ip> is [device:]ip[/mask]")
+    parser = OptionParser(usage="%prog suspend <vserver>\n"
+                          "  Suspend <vserver>\n"
+                          "    meaning insert an * in /etc/shadow for the main account\n"
+                          "    and in /etc/vservers/<vserver>/apps/init/mark so it doesnt\n"
+                          "    start on startup.")
 
     (options, args) = parser.parse_args(sys.argv[2:])
-    if len(args) != 2:
-        parser.error("Must specify <vserver> and <ip>")
+    if len(args) != 1:
+        parser.error("Must specify <vserver>")
 
-    vserver, ip = args[0], args[1]
+    vserver = args[0]
 
-    # parse the ip
-    dev, mask = cfg.DFT_DEVICE, '255.255.255.255'
-
-    try:
-        d, i, m = re.match('^(?:(.*):)?([0-9.]*)(?:/?([1-3]?[0-9]))?$', ip).groups()
-    except:
-        parser.error("Invalid ip specification: '%s'" % ip)
-
-    if not i:
-        parser.error("Invalid ip specification: '%s'" % ip)
-    else:
-        ip = i
-
-    if d:
-        dev = d
-
-    if m:
-        # convert mask to xxx.xxx.xxx.xxx
-        mask = (0xffffffffL << (32-int(m))) & 0xffffffffL
-        mask = socket.inet_ntoa(struct.pack('!L', mask))
-
-    vds.addip(vserver, ip, dev, mask)
+    vds.suspend(vserver)
 
 def cmd_dump():
 
