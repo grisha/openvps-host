@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.12 2007/03/19 19:41:35 grisha Exp $
+# $Id: openvps,v 1.13 2007/03/19 20:08:03 grisha Exp $
 
 
 """
@@ -186,7 +186,7 @@ def cmd_suspend():
 
     parser = OptionParser(usage="%prog suspend <vserver>\n"
                           "  Suspend <vserver>\n"
-                          "    meaning insert an * in /etc/shadow for the main account\n"
+                          "    meaning stop the vserver, insert an * in /etc/shadow for the main account\n"
                           "    and in /etc/vservers/<vserver>/apps/init/mark so it doesnt\n"
                           "    start on startup.")
 
@@ -198,6 +198,22 @@ def cmd_suspend():
 
     vds.suspend(vserver)
 
+def cmd_unsuspend():
+
+    parser = OptionParser(usage="%prog suspend <vserver>\n"
+                          "  Unsuspend <vserver>\n"
+                          "    meaning remove an * in /etc/shadow for the main account\n"
+                          "    and in /etc/vservers/<vserver>/apps/init/mark so it doesnt\n"
+                          "    start on startup; and start the vserver.")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 1:
+        parser.error("Must specify <vserver>")
+
+    vserver = args[0]
+
+    vds.unsuspend(vserver)
+    
 def cmd_dump():
 
     parser = OptionParser(usage="%prog dump <vserver> <ref-path> <outfile-path>\n"

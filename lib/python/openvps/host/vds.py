@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.19 2007/03/19 18:58:17 grisha Exp $
+# $Id: vds.py,v 1.20 2007/03/19 20:08:03 grisha Exp $
 
 """ VDS related functions """
 
@@ -982,7 +982,11 @@ def suspend(vserver):
     s = open(mark_path).read().strip()
             
     if s == 'default':
-        open(mark_path, 'w').write('*default')
+        open(mark_path, 'w').write('*default\n')
+
+    ## not stop it if it's running
+    if vsutil.is_running(vserver):
+        vsutil.stop(vserver)
 
 def unsuspend(vserver):
 
@@ -1019,5 +1023,10 @@ def unsuspend(vserver):
     s = open(mark_path).read().strip()
             
     if s == '*default':
-        open(mark_path, 'w').write('default')
+        open(mark_path, 'w').write('default\n')
+
+
+    ## not start it if it's not running
+    if not vsutil.is_running(vserver):
+        vsutil.start(vserver)
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.12 2005/12/03 19:31:29 grisha Exp $
+# $Id: RedHat.py,v 1.13 2007/03/19 20:08:03 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -48,10 +48,16 @@ class RedHatBundle(Bundle):
             # this is a local file, the RPMS directory is actually a couple of
             # levels below
 
-            distroot = os.path.join(distroot, self.DISTRO_DIR, 'RPMS')
+            _distroot = os.path.join(distroot, self.DISTRO_DIR, 'RPMS')
+
+            # this is a hack really, this info exists in .discinfo
+            if not os.path.exists(_distroot):
+                # May be this is RHEL
+                self.DISTRO_DIR = 'Server'
+                _distroot = os.path.join(distroot, self.DISTRO_DIR, 'RPMS')
 
         # call super
-        Bundle.__init__(self, distroot, vpsroot)
+        Bundle.__init__(self, _distroot, vpsroot)
         
 
     def install(self):
@@ -364,9 +370,9 @@ class RedHat(Distro):
         if not discinfo:
             return None
 
-        lines = discinfo.splitlines()[:4]
+        lines = discinfo.splitlines()[:7]
 
-        if len(lines) < 4:
+        if len(lines) < 7:
             # wrong file
             return None
 
@@ -378,6 +384,9 @@ class RedHat(Distro):
             result['platform'] = lines[2]
             # this is a comma-separated list of cd's provided here
             result['volumes'] = lines[3]
+            result['base'] = lines[4]
+            result['RPMS'] = lines[5]
+            result['pixmaps'] = lines[6]
         except "BLAH":
             return None
 
