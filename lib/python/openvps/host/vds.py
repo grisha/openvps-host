@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.18 2006/05/23 14:43:29 grisha Exp $
+# $Id: vds.py,v 1.19 2007/03/19 18:58:17 grisha Exp $
 
 """ VDS related functions """
 
@@ -946,4 +946,78 @@ def rpm_file_isconfig(root, file):
 
 def is_config(root, file):
     return rpm_file_isconfig(root, file)
+
+def suspend(vserver):
+
+    ## update shadow
+    shadow_path = os.path.join(cfg.VSERVERS_ROOT, vserver, 'etc/shadow')
+
+    result = []
+    
+    lines = open(shadow_path).readlines()
+    for line in lines:
+        
+        # the 'main' account
+        if line.startswith(vserver + ':'):
+            userid, passwd, remainder = line.split(':', 2)
+
+            if passwd[:1] != '*': # (already suspended)
+                passwd = '*' + passwd
+
+            line = '%s:%s:%s' % (userid, passwd, remainder)
+
+        result.append(line)
+
+    # write it back
+    open(shadow_path, 'w').writelines(result)
+
+    ## update the vserver config to make sure it does not
+    ## start automatically on startup
+
+    # XXX things that manipulate the config probably belong in
+    #     vsutils
+    
+    mark_path = os.path.join(cfg.ETC_VSERVERS, vserver, 'apps/init/mark')
+    
+    s = open(mark_path).read().strip()
+            
+    if s == 'default':
+        open(mark_path, 'w').write('*default')
+
+def unsuspend(vserver):
+
+    ## update shadow
+    shadow_path = os.path.join(cfg.VSERVERS_ROOT, vserver, 'etc/shadow')
+
+    result = []
+    
+    lines = open(shadow_path).readlines()
+    for line in lines:
+        
+        # the 'main' account
+        if line.startswith(vserver + ':'):
+            userid, passwd, remainder = line.split(':', 2)
+
+            if passwd[:1] == '*': # (suspended)
+                passwd = passwd[1:]
+
+            line = '%s:%s:%s' % (userid, passwd, remainder)
+
+        result.append(line)
+
+    # write it back
+    open(shadow_path, 'w').writelines(result)
+
+    ## update the vserver config to make sure it does not
+    ## start automatically on startup
+
+    # XXX things that manipulate the config probably belong in
+    #     vsutils
+    
+    mark_path = os.path.join(cfg.ETC_VSERVERS, vserver, 'apps/init/mark')
+    
+    s = open(mark_path).read().strip()
+            
+    if s == '*default':
+        open(mark_path, 'w').write('default')
 
