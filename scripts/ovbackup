@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovbackup,v 1.11 2006/07/25 00:01:31 grisha Exp $
+# $Id: ovbackup,v 1.12 2007/04/13 18:20:58 grisha Exp $
 
 """Script to dump the vserver and some other important files
 to a backup drive"""
@@ -146,7 +146,7 @@ def other_stuff():
 
 
 sleep()
-do_dump()
+#do_dump() # no dumps for now
 syslog('Dump done, now backing up configs and rrds')
 other_stuff()
 syslog('All backups completed')
