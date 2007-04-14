@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.13 2007/03/19 20:08:03 grisha Exp $
+# $Id: RedHat.py,v 1.14 2007/04/14 18:54:23 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -36,8 +36,8 @@ header_info_cache = None
 class RedHatBundle(Bundle):
 
     # when rpm's are pulled from a local disk, they would be stored in
-    # distroot/DISTRO_DIR/RPMS
-    DISTRO_DIR = 'RedHat'
+    # distroot/DISTRO_DIR
+    DISTRO_DIR = 'RedHat/RPMS'
 
     # this is an abstract class
 
@@ -45,19 +45,13 @@ class RedHatBundle(Bundle):
 
         if not distroot.startswith('http://') and not distroot.startswith('https://'):
 
-            # this is a local file, the RPMS directory is actually a couple of
-            # levels below
+            # this is a local file, the rpms are in DISTRO_DIR
+            # directory 
+            distroot = os.path.join(distroot, self.DISTRO_DIR)
 
-            _distroot = os.path.join(distroot, self.DISTRO_DIR, 'RPMS')
-
-            # this is a hack really, this info exists in .discinfo
-            if not os.path.exists(_distroot):
-                # May be this is RHEL
-                self.DISTRO_DIR = 'Server'
-                _distroot = os.path.join(distroot, self.DISTRO_DIR, 'RPMS')
 
         # call super
-        Bundle.__init__(self, _distroot, vpsroot)
+        Bundle.__init__(self, distroot, vpsroot)
         
 
     def install(self):

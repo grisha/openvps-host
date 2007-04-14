@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.18 2006/06/30 21:03:21 grisha Exp $
+# $Id: Fedora.py,v 1.19 2007/04/14 18:54:23 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -84,7 +84,7 @@ class Fedora_Core_3(Fedora_Core):
 
     class _Bundle_base(RedHat_Bundle_base):
 
-        DISTRO_DIR = 'Fedora'
+        DISTRO_DIR = 'Fedora/RPMS'
 
         name = 'base'
         desc = 'Fedora Core 3 Base'
@@ -351,8 +351,6 @@ class Fedora_Core_4(Fedora_Core_3):
     FC_VER = 4
 
     class _Bundle_base(Fedora_Core_3._Bundle_base):
-
-        DISTRO_DIR = 'Fedora'
 
         name = 'base'
         desc = 'Fedora Core 4 Base'

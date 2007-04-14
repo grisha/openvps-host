@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.1 2007/03/19 20:08:03 grisha Exp $
+# $Id: CentOS.py,v 1.2 2007/04/14 18:54:23 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -29,34 +29,40 @@ from RedHat import RedHat, RedHatBundle, RedHat_Bundle_base
 import distro_util
 
 
-class RHEL(RedHat):
+class CentOS(RedHat):
 
-    RHEL_VER = '0'
+    CentOS_VER = '0'
 
     def distro_version(self):
+
+        # XXX
+        # CentOS does not follow RedHat's convention in identifying
+        # itself in its .discinfo file, the version simply said
+        # "Final" in CentOS 5. So for now, we'll just take that
+        # "Final" is CentOS 5
+        
         rh_ver = RedHat.distro_version(self)
         try:
             if rh_ver:
-                if rh_ver['name'].startswith('Red Hat Enterprise'):
-                    rhel_ver = rh_ver['name'].split()[-1]
-                    if rhel_ver == self.RHEL_VER:
-                        return self.RHEL_VER
+                if rh_ver['name'] == 'Final':
+                    rhel_ver = '5'
+                    if rhel_ver == self.CentOS_VER:
+                        return self.CentOS_VER
         except:
             return None
         
     def vps_version(self):
         rh_ver = RedHat.vps_version(self)
         try:
-            if rh_ver and rh_ver.startswith('Red Hat Enterprise'):
-                if rh_ver.split()[6] == self.RHEL_VER:
-                    return self.RHEL_VER
+            if rh_ver and rh_ver.startswith('CentOS'):
+                if rh_ver.split()[2] == self.CentOS_VER:
+                    return self.CentOS_VER
         except:
             return None
 
     def get_desc(self):
 
-        return "RHEL %s" % self.RHEL_VER
-
+        return "CentOS %s" % self.CentOS_VER
 
     def fixup_crontab(self):
 
@@ -66,16 +72,16 @@ class RHEL(RedHat):
         os.chmod(os.path.join(self.vpsroot, 'etc/cron.daily/mlocate.cron'), 0644)
 
 
-class RHEL_4_92(RHEL):
+class CentOS_5_0(CentOS):
 
-    RHEL_VER = '4.92'
+    CentOS_VER = '5'
 
     class _Bundle_base(RedHat_Bundle_base):
 
-        DISTRO_DIR = 'RHEL'
+        DISTRO_DIR = 'CentOS'
 
         name = 'base'
-        desc = 'RHEL 4 Base'
+        desc = 'CentOS 5 Base'
 
         packages = [
             'SysVinit', 'acl', 'anacron', 'apr', 'apr-util', 'aspell',
@@ -84,6 +90,9 @@ class RHEL_4_92(RHEL):
             # XXX
             #'http://www.openvps.org/dist/misc/bind-libs-9.3.1-8.OHFC4.i386.rpm',
             #'http://www.openvps.org/dist/misc/bind-utils-9.3.1-8.OHFC4.i386.rpm',
+            'bind-libs',
+            'bind-utils',
+            # END XXXX
             'dbus',
             'device-mapper', 'elfutils-libs', 'curl', 'libidn', 'mcstrans', 'libcap', 'dmraid', 'kpartx', 'nash', 'm2crypto', 'wireless-tools', 'yum-metadata-parser',
             'bzip2', 'bzip2-libs',
@@ -91,7 +100,8 @@ class RHEL_4_92(RHEL):
             'cracklib-dicts', 'crontabs', 'cyrus-sasl', 'cyrus-sasl-lib',
             'cyrus-sasl-md5', 'db4', 'desktop-file-utils',
             'diffutils', 'dos2unix', 'e2fsprogs', 'e2fsprogs-libs', 'ed', 'elfutils',
-            'elfutils-libelf', 'ethtool', 'expat', 'redhat-release',
+            'elfutils-libelf', 'ethtool', 'expat', 'centos-release',
+            'centos-release-notes',
             'file', 'filesystem', 'findutils', 'finger', 'ftp',
             'gawk', 'gdbm', 'glib2', 'glibc', 'glibc-common',
             'gmp', 'gnupg', 'gpm', 'grep', 'groff', 'gzip', 'hesiod',
@@ -100,7 +110,7 @@ class RHEL_4_92(RHEL):
             'httpd', 'info', 'initscripts', 'iproute', 'iputils',
             'jwhois', 'krb5-libs', 'less', #'lftp',
             'libacl',
-            'libattr', 'libgcc', 'libgcrypt', 'libgpg-error',
+            'libattr', 'libgcc', 'libgpg-error',
             'libjpeg', 'libpng', 'libselinux', 'libsepol',
             'libstdc++', 'libtermcap', 'libusb', 'libuser',
             'libwvstreams', 'libxml2', 'libxml2-python', 'logrotate',
@@ -128,13 +138,19 @@ class RHEL_4_92(RHEL):
 
     class _Bundle_000_base2(RedHatBundle):
 
+        DISTRO_DIR = 'CentOS'
+        
         name = 'base2'
-        desc = 'RHEL 4 Base 2'
+        desc = 'CentOS 5 Base 2'
         
         packages = [
             'Xaw3d', 'apr-util-devel', 'atk', 'atk-devel', 'autoconf',
             'automake',
             #'http://www.openvps.org/dist/misc/bind-chroot-9.3.1-8.OHFC4.i386.rpm',
+            'bind',
+            'bind-chroot',
+            'caching-nameserver',
+            # XXX
             'binutils', 'chkfontpath',
             'cpp', 'curl-devel', 'cvs', 'cyrus-sasl-devel',
             'db4-devel', 'distcache', 'dovecot', 'e2fsprogs-devel',
@@ -215,12 +231,12 @@ class RHEL_4_92(RHEL):
             'libXinerama-devel',
             'libXrandr-devel',
             #'openssl',
-            'redhat-release-notes',
             'libXft-devel',
             'libXrender-devel',
             'perl-Net-IP',
             'libgcj',
             'elfutils-libelf-devel',
+            'elfutils-libelf-devel-static',
             'perl-Archive-Tar',
             'perl-IO-Socket-INET6',
             'perl-IO-Socket-SSL',
@@ -252,39 +268,38 @@ class RHEL_4_92(RHEL):
             #'curl'
             ]
 
-##     class _Bundle_010_Webmin(RedHatBundle):
+    class _Bundle_010_Webmin(RedHatBundle):
 
-##         name = 'webmin'
-##         desc = 'OpenVPS-ized Webmin'
+        name = 'webmin'
+        desc = 'OpenVPS-ized Webmin'
         
-##         packages = [
-##             'http://download.fedora.redhat.com/pub/fedora/linux/extras/4/i386/perl-Net-SSLeay-1.26-3.fc4.i386.rpm',
-##             'http://www.openvps.org/dist/misc/webmin-1.210-1_OH.noarch.rpm'
-##             ]
+        packages = [
+            'http://www.openvps.org/dist/misc/webmin-1.340-1OH.noarch.rpm',
+            ]
 
-    class _Bundle_100_PHP(RedHatBundle):
+    class _Bundle_100_PHP(_Bundle_000_base2):
 
         name = 'php'
-        desc = 'RHEL 4 PHP packages'
+        desc = 'CentOS 5 PHP packages'
         
         packages = [ 'php', 'php-devel', 'php-cli', 'php-common',
                      'php-xml', 'php-imap', 'php-ldap',
                      'php-mysql', 'php-pear', 'php-pgsql',
                      'php-xmlrpc', 'php-gd', 'php-pdo',]
 
-    class _Bundle_120_VNC(RedHatBundle):
+    class _Bundle_120_VNC(_Bundle_000_base2):
 
         name = 'vnc'
-        desc = 'RHEL 4 VNC packages'
+        desc = 'CentOS 5 VNC packages'
         
         packages = [
             'vnc-server'
             ]
 
-    class _Bundle_130_subversion(RedHatBundle):
+    class _Bundle_130_subversion(_Bundle_000_base2):
 
         name = 'subversion'
-        desc = 'RHEL 4 Subversion packages'
+        desc = 'CentOS 5 Subversion packages'
         
         packages = [
             'subversion'
@@ -402,13 +417,15 @@ class RHEL_4_92(RHEL):
 
     def fixup_crontab(self):
 
-        RHEL.fixup_crontab(self)
+        CentOS.fixup_crontab(self)
 
         # disable weekly makewhatis
         os.chmod(os.path.join(self.vpsroot, 'etc/cron.weekly/makewhatis.cron'), 0644)
 
 
-distro_util.register(RHEL_4_92)
+distro_util.register(CentOS_5_0)
 
 # ZZZ
 # look at enable_shadow and other stuff in FC3
+
+#symlink tracepath to traceroute?
