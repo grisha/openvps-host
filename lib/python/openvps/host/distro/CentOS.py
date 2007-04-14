@@ -1,5 +1,5 @@
 #
-# Copyright 2005 OpenHosting, Inc.
+# Copyright 2007 OpenHosting, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.2 2007/04/14 18:54:23 grisha Exp $
+# $Id: CentOS.py,v 1.3 2007/04/14 19:34:04 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -87,54 +87,98 @@ class CentOS_5_0(CentOS):
             'SysVinit', 'acl', 'anacron', 'apr', 'apr-util', 'aspell',
             'aspell-en', 'at', 'attr', 'audit', 'audit-libs',
             'authconfig', 'basesystem', 'bash', 'bc', 'beecrypt',
-            # XXX
-            #'http://www.openvps.org/dist/misc/bind-libs-9.3.1-8.OHFC4.i386.rpm',
-            #'http://www.openvps.org/dist/misc/bind-utils-9.3.1-8.OHFC4.i386.rpm',
-            'bind-libs',
-            'bind-utils',
-            # END XXXX
-            'dbus',
-            'device-mapper', 'elfutils-libs', 'curl', 'libidn', 'mcstrans', 'libcap', 'dmraid', 'kpartx', 'nash', 'm2crypto', 'wireless-tools', 'yum-metadata-parser',
-            'bzip2', 'bzip2-libs',
-            'chkconfig', 'coreutils', 'cpio', 'cracklib',
-            'cracklib-dicts', 'crontabs', 'cyrus-sasl', 'cyrus-sasl-lib',
-            'cyrus-sasl-md5', 'db4', 'desktop-file-utils',
-            'diffutils', 'dos2unix', 'e2fsprogs', 'e2fsprogs-libs', 'ed', 'elfutils',
-            'elfutils-libelf', 'ethtool', 'expat', 'centos-release',
-            'centos-release-notes',
+            'bind-libs', 'bind-utils', 'bzip2', 'bzip2-libs',
+            'centos-release', 'centos-release-notes', 'chkconfig',
+            'coreutils', 'cpio', 'cracklib', 'cracklib-dicts',
+            'crontabs', 'curl', 'cyrus-sasl', 'cyrus-sasl-lib',
+            'cyrus-sasl-md5', 'db4', 'dbus', 'desktop-file-utils',
+            'device-mapper', 'diffutils', 'dmraid', 'dos2unix',
+            'e2fsprogs', 'e2fsprogs-libs', 'ed', 'elfutils',
+            'elfutils-libelf', 'elfutils-libs', 'ethtool', 'expat',
             'file', 'filesystem', 'findutils', 'finger', 'ftp',
-            'gawk', 'gdbm', 'glib2', 'glibc', 'glibc-common',
-            'gmp', 'gnupg', 'gpm', 'grep', 'groff', 'gzip', 'hesiod',
+            'gawk', 'gdbm', 'glib2', 'glibc', 'glibc-common', 'gmp',
+            'gnupg', 'gpm', 'grep', 'groff', 'gzip', 'hesiod',
             'htmlview',
             'http://www.openvps.org/dist/misc/openvps-bogus-kernel-2.9.0-3.i386.rpm',
             'httpd', 'info', 'initscripts', 'iproute', 'iputils',
-            'jwhois', 'krb5-libs', 'less', #'lftp',
-            'libacl',
-            'libattr', 'libgcc', 'libgpg-error',
-            'libjpeg', 'libpng', 'libselinux', 'libsepol',
-            'libstdc++', 'libtermcap', 'libusb', 'libuser',
-            'libwvstreams', 'libxml2', 'libxml2-python', 'logrotate',
-            'logwatch', 'lrzsz', 'lsof', 'm4', 'mailcap', 'mailx',
-            'make', 'man', 'man-pages', 'mingetty', 'mkinitrd', 'mlocate',
-            'mktemp', 'module-init-tools', 'mtr', 'nano', 'nc',
-            'ncurses', 'neon', 'net-tools', 'newt', 'nscd',
-            'nss_ldap', 'ntsysv', 'openldap', 'openssh',
+            'jwhois', 'kpartx', 'krb5-libs', 'less', 'libacl',
+            'libattr', 'libcap', 'libgcc', 'libgcrypt',
+            'libgpg-error', 'libidn', 'libjpeg', 'libpng',
+            'libselinux', 'libsepol', 'libstdc++', 'libtermcap',
+            'libusb', 'libuser', 'libwvstreams', 'libxml2',
+            'libxml2-python', 'logrotate', 'logwatch', 'lrzsz',
+            'lsof', 'm2crypto', 'm4', 'mailcap', 'mailx', 'make',
+            'man', 'man-pages', 'mcstrans', 'mingetty', 'mkinitrd',
+            'mktemp', 'mlocate', 'module-init-tools', 'mtr', 'nano',
+            'nash', 'nc', 'ncurses', 'neon', 'net-tools', 'newt',
+            'nscd', 'nss_ldap', 'ntsysv', 'openldap', 'openssh',
             'openssh-clients', 'openssh-server', 'openssl', 'pam',
-            'passwd', 'pax', 'pcre', 'pcre-devel', 'perl',
-            'pinfo', 'popt', 'portmap', 'postgresql-libs', 'procmail', 'libgcrypt',
+            'passwd', 'pax', 'pcre', 'pcre-devel', 'perl', 'pinfo',
+            'popt', 'portmap', 'postgresql-libs', 'procmail',
             'procps', 'psacct', 'psmisc', 'pyOpenSSL', 'python',
             'python-elementtree', 'python-sqlite',
-            'python-urlgrabber', 'rdist', 'readline', 'redhat-menus', 'rhpl',
-            'rootfiles', 'rpm', 'rpm-libs', 'rpm-python', 'rsh',
-            'rsync', 'sed', 'sendmail', 'setup', 'setuptool',
-            'shadow-utils', 'slang', 'specspo', 'sqlite',
-            'star', 'stunnel', 'sudo', 'symlinks', 'sysklogd', 'talk',
-            'tar', 'tcp_wrappers', 'tcsh', 'telnet', 'termcap',
-            'time', 'tmpwatch', 'traceroute', 'tzdata', 'unix2dos',
-            'unzip', 'usermode', 'util-linux',
-            'vim-common', 'vim-minimal', 'vixie-cron', 'wget',
-            'which', 'words', 'yum', 'zip', 'zlib'
-            ]
+            'python-urlgrabber', 'rdist', 'readline', 'redhat-menus',
+            'rhpl', 'rootfiles', 'rpm', 'rpm-libs', 'rpm-python',
+            'rsh', 'rsync', 'sed', 'sendmail', 'setup', 'setuptool',
+            'shadow-utils', 'slang', 'specspo', 'sqlite', 'star',
+            'stunnel', 'sudo', 'symlinks', 'sysklogd', 'talk', 'tar',
+            'tcp_wrappers', 'tcsh', 'telnet', 'termcap', 'time',
+            'tmpwatch', 'traceroute', 'tzdata', 'unix2dos', 'unzip',
+            'usermode', 'util-linux', 'vim-common', 'vim-minimal',
+            'vixie-cron', 'wget', 'which', 'wireless-tools', 'words',
+            'yum', 'yum-metadata-parser', 'zip', 'zlib']
+        
+        def install(self):
+
+##             # make some base directories that are required before anything
+##             # works
+        
+##             os.mkdir(os.path.join(self.vpsroot, 'var'))
+##             os.mkdir(os.path.join(self.vpsroot, 'var', 'lib'))
+##             os.mkdir(os.path.join(self.vpsroot, 'var', 'lib', 'rpm'))
+##             os.mkdir(os.path.join(self.vpsroot, 'usr'))
+##             os.mkdir(os.path.join(self.vpsroot, 'usr', 'src'))
+##             os.mkdir(os.path.join(self.vpsroot, 'usr', 'src', 'redhat'))
+##             os.mkdir(os.path.join(self.vpsroot, 'proc'))
+
+            # call our super
+            RedHat_Bundle_base.install(self)
+
+##             self.import_rpm_key()
+            self.enable_shadow()
+            self.tracepath()
+
+##         def import_rpm_key(self):
+
+##             path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY')
+##             print 'Importing RPM GPG key: %s' % path
+##             cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
+##             commands.getoutput(cmd)
+
+##             path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY-fedora')
+##             print 'Importing RPM GPG key: %s' % path
+##             cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
+##             commands.getoutput(cmd)
+
+        def enable_shadow(self):
+
+            print 'Enabling shadow and MD5 hashes'
+
+            # enable shadow and md5 (I wonder why it isn't by default)
+            cmd = '%s %s /usr/sbin/pwconv' % (cfg.CHROOT, self.vpsroot)
+            s = commands.getoutput(cmd)
+            cmd = '%s %s /usr/sbin/authconfig --kickstart --enablemd5 --enableshadow' % (cfg.CHROOT, self.vpsroot)
+            s = commands.getoutput(cmd)
+
+        def tracepath(self):
+
+            print 'Symlinking traceroute to tracepath'
+
+            cmd = '%s %s rm -f /bin/traceroute' % (cfg.CHROOT, self.vpsroot)
+            s = commands.getoutput(cmd)
+            cmd = '%s %s ln -s ../tracepath /bin/traceroute' % (cfg.CHROOT, self.vpsroot)
+            s = commands.getoutput(cmd)
+
 
     class _Bundle_000_base2(RedHatBundle):
 
@@ -142,133 +186,63 @@ class CentOS_5_0(CentOS):
         
         name = 'base2'
         desc = 'CentOS 5 Base 2'
-        
+
         packages = [
-            'Xaw3d', 'apr-util-devel', 'atk', 'atk-devel', 'autoconf',
-            'automake',
-            #'http://www.openvps.org/dist/misc/bind-chroot-9.3.1-8.OHFC4.i386.rpm',
-            'bind',
-            'bind-chroot',
-            'caching-nameserver',
-            # XXX
-            'binutils', 'chkfontpath',
-            'cpp', 'curl-devel', 'cvs', 'cyrus-sasl-devel',
-            'db4-devel', 'distcache', 'dovecot', 'e2fsprogs-devel',
-            'emacs', 'emacs-common', 'expat-devel', 'fetchmail',
-            'fontconfig', 'fontconfig-devel', #'fonts-xorg-base',
-            'freetype', 'freetype-devel', 'gcc', 'gcc-c++', 'gd',
-            'gd-devel', 'gdbm-devel', 'glib2-devel',
-            'glibc-devel', 'glibc-headers', 'kernel-headers', #'glibc-kernheaders',
-            'gtk2', 'gtk2-devel',
-            'http://www.openvps.org/dist/misc/mirror/proftpd-1.2.9-7.i386.rpm',
-            #'http://www.openvps.org/dist/misc/bind-9.3.1-8.OHFC4.i386.rpm',
-            'httpd-devel', 'krb5-devel', 'libc-client', #'libidn',
-            'libstdc++-devel', 'libtool', #'libungif',
-            'libxslt',
-            'lynx', 'mod_perl', 'mod_perl-devel', 'mod_python',
-            'mod_ssl', 'mx', 'mysql', 'mysql-devel', 'mysql-server',
-            'openldap-devel', 'openssl-devel', 'pango', 'pango-devel',
-            'patch', 'perl-DBD-MySQL', 'perl-DBD-Pg', 'perl-DBI',
+            'Xaw3d', 'alsa-lib', 'apr-devel', 'apr-util-devel', 'atk',
+            'atk-devel', 'audit-libs-python', 'autoconf', 'automake',
+            'bind', 'bind-chroot', 'binutils', 'cairo', 'cairo-devel',
+            'chkfontpath', 'cpp', 'cups-libs', 'curl-devel', 'cvs',
+            'cyrus-sasl-devel', 'db4-devel', 'distcache', 'dovecot',
+            'e2fsprogs-devel', 'elfutils-libelf-devel',
+            'elfutils-libelf-devel-static', 'emacs', 'emacs-common',
+            'expat-devel', 'fetchmail', 'fontconfig',
+            'fontconfig-devel', 'freetype', 'freetype-devel', 'gcc',
+            'gcc-c++', 'gd', 'gd-devel', 'gdbm-devel', 'giflib',
+            'glib2-devel', 'glibc-devel', 'glibc-headers', 'gnutls',
+            'gtk2', 'gtk2-devel', 'hicolor-icon-theme', 'httpd-devel',
+            'imake', 'kernel-headers', 'krb5-devel', 'libFS',
+            'libICE', 'libSM', 'libX11', 'libX11-devel', 'libXau',
+            'libXau-devel', 'libXaw', 'libXcursor',
+            'libXcursor-devel', 'libXdmcp', 'libXdmcp-devel',
+            'libXext', 'libXext-devel', 'libXfixes',
+            'libXfixes-devel', 'libXfont', 'libXft', 'libXft-devel',
+            'libXi', 'libXi-devel', 'libXinerama',
+            'libXinerama-devel', 'libXmu', 'libXpm', 'libXpm-devel',
+            'libXrandr', 'libXrandr-devel', 'libXrender',
+            'libXrender-devel', 'libXt', 'libXtst', 'libXxf86vm',
+            'libart_lgpl', 'libc-client', 'libdrm', 'libfontenc',
+            'libgcj', 'libgomp', 'libidn-devel', 'libjpeg-devel',
+            'libpng-devel', 'libselinux-devel', 'libselinux-python',
+            'libsemanage', 'libsepol-devel', 'libstdc++-devel',
+            'libtiff', 'libtool', 'libutempter', 'libxslt', 'lynx',
+            'mesa-libGL', 'mesa-libGL-devel', 'mod_perl',
+            'mod_perl-devel', 'mod_python', 'mod_ssl', 'mx', 'mysql',
+            'mysql-devel', 'mysql-server', 'neon-devel',
+            'openldap-devel', 'openssl-devel', 'openssl097a', 'pango',
+            'pango-devel', 'patch', 'perl-Archive-Tar',
+            'perl-BSD-Resource', 'perl-Compress-Zlib',
+            'perl-DBD-MySQL', 'perl-DBD-Pg', 'perl-DBI',
             'perl-Digest-HMAC', 'perl-Digest-SHA1',
-            'perl-HTML-Parser', 'perl-HTML-Tagset', 'perl-Net-DNS',
-            #'perl-Time-HiRes',
-            'perl-URI', 'perl-XML-Parser',
-            'perl-libwww-perl', 'pkgconfig', 'postgresql',
-            'postgresql-contrib', 'postgresql-devel',
-            'postgresql-docs', #'postgresql-jdbc',
-            #'postgresql-libs',
-            'postgresql-pl', 'postgresql-python', 'postgresql-server',
+            'perl-HTML-Parser', 'perl-HTML-Tagset',
+            'perl-IO-Socket-INET6', 'perl-IO-Socket-SSL',
+            'perl-IO-Zlib', 'perl-Net-DNS', 'perl-Net-IP',
+            'perl-Net-SSLeay', 'perl-Socket6', 'perl-URI',
+            'perl-XML-Parser', 'perl-libwww-perl', 'pkgconfig',
+            'policycoreutils', 'postgresql', 'postgresql-contrib',
+            'postgresql-devel', 'postgresql-docs', 'postgresql-pl',
+            'postgresql-python', 'postgresql-server',
             'postgresql-tcl', 'postgresql-test', 'python-devel',
             'rcs', 'rpm-build', 'rpm-devel', 'samba', 'samba-client',
             'samba-common', 'samba-swat', 'screen', 'spamassassin',
-            'squid', 'startup-notification', 'switchdesk', 'tcl',
-            'tcl-devel', 'telnet-server', 'tk', 'ttmkfdir',
-            'vim-enhanced', 'webalizer', 'xinetd', #'xinitrc',
-            #'xorg-x11',
-            #'xorg-x11-Mesa-libGL', 'xorg-x11-Mesa-libGLU',
-            #'xorg-x11-devel',
-            'xorg-x11-font-utils', #'xorg-x11-libs',
-            #'xorg-x11-tools',
-            'xorg-x11-xauth', 'xorg-x11-xfs',
-            'xorg-x11-fonts-base', 'xorg-x11-fonts-75dpi',
-            'xterm', 'zlib-devel', 'apr-devel', 'libidn-devel',
-            #'fonts-xorg-75dpi',
-            'libtiff', 'libjpeg-devel',
-            'libpng-devel', 'openssl097a', 'neon-devel',
-            'sqlite-devel', 'perl-BSD-Resource', 'libselinux-devel',
-            'cups-libs', #'freeglut',
-            'perl-Compress-Zlib',
-            'gnutls',
-            'libXmu',
-            'libXrender',
-            'libXfont',
-            'libXau',
-            'libfontenc',
-            'libX11',
-            'libXft',
-            'libICE',
-            'libXfixes', 'libXfixes-devel',
-            'libXext',
-            'cairo',
-            'libSM',
-            'libXpm',
-            'libXt',
-            'giflib',
-            'xorg-x11-fonts-ISO8859-1-75dpi',
-            'imake',
-            'libgomp',
-            'libX11-devel',
-            'libXpm-devel',
-            'hicolor-icon-theme',
-            'libXcursor',
-            'libXi',
-            'libXinerama',
-            'libXrandr',
-            'cairo-devel',
-            'libXcursor-devel',
-            'libXext-devel',
-            'libXi-devel',
-            'libXinerama-devel',
-            'libXrandr-devel',
-            #'openssl',
-            'libXft-devel',
-            'libXrender-devel',
-            'perl-Net-IP',
-            'libgcj',
-            'elfutils-libelf-devel',
-            'elfutils-libelf-devel-static',
-            'perl-Archive-Tar',
-            'perl-IO-Socket-INET6',
-            'perl-IO-Socket-SSL',
-            'xorg-x11-filesystem',
-            'libFS',
-            'libXaw',
-            'policycoreutils',
-            'libutempter',
-            'libsepol-devel',
-            'libXdmcp',
-            'xorg-x11-proto-devel',
-            'libXau-devel',
-            'libXdmcp-devel',
-            'libXtst',
-            'libart_lgpl',
-            'perl-IO-Zlib',
-            'perl-Socket6',
-            'perl-Net-SSLeay',
-            'alsa-lib',
-            'audit-libs-python',
-            'libselinux-python',
-            'libsemanage',
-            'mesa-libGL-devel',
-            'mesa-libGL',
-            'libXxf86vm',
-            'libdrm',
-            #'postgresql-libs',
-            #'libidn',
-            #'curl'
-            ]
+            'sqlite-devel', 'squid', 'startup-notification',
+            'switchdesk', 'tcl', 'tcl-devel', 'telnet-server', 'tk',
+            'ttmkfdir', 'vim-enhanced', 'vsftpd', 'webalizer',
+            'xinetd', 'xorg-x11-filesystem', 'xorg-x11-font-utils',
+            'xorg-x11-fonts-75dpi', 'xorg-x11-fonts-ISO8859-1-75dpi',
+            'xorg-x11-fonts-base', 'xorg-x11-proto-devel',
+            'xorg-x11-xauth', 'xorg-x11-xfs', 'xterm', 'zlib-devel']
 
-    class _Bundle_010_Webmin(RedHatBundle):
+    class _Bundle_010_Webmin(_Bundle_000_base2):
 
         name = 'webmin'
         desc = 'OpenVPS-ized Webmin'
@@ -282,10 +256,10 @@ class CentOS_5_0(CentOS):
         name = 'php'
         desc = 'CentOS 5 PHP packages'
         
-        packages = [ 'php', 'php-devel', 'php-cli', 'php-common',
-                     'php-xml', 'php-imap', 'php-ldap',
-                     'php-mysql', 'php-pear', 'php-pgsql',
-                     'php-xmlrpc', 'php-gd', 'php-pdo',]
+        packages = [
+            'php', 'php-devel', 'php-cli', 'php-common', 'php-xml',
+            'php-imap', 'php-ldap', 'php-mysql', 'php-pear',
+            'php-pgsql', 'php-xmlrpc', 'php-gd', 'php-pdo',]
 
     class _Bundle_120_VNC(_Bundle_000_base2):
 
@@ -425,7 +399,3 @@ class CentOS_5_0(CentOS):
 
 distro_util.register(CentOS_5_0)
 
-# ZZZ
-# look at enable_shadow and other stuff in FC3
-
-#symlink tracepath to traceroute?
