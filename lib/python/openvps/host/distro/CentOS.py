@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.3 2007/04/14 19:34:04 grisha Exp $
+# $Id: CentOS.py,v 1.4 2007/04/14 19:49:00 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -176,7 +176,7 @@ class CentOS_5_0(CentOS):
 
             cmd = '%s %s rm -f /bin/traceroute' % (cfg.CHROOT, self.vpsroot)
             s = commands.getoutput(cmd)
-            cmd = '%s %s ln -s ../tracepath /bin/traceroute' % (cfg.CHROOT, self.vpsroot)
+            cmd = '%s %s ln -s ./tracepath /bin/traceroute' % (cfg.CHROOT, self.vpsroot)
             s = commands.getoutput(cmd)
 
 
