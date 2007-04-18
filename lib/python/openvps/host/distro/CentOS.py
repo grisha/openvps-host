@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.4 2007/04/14 19:49:00 grisha Exp $
+# $Id: CentOS.py,v 1.5 2007/04/18 00:32:56 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -376,10 +376,9 @@ class CentOS_5_0(CentOS):
         os.chmod(os.path.join(self.vpsroot, 'etc/pki/tls/certs/localhost.crt'), 0700)
         os.chmod(os.path.join(self.vpsroot, 'etc/pki/tls/private/localhost.key'), 0700)
 
-
-        shutil.copy(os.path.join(d, 'server.crt'),  os.path.join(self.vpsroot, 'etc/pki/dovecot/dovecot.pem'))
+        shutil.copy(os.path.join(d, 'server.crt'),  os.path.join(self.vpsroot, 'etc/pki/dovecot/certs/dovecot.pem'))
         shutil.copy(os.path.join(d, 'server.key'),  os.path.join(self.vpsroot, 'etc/pki/dovecot/private/dovecot.pem'))
-        os.chmod(os.path.join(self.vpsroot, 'etc/pki/dovecot/dovecot.pem'), 0700)
+        os.chmod(os.path.join(self.vpsroot, 'etc/pki/dovecot/certs/dovecot.pem'), 0700)
         os.chmod(os.path.join(self.vpsroot, 'etc/pki/dovecot/private/dovecot.pem'), 0700)
 
         commands.getoutput('cat %s %s > %s' % (os.path.join(d, 'server.crt'), os.path.join(d, 'server.key'),
