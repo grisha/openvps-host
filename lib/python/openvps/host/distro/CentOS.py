@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.5 2007/04/18 00:32:56 grisha Exp $
+# $Id: CentOS.py,v 1.6 2007/04/18 01:14:24 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -119,14 +119,15 @@ class CentOS_5_0(CentOS):
             'python-elementtree', 'python-sqlite',
             'python-urlgrabber', 'rdist', 'readline', 'redhat-menus',
             'rhpl', 'rootfiles', 'rpm', 'rpm-libs', 'rpm-python',
-            'rsh', 'rsync', 'sed', 'sendmail', 'setup', 'setuptool',
-            'shadow-utils', 'slang', 'specspo', 'sqlite', 'star',
-            'stunnel', 'sudo', 'symlinks', 'sysklogd', 'talk', 'tar',
-            'tcp_wrappers', 'tcsh', 'telnet', 'termcap', 'time',
-            'tmpwatch', 'traceroute', 'tzdata', 'unix2dos', 'unzip',
-            'usermode', 'util-linux', 'vim-common', 'vim-minimal',
-            'vixie-cron', 'wget', 'which', 'wireless-tools', 'words',
-            'yum', 'yum-metadata-parser', 'zip', 'zlib']
+            'rsh', 'rsync', 'ruby', 'ruby-libs', 'sed', 'sendmail',
+            'setup', 'setuptool', 'shadow-utils', 'slang', 'specspo',
+            'sqlite', 'star', 'stunnel', 'sudo', 'symlinks',
+            'sysklogd', 'talk', 'tar', 'tcp_wrappers', 'tcsh',
+            'telnet', 'termcap', 'time', 'tmpwatch', 'traceroute',
+            'tzdata', 'unix2dos', 'unzip', 'usermode', 'util-linux',
+            'vim-common', 'vim-minimal', 'vixie-cron', 'wget',
+            'which', 'wireless-tools', 'words', 'yum',
+            'yum-metadata-parser', 'zip', 'zlib']
         
         def install(self):
 
