@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.7 2007/04/18 15:13:50 grisha Exp $
+# $Id: CentOS.py,v 1.8 2007/04/18 15:16:03 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -33,6 +33,9 @@ class CentOS(RedHat):
 
     CentOS_VER = '0'
 
+    SERVICES =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
+                 'syslog', 'dovecot'] # no webmin
+    
     def distro_version(self):
 
         # XXX
