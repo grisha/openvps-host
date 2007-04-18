@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.6 2007/04/18 01:14:24 grisha Exp $
+# $Id: CentOS.py,v 1.7 2007/04/18 15:13:50 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -79,6 +79,9 @@ class CentOS_5_0(CentOS):
     class _Bundle_base(RedHat_Bundle_base):
 
         DISTRO_DIR = 'CentOS'
+
+        SERVICES =  ['crond', 'atd', 'httpd', 'sendmail', 'sshd',
+                     'syslog', 'dovecot'] # no webmin anymore
 
         name = 'base'
         desc = 'CentOS 5 Base'
