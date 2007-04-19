@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.8 2007/04/18 15:16:03 grisha Exp $
+# $Id: CentOS.py,v 1.9 2007/04/19 18:21:57 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -319,7 +319,8 @@ class CentOS_5_0(CentOS):
 
         print 'Disabling pam limits'
 
-        for pam in ['sshd', 'system-auth']:
+        for pam in ['atd', 'crond', 'login', 'remote', 'sshd',
+                    'system-auth', 'vsftpd']:
 
             fname = os.path.join(self.vpsroot, 'etc/pam.d', pam)
 
