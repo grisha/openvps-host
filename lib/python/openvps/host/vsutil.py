@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.17 2006/05/03 20:13:39 grisha Exp $
+# $Id: vsutil.py,v 1.18 2007/05/25 22:23:01 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -24,6 +24,8 @@ import struct
 import fcntl
 import sys
 import tempfile
+import pprint
+import time
 
 import cfg
 from openvps.common import util
@@ -450,34 +452,64 @@ def stop(vserver):
 
 def iptables_rules(vserver):
 
-    print 'Adding iptables rules for bandwidth montoring'
+    print 'Adding iptables rules for bandwidth montoring and firewall'
 
     # get vserver IPs
     ips = [x['ip'] for x in get_vserver_config(vserver)['interfaces']]
 
+    chain_name = 'ov_' + vserver
+    block_chain_name = 'ov_' + vserver + '_block'
+
+    # create fw chain ?
+    cmd = 'iptables -nL %s' % chain_name
+    if 'No chain' in commands.getoutput(cmd):
+        cmd = 'iptables -N %s' % chain_name
+        print ' ', cmd
+        commands.getoutput(cmd)
+        
+    # create fw chain ?
+    cmd = 'iptables -nL %s' % block_chain_name
+    if 'No chain' in commands.getoutput(cmd):
+        cmd = 'iptables -N %s' % block_chain_name
+        print ' ', cmd
+        commands.getoutput(cmd)
+        
+    # now for every IP check rules
+    
     for ip in ips:
 
-        # does the rule exist?
-        cmd = 'iptables -L INPUT -n | grep %s' % ip
+        # does a legacy rule exist?
+        cmd = 'iptables -L INPUT -n | grep %s | grep -v %s' % (ip, chain_name)
+        if commands.getoutput(cmd):
+
+            # kill it
+            cmd = 'iptables -D INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
+            print ' ', cmd
+            commands.getoutput(cmd)
+
+        # do our rules exist?
+        cmd = 'iptables -L INPUT -n | grep %s | grep %s' % (ip, chain_name)
         if not commands.getoutput(cmd):
 
-            #cmd = 'iptables -D INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
-            #print ' ', cmd
-            #commands.getoutput(cmd)
-            cmd = 'iptables -A INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
+            # create a rule to jump to block chain
+            cmd = 'iptables -A INPUT -i %s -d %s -j %s' % (cfg.DFT_DEVICE, ip,
+                                                           block_chain_name)
+            print ' ', cmd
+            commands.getoutput(cmd)
+
+            # create a rule to jump to fw chain
+            cmd = 'iptables -A INPUT -i %s -d %s -j %s' % (cfg.DFT_DEVICE, ip,
+                                                           chain_name)
             print ' ', cmd
             commands.getoutput(cmd)
 
         else:
             print 'INPUT rules already exists for %s, skipping' % ip
             
-        # does the rule exist?
+        # does OUTPUT rule exist?
         cmd = 'iptables -L OUTPUT -n | grep %s' % ip
         if not commands.getoutput(cmd):
             
-            #cmd = 'iptables -D OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
-            #print ' ', cmd
-            #commands.getoutput(cmd)
             cmd = 'iptables -A OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
             print ' ', cmd
             commands.getoutput(cmd)    
@@ -638,3 +670,163 @@ def get_bwlimit(vserver):
         cap = open(cap_path).read().strip()
 
     return limit, cap
+
+
+def fw_get_config(vserver):
+
+    # read fw configuration
+
+    config = {}
+    
+    fw_path = os.path.join(cfg.VAR_DB_OPENVPS, 'fw', vserver)
+    locals = {}
+    if os.path.exists(fw_path):
+        execfile(fw_path, {}, locals)
+
+    if locals.has_key('FW'):
+        config = locals['FW']
+
+    if not config.has_key('CURRENT'):
+        config['CURRENT'] = {'mode': 'allow', 'open':[], 'close':[]}
+
+    if not config.has_key('NEXT'):
+        config['NEXT'] = {'mode': 'allow', 'open':[], 'close':[]}
+
+    if not config.has_key('BLOCK'):
+        config['BLOCK'] = []
+
+    return config
+
+def fw_save_config(vserver, config):
+
+    # make sure the directory exists
+    fw_dir = os.path.join(cfg.VAR_DB_OPENVPS, 'fw')
+    if not os.path.exists(fw_dir):
+        os.mkdir(fw_dir)
+
+    s = '# Saved by vsutil.py:fw_save_config() on %s\n\n' % time.ctime()
+    s += 'FW = ' + pprint.pformat(config, width=40)
+    s += '\n'
+
+    fw_path = os.path.join(fw_dir, vserver)
+    open(fw_path, 'w').write(s)
+
+def fw_start(vserver, mode):
+
+    # just save. rules are generated at the end)
+
+    config = fw_get_config(vserver)
+    config['NEXT']['mode'] = mode
+    fw_save_config(vserver, config)
+
+def fw_open(vserver, proto, port, ips):
+
+    # just save. rules are generated at the end)
+
+    config = fw_get_config(vserver)
+    rules = config['NEXT']['open']
+    rules.append((proto, port, ips))
+
+    fw_save_config(vserver, config)
+
+    
+def fw_close(vserver, proto, port, ips):
+
+    # just save. rules are generated at the end)
+
+    config = fw_get_config(vserver)
+    rules = config['NEXT']['close']
+    rules.append((proto, port, ips))
+
+    fw_save_config(vserver, config)
+
+def fw_finish(vserver):
+
+    # generate and execute iptables rules from the NEXT config,
+    # then save NEXT as current
+
+    # make sure the chains exist
+    iptables_rules(vserver)
+
+    chain_name = 'ov_' + vserver
+
+    config = fw_get_config(vserver)
+    next = config['NEXT']
+
+    # crear the chain
+    cmd = 'iptables -F %s' % chain_name
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err
+
+    if next['mode'] == 'block':
+
+        # established connections OK
+        cmd = 'iptables -A %s -m state --state "ESTABLISHED,RELATED" -j ACCEPT' % \
+              chain_name
+        print cmd
+        err = commands.getoutput(cmd)
+        if err: print err
+
+        for rule in next['open']:
+            proto, port, ips = rule
+
+            if ips:
+                for ip in ips:
+                    cmd = 'iptables -A %s -p %s --dport %d -s %s -j ACCEPT' % \
+                          (chain_name, proto, port, ip)
+                    print cmd
+                    err = commands.getoutput(cmd)
+                    if err: print err
+            else:
+                cmd = 'iptables -A %s -p %s --dport %d -j ACCEPT' % \
+                      (chain_name, proto, port)
+                print cmd
+                err = commands.getoutput(cmd)
+                if err: print err
+
+        # Allow ICMP
+        for c in [
+            'iptables -A %s -p icmp --icmp-type destination-unreachable -j ACCEPT',
+            'iptables -A %s -p icmp --icmp-type time-exceeded -j ACCEPT',
+            'iptables -A %s -p icmp --icmp-type echo-request -j ACCEPT',
+            'iptables -A %s -p icmp --icmp-type echo-reply -j ACCEPT',
+            ]:
+            cmd = c % chain_name
+            print cmd
+            err = commands.getoutput(cmd)
+            if err: print err
+            
+        # last rule is block
+        cmd = 'iptables -A %s -j DROP' % chain_name
+        print cmd
+        err = commands.getoutput(cmd)
+        if err: print err
+
+    else:
+        # mode is allow
+
+        for rule in next['close']:
+            proto, port, ips = rule
+
+            if ips:
+                # allow from these IPs
+                for ip in ips:
+                    cmd = 'iptables -A %s -p %s --dport %d -s %s -j ACCEPT' % \
+                          (chain_name, proto, port, ip)
+                    print cmd
+                    err = commands.getoutput(cmd)
+                    if err: print err
+            
+            # at the end always block
+            cmd = 'iptables -A %s -p %s --dport %d -j REJECT' % \
+                  (chain_name, proto, port)
+            print cmd
+            err = commands.getoutput(cmd)
+            if err: print err
+
+    config['PREV'] = config['CURRENT']
+    config['CURRENT'] = next
+    del config['NEXT']
+    
+    fw_save_config(vserver, config)

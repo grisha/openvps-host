@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.13 2007/03/19 20:08:03 grisha Exp $
+# $Id: openvps,v 1.14 2007/05/25 22:23:01 grisha Exp $
 
 
 """
@@ -295,6 +295,81 @@ def cmd_bwlimit():
 
     vds.set_bwlimit(vserver, limit)
     
+def cmd_fw():
+
+    parser = OptionParser(usage="%prog fw <vserver> [start|open|close|finish|block|clear_block] proto port [<ip>...]\n"
+                          "  XXX Not yet documented\n"
+                          "    \n")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) < 2:
+        parser.error("Not enough arguments")
+
+    vserver, command = args[0], args[1]
+    args = args[2:]
+
+    cmds = ['start', 'open', 'close', 'finish', 'clear_block', 'block']
+    if command not in cmds:
+        parser.error("Command must be on of " + ' '.join(cmds))
+
+    if command == 'start':
+        if len(args) != 1 or args[0] not in ['allow', 'block']:
+            parser.error("'start' requires default mode of 'allow' or 'block'")
+        else:
+            mode = args[0]
+            vds.fw_start(vserver, mode)
+
+    elif command in ['finish', 'clear_block']:
+        if len(args) != 0:
+            parser.error("'finish' and 'clear_block' take no arguments")
+
+        if command == 'finish':
+            vds.fw_finish(vserver)
+            
+    elif command in ['open', 'close']:
+        if len(args) < 2:
+            parser.error("'open' and 'close' require <proto> and <port>")
+        else:
+            proto, port, ips = args[0], args[1], args[2:]
+            if proto not in ['tcp', 'udp']:
+                parser.error("Invalid protocol: %s, must be 'tcp' or 'udp'" % `proto`)
+                
+            try:
+                port = int(port)
+            except ValueError:
+                parser.error("Invalid port: %s" % `port`)
+    
+            for ip in ips:
+                try:
+                    i, m = re.match('^([0-9.]*)(?:/?([1-3]?[0-9]))?$', ip).groups()
+                except:
+                    parser.error("Invalid ip specification: '%s', must be of xxx.xxx.xxx.xxx[/xx] format." % ip)
+
+                if not i:
+                    parser.error("Invalid ip specification: '%s', must be of xxx.xxx.xxx.xxx[/xx] format." % ip)
+                else:
+                    ip = i
+
+            if command == 'open':
+                vds.fw_open(vserver, proto, port, ips)
+            elif command == 'close':
+                vds.fw_close(vserver, proto, port, ips)
+                    
+    elif command == 'block':
+
+        if len(args) < 1:
+            parser.error("'block' requires at least one ip")
+            
+        ips = args
+
+        for ip in ips:
+            try:
+                i, m = re.match('^([0-9.]*)(?:/?([1-3]?[0-9]))?$', ip).groups()
+            except:
+                parser.error("Invalid ip specification: '%s', must be of xxx.xxx.xxx.xxx[/xx] format." % ip)
+
+        
+
 ########
 
 import optparse

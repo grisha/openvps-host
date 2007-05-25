@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.20 2007/03/19 20:08:03 grisha Exp $
+# $Id: vds.py,v 1.21 2007/05/25 22:23:01 grisha Exp $
 
 """ VDS related functions """
 
@@ -867,6 +867,7 @@ def set_bwlimit(vserver, limit):
     vss = vsutil.list_vservers()
     if not vss.has_key(vserver):
         print 'ERROR: No such vserver: %s' % vserver
+        return
 
     vsutil.set_bwlimit(vserver, limit)
     vsutil.set_tc_class(vserver)
@@ -1029,4 +1030,40 @@ def unsuspend(vserver):
     ## not start it if it's not running
     if not vsutil.is_running(vserver):
         vsutil.start(vserver)
+
+def fw_start(vserver, mode):
+
+    vss = vsutil.list_vservers()
+    if not vss.has_key(vserver):
+        print 'ERROR: No such vserver: %s' % vserver
+        return
+
+    vsutil.fw_start(vserver, mode)
+
+def fw_open(vserver, proto, port, ips=[]):
+
+    vss = vsutil.list_vservers()
+    if not vss.has_key(vserver):
+        print 'ERROR: No such vserver: %s' % vserver
+        return
+
+    vsutil.fw_open(vserver, proto, port, ips)
+
+def fw_close(vserver, proto, port, ips=[]):
+
+    vss = vsutil.list_vservers()
+    if not vss.has_key(vserver):
+        print 'ERROR: No such vserver: %s' % vserver
+        return
+
+    vsutil.fw_close(vserver, proto, port, ips)
+
+def fw_finish(vserver):
+
+    vss = vsutil.list_vservers()
+    if not vss.has_key(vserver):
+        print 'ERROR: No such vserver: %s' % vserver
+        return
+
+    vsutil.fw_finish(vserver)
 

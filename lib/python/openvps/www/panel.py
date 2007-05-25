@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.50 2005/08/05 20:02:06 grisha Exp $
+# $Id: panel.py,v 1.51 2007/05/25 22:23:01 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -545,11 +545,10 @@ def bwlimit(req, name, params):
 
 def bwlimit_set(req, name, params):
 
-    # ok time to do wrapper shit.ZZZ
     fs = util.FieldStorage(req)
     limit = fs.getfirst('limit')
 
-    req.log_error('Setting bwlimit on vds %s to %s at request of %s' % (name, limit, req.user))
+    req.log_error('Setting bwlimit on vps %s to %s at request of %s' % (name, limit, req.user))
 
     cmd = '%s openvps-bwlimit %s %s' % (cfg.OVWRAPPER, name, limit)
     

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsmon.py,v 1.16 2006/05/03 20:13:39 grisha Exp $
+# $Id: vsmon.py,v 1.17 2007/05/25 22:23:01 grisha Exp $
 
 # This file contains functions to retrieve various vserver statistics
 # (mostly) from the /proc filesystem. Unlike the mon.py module, this
@@ -128,7 +128,7 @@ def iptables_info():
 
     input = {}
 
-    cmd = '/sbin/iptables -xvnL INPUT | grep 0.0.0.0/0'
+    cmd = '/sbin/iptables -xvnL INPUT | grep 0.0.0.0/0 | egrep -v "ov_.*_block"'
     s = commands.getoutput(cmd)
 
     for line in s.splitlines():
