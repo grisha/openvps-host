@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.18 2007/05/25 22:23:01 grisha Exp $
+# $Id: vsutil.py,v 1.19 2007/05/26 00:57:26 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -740,26 +740,27 @@ def fw_close(vserver, proto, port, ips):
 
     fw_save_config(vserver, config)
 
-def fw_finish(vserver):
 
-    # generate and execute iptables rules from the NEXT config,
-    # then save NEXT as current
+def fw_setup(vserver, config=None):
+
+    # generate and execute iptables rules from the given config
+    # if no config given, default to 'CURRENT'
 
     # make sure the chains exist
     iptables_rules(vserver)
 
     chain_name = 'ov_' + vserver
 
-    config = fw_get_config(vserver)
-    next = config['NEXT']
+    if config is None:
+        config = fw_get_config(vserver)['CURRENT']
 
-    # crear the chain
+    # clear the chain
     cmd = 'iptables -F %s' % chain_name
     print cmd
     err = commands.getoutput(cmd)
     if err: print err
 
-    if next['mode'] == 'block':
+    if config['mode'] == 'block':
 
         # established connections OK
         cmd = 'iptables -A %s -m state --state "ESTABLISHED,RELATED" -j ACCEPT' % \
@@ -768,7 +769,7 @@ def fw_finish(vserver):
         err = commands.getoutput(cmd)
         if err: print err
 
-        for rule in next['open']:
+        for rule in config['open']:
             proto, port, ips = rule
 
             if ips:
@@ -806,7 +807,7 @@ def fw_finish(vserver):
     else:
         # mode is allow
 
-        for rule in next['close']:
+        for rule in config['close']:
             proto, port, ips = rule
 
             if ips:
@@ -824,6 +825,17 @@ def fw_finish(vserver):
             print cmd
             err = commands.getoutput(cmd)
             if err: print err
+
+
+def fw_finish(vserver):
+
+    # generate and execute iptables rules from the NEXT config,
+    # then save NEXT as current
+
+    config = fw_get_config(vserver)
+    next = config['NEXT']
+
+    fw_setup(vserver, next)
 
     config['PREV'] = config['CURRENT']
     config['CURRENT'] = next
