@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.21 2007/05/25 22:23:01 grisha Exp $
+# $Id: vds.py,v 1.22 2007/05/26 01:57:00 grisha Exp $
 
 """ VDS related functions """
 
@@ -1066,4 +1066,24 @@ def fw_finish(vserver):
         return
 
     vsutil.fw_finish(vserver)
+
+def fw_clear_block(vserver):
+
+    vss = vsutil.list_vservers()
+    if not vss.has_key(vserver):
+        print 'ERROR: No such vserver: %s' % vserver
+        return
+
+    vsutil.fw_clear_block(vserver)
+
+def fw_block(vserver, ips):
+
+    vss = vsutil.list_vservers()
+    if not vss.has_key(vserver):
+        print 'ERROR: No such vserver: %s' % vserver
+        return
+
+    vsutil.fw_block(vserver, ips)
+
+    
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.19 2007/05/26 00:57:26 grisha Exp $
+# $Id: vsutil.py,v 1.20 2007/05/26 01:57:00 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -740,6 +740,34 @@ def fw_close(vserver, proto, port, ips):
 
     fw_save_config(vserver, config)
 
+def fw_block(vserver, ips):
+
+    for ip in ips:
+        cmd = "iptables -A ov_%s_block -s %s -j REJECT" % (vserver, ip)
+        print cmd
+        err = commands.getoutput(cmd)
+        if err: print err
+
+    # add it to config
+    config = fw_get_config(vserver)
+
+    for ip in ips:
+        config['BLOCK'].append(ip)
+
+    fw_save_config(vserver, config)
+
+def fw_clear_block(vserver):
+
+    # clear the block list
+
+    cmd = "iptables -F ov_%s_block" % vserver
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err
+
+    config = fw_get_config(vserver)
+    config['BLOCK'] = []
+    fw_save_config(vserver, config)
 
 def fw_setup(vserver, config=None):
 
@@ -799,7 +827,7 @@ def fw_setup(vserver, config=None):
             if err: print err
             
         # last rule is block
-        cmd = 'iptables -A %s -j DROP' % chain_name
+        cmd = 'iptables -A %s -j REJECT' % chain_name
         print cmd
         err = commands.getoutput(cmd)
         if err: print err
