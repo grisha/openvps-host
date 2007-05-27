@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.51 2007/05/25 22:23:01 grisha Exp $
+# $Id: panel.py,v 1.52 2007/05/27 01:36:07 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -36,6 +36,8 @@ from openvps.common import rrdutil, crypto, RSASignedCookie
 from openvps.host import cfg, vsutil, vsmon, vds
 
 ALLOWED_COMMANDS = ['index',
+                    'fw',
+                    'fw_set',
                     'graph',
                     'graph1',
                     'graph2',
@@ -543,6 +545,7 @@ def bwlimit(req, name, params):
 
     return apache.OK
 
+
 def bwlimit_set(req, name, params):
 
     fs = util.FieldStorage(req)
@@ -562,6 +565,96 @@ def bwlimit_set(req, name, params):
     util.redirect(req, 'bwlimit')
 
     return apache.OK
+
+
+def fw(req, name, params):
+
+    location = 'admin:bwlimit'
+
+    # get current config
+
+    config = vsutil.fw_get_config(name)['CURRENT']
+    #raise `config`
+
+    #for 
+
+    body_tmpl = _tmpl_path('fw_body.html')
+
+    body_vars = {}
+
+    vars = {'global_menu': _global_menu(req, name, location),
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
+            'name':name}
+            
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                vars=vars)
+
+    p.run()
+
+    return apache.OK
+
+
+def fw_set(req, name, params):
+
+    fs = util.FieldStorage(req)
+
+    mode = fs.getfirst('mode')
+
+    if mode not in ['block', 'allow']:
+        return error(req, 'Invalid mode')
+
+    # collect form data
+    ports = []
+    for n in range(1024):
+        if fs.has_key('proto%d' % n) and fs.has_key('port%d' % n):
+            
+            proto = fs.getfirst('proto%d' % n)
+            port = fs.getfirst('port%d' % n)
+            ips = fs.get('ips%d' % n, '')
+
+            ports.append((proto, port, ips))
+
+    ## set the iptables rules
+
+    # start
+    cmd = '%s openvps-fw start %s %s' % (cfg.OVWRAPPER, name, mode)
+    req.log_error(cmd)
+    pipe = os.popen(cmd, 'r', 0)
+    s = pipe.readline()
+    while s:
+        req.log_error('%s: %s' % (name, s))
+        s = pipe.readline()
+    pipe.close()
+
+    action = 'close'
+    if mode == 'block':
+        action = 'open'
+
+    # the rules
+    for proto, port, ips in ports:
+
+        cmd = '%s openvps-fw %s %s %s %s %s' % (cfg.OVWRAPPER, action, name, proto, port, ips)
+        req.log_error(cmd)
+        pipe = os.popen(cmd, 'r', 0)
+        s = pipe.readline()
+        while s:
+            req.log_error('%s: %s' % (name, s))
+            s = pipe.readline()
+        pipe.close()
+
+    # finish
+    cmd = '%s openvps-fw finish %s' % (cfg.OVWRAPPER, name)
+    req.log_error(cmd)
+    pipe = os.popen(cmd, 'r', 0)
+    s = pipe.readline()
+    while s:
+        req.log_error('%s: %s' % (name, s))
+        s = pipe.readline()
+    pipe.close()
+    
+    util.redirect(req, 'fw')
+    return apache.OK
+
 
 def cpu(req, name, params):
 

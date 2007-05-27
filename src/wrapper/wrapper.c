@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * $Id: wrapper.c,v 1.3 2005/08/05 20:02:06 grisha Exp $
+ * $Id: wrapper.c,v 1.4 2007/05/27 01:36:07 grisha Exp $
  *
  */
 
@@ -34,6 +34,7 @@ const char *VALID_COMMANDS[] = {
     "read-config",
     "openvps-rebuild",
     "openvps-bwlimit",
+    "openvps-fw",
     NULL 
 };
 
@@ -194,7 +195,28 @@ int run_command(const char* command, int argc, char** argv) {
 
         /* run it with empty environment */
         execve(OPENVPS, newargv, ENV);
-        
+
+    }
+    else if (!strcmp(command, "openvps-fw")) {
+
+        int i = 0;
+        char *newargv[1024];
+
+        newargv[0] = OPENVPS;
+        newargv[1] = "fw";
+
+        if (argc >= 4) {
+            newargv[2] = argv[2];
+            newargv[3] = argv[3];
+
+            for (i=4; (i < argc) && (i < 1024); i++) {
+                newargv[i] = argv[i];
+            }
+            newargv[i] = NULL;
+
+            /* run it with empty environment */
+            execve(OPENVPS, newargv, ENV);
+        }
     }
 
     /* we failed if we got this far */
