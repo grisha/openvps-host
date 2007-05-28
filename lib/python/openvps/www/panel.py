@@ -1,3 +1,4 @@
+
 #
 # Copyright 2004 OpenHosting, Inc.
 #
@@ -14,7 +15,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.52 2007/05/27 01:36:07 grisha Exp $
+# $Id: panel.py,v 1.53 2007/05/28 17:28:45 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -27,6 +28,7 @@ import sys
 import binascii
 import tempfile
 import random
+import re
 
 import RRD
 
@@ -50,6 +52,8 @@ ALLOWED_COMMANDS = ['index',
                     'bwidth',
                     'bwlimit',
                     'bwlimit_set',
+                    'block',
+                    'block_set',
                     'disk',
                     'cpu',
                     'mem',
@@ -219,8 +223,10 @@ def _navigation_map(req, vps):
     # tag, Text, link, icon_url, submenu
 
     admin = [("status", "Status", "status", None, []),
-             ("rebuild", "Rebuild", "rebuild", None, []),
+             ("fw", "Firewall", "fw", None, []),
+             ("block", "Block IPs", "block", None, []),
              ("bwlimit", "B-width Limit", "bwlimit", None, []),
+             ("rebuild", "Rebuild", "rebuild", None, []),
              ]
 
     stats = [("bwidth", "Bandwidth", "bwidth", None, []),
@@ -569,18 +575,22 @@ def bwlimit_set(req, name, params):
 
 def fw(req, name, params):
 
-    location = 'admin:bwlimit'
+    location = 'admin:fw'
 
     # get current config
 
     config = vsutil.fw_get_config(name)['CURRENT']
-    #raise `config`
-
-    #for 
 
     body_tmpl = _tmpl_path('fw_body.html')
 
-    body_vars = {}
+    mode = config['mode']
+    if mode == 'block':
+        rules = config['open']
+    else:
+        rules = config['close']
+
+    body_vars = {'mode': mode,
+                 'rules': rules}
 
     vars = {'global_menu': _global_menu(req, name, location),
             'body':psp.PSP(req, body_tmpl, vars=body_vars),
@@ -611,6 +621,13 @@ def fw_set(req, name, params):
             proto = fs.getfirst('proto%d' % n)
             port = fs.getfirst('port%d' % n)
             ips = fs.get('ips%d' % n, '')
+
+            # check IPs:
+            for ip in ips.split():
+                try:
+                    i, m = re.match('^([0-9.]*)(?:/?([1-3]?[0-9]))?$', ip).groups()
+                except:
+                    return error(req, 'Invalid IP/Network: %s' % `ip`)
 
             ports.append((proto, port, ips))
 
@@ -653,6 +670,68 @@ def fw_set(req, name, params):
     pipe.close()
     
     util.redirect(req, 'fw')
+    return apache.OK
+
+def block(req, name, params):
+
+    location = 'admin:block'
+
+    # get current config
+
+    ips = vsutil.fw_get_config(name)['BLOCK']
+
+    body_tmpl = _tmpl_path('block_body.html')
+
+    body_vars = {'ips': ' '.join(ips)}
+
+    vars = {'global_menu': _global_menu(req, name, location),
+            'body':psp.PSP(req, body_tmpl, vars=body_vars),
+            'name':name}
+            
+    p = psp.PSP(req, _tmpl_path('main_frame.html'),
+                vars=vars)
+
+    p.run()
+
+    return apache.OK
+
+
+def block_set(req, name, params):
+
+    fs = util.FieldStorage(req)
+
+    ips = fs.getfirst('ips')
+
+    # check IPs:
+    for ip in ips.split():
+        try:
+            i, m = re.match('^([0-9.]*)(?:/?([1-3]?[0-9]))?$', ip).groups()
+        except:
+            return error(req, 'Invalid IP/Network: %s' % `ip`)
+
+
+    ## set the iptables rules
+
+    # start
+    cmd = '%s openvps-fw clear_block %s' % (cfg.OVWRAPPER, name)
+    req.log_error(cmd)
+    pipe = os.popen(cmd, 'r', 0)
+    s = pipe.readline()
+    while s:
+        req.log_error('%s: %s' % (name, s))
+        s = pipe.readline()
+    pipe.close()
+
+    cmd = '%s openvps-fw block %s %s' % (cfg.OVWRAPPER, name, ips)
+    req.log_error(cmd)
+    pipe = os.popen(cmd, 'r', 0)
+    s = pipe.readline()
+    while s:
+        req.log_error('%s: %s' % (name, s))
+        s = pipe.readline()
+    pipe.close()
+
+    util.redirect(req, 'block')
     return apache.OK
 
 

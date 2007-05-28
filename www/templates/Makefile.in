@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.8 2007/05/27 01:36:07 grisha Exp $
+# $Id: Makefile.in,v 1.9 2007/05/28 17:28:45 grisha Exp $
 
 INSTALL=@INSTALL@
 TMPL=@prefix@/openvps/templates
@@ -35,6 +35,7 @@ install:
 	$(INSTALL) -m 0644 cpu_body.html $(DESTDIR)$(TMPL)/cpu_body.html
 	$(INSTALL) -m 0644 mem_body.html $(DESTDIR)$(TMPL)/mem_body.html
 	$(INSTALL) -m 0644 disk_body.html $(DESTDIR)$(TMPL)/disk_body.html
+	$(INSTALL) -m 0644 block_body.html $(DESTDIR)$(TMPL)/block_body.html
 	$(INSTALL) -m 0644 fw_body.html $(DESTDIR)$(TMPL)/fw_body.html
 	$(INSTALL) -m 0644 login_body.html $(DESTDIR)$(TMPL)/login_body.html
 

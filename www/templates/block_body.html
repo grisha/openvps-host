@@ -1,0 +1,40 @@
+
+<h4>Block IPs (Beta)</h4>
+
+<div style="text-align: center;">
+
+<script language="javascript">
+  function check_ips(ips_field) {
+    var re = new RegExp("^([0-9.]*)(?:/?([1-3]?[0-9]))?$");
+    var ips = ips_field.value.split(" ");
+    for (var i=0; i < ips.length; i++) {
+       var ip = ips[i];
+       if (ip != "") {
+         if (! ip.match(re)) {
+            alert('Invalid IP/Network: '+ip);
+            return false;
+         }
+       }
+     }
+   }
+</script>
+
+
+<p style="text-align: left; padding-left: 1em; border: 0; color: #708491; font-size: small;">
+Specify below one or more space-separated IPs from which you do not wish to receive any
+traffic at all. You can also specify 
+networks here using the / notation, e.g. 10.10.10.0/24.
+</p>
+
+<form method="POST" action="block_set" name="block_form">
+   
+  <textarea name="ips" cols="53" rows="10" 
+  onBlur="javascript:check_ips(document.block_form.ips)"><%=ips%></textarea>
+
+  <br><br>
+  <input type="submit" value="Block the above IPs">
+
+</form>
+
+</div>
+
