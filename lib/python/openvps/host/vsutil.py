@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.21 2007/05/27 01:36:07 grisha Exp $
+# $Id: vsutil.py,v 1.22 2007/05/29 14:58:38 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -462,14 +462,16 @@ def iptables_rules(vserver):
 
     # create fw chain ?
     cmd = '/sbin/iptables -nL %s' % chain_name
-    if 'No chain' in commands.getoutput(cmd):
+    s = commands.getoutput(cmd)
+    if 'No chain' in s or 'Table does not exist' in s:
         cmd = '/sbin/iptables -N %s' % chain_name
         print ' ', cmd
         commands.getoutput(cmd)
         
     # create fw chain ?
     cmd = '/sbin/iptables -nL %s' % block_chain_name
-    if 'No chain' in commands.getoutput(cmd):
+    s = commands.getoutput(cmd)
+    if 'No chain' in s or 'Table does not exist' in s:
         cmd = '/sbin/iptables -N %s' % block_chain_name
         print ' ', cmd
         commands.getoutput(cmd)
@@ -705,7 +707,11 @@ def fw_save_config(vserver, config):
         os.mkdir(fw_dir)
 
     s = '# Saved by vsutil.py:fw_save_config() on %s\n\n' % time.ctime()
-    s += 'FW = ' + pprint.pformat(config, width=80)
+    try:
+        s += 'FW = ' + pprint.pformat(config, width=80)
+    except:
+        # python 2.3?
+        s += 'FW = ' + pprint.pformat(config)
     s += '\n'
 
     fw_path = os.path.join(fw_dir, vserver)
