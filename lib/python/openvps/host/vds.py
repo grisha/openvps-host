@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.22 2007/05/26 01:57:00 grisha Exp $
+# $Id: vds.py,v 1.23 2007/06/04 18:46:09 grisha Exp $
 
 """ VDS related functions """
 
@@ -1066,6 +1066,14 @@ def fw_finish(vserver):
         return
 
     vsutil.fw_finish(vserver)
+
+    # this is a bit of a hack - it seems that upon startup not
+    # necessary modules are loaded confusing our vserver startup
+    # when we save them, the OS will figure out what needs to be
+    # loaded.
+    cmd = "/sbin/service iptables save"
+    print cmd
+    print commands.getoutput(cmd)
 
 def fw_clear_block(vserver):
 

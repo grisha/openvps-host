@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.22 2007/05/29 14:58:38 grisha Exp $
+# $Id: vsutil.py,v 1.23 2007/06/04 18:46:09 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -454,6 +454,9 @@ def iptables_rules(vserver):
 
     print 'Adding iptables rules for bandwidth montoring and firewall'
 
+    # XXX hack - we need some modules
+    _ipt_init()
+
     # get vserver IPs
     ips = [x['ip'] for x in get_vserver_config(vserver)['interfaces']]
 
@@ -794,10 +797,25 @@ def fw_setup(vserver, config=None):
     err = commands.getoutput(cmd)
     if err: print err
 
+    # XXX hack begin
+    if err and 'No chain' in err:
+        print 'Trying again...'
+        cmd = '/sbin/iptables -N %s' % chain_name
+        print cmd
+        err = commands.getoutput(cmd)
+        if err: print err
+        cmd = '/sbin/iptables -F %s' % chain_name
+        print cmd
+        err = commands.getoutput(cmd)
+        if err: print err
+    # XXX hack end
+
     if config['mode'] == 'block':
 
         # established connections OK
-        cmd = '/sbin/iptables -A %s -m state --state "ESTABLISHED,RELATED" -j ACCEPT' % \
+        #cmd = '/sbin/iptables -A %s -m state --state "ESTABLISHED,RELATED" -j ACCEPT' % \
+        #      chain_name
+        cmd = '/sbin/iptables -A %s -m conntrack --ctstate "ESTABLISHED,RELATED" -j ACCEPT' % \
               chain_name
         print cmd
         err = commands.getoutput(cmd)
@@ -876,4 +894,26 @@ def fw_finish(vserver):
     del config['NEXT']
 
     fw_save_config(vserver, config)
+
+def _ipt_init():
+    
+    cmd = 'modprobe ipt_REJECT'
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err
+
+    cmd = 'modprobe xt_tcpudp'
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err
+
+    cmd = 'modprobe xt_conntrack'
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err
+
+    cmd = 'modprobe ip_conntrack'
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err
 
