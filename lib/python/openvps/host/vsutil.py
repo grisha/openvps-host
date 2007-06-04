@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.23 2007/06/04 18:46:09 grisha Exp $
+# $Id: vsutil.py,v 1.24 2007/06/04 22:06:19 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -897,23 +897,62 @@ def fw_finish(vserver):
 
 def _ipt_init():
     
-    cmd = 'modprobe ipt_REJECT'
+##     cmd = 'modprobe ipt_REJECT'
+##     print cmd
+##     err = commands.getoutput(cmd)
+##     if err: print err
+
+##     cmd = 'modprobe xt_tcpudp'
+##     print cmd
+##     err = commands.getoutput(cmd)
+##     if err: print err
+
+##     cmd = 'modprobe xt_conntrack'
+##     print cmd
+##     err = commands.getoutput(cmd)
+##     if err: print err
+
+##     cmd = 'modprobe ip_conntrack'
+##     print cmd
+##     err = commands.getoutput(cmd)
+##     if err: print err
+
+    # do the actions we expect to do on a dummy chain -
+    # this seems to load all the right modules
+
+    cmd = '/sbin/iptables -N _ipt_init'
     print cmd
     err = commands.getoutput(cmd)
     if err: print err
-
-    cmd = 'modprobe xt_tcpudp'
+    cmd = '/sbin/iptables -F _ipt_init'
     print cmd
     err = commands.getoutput(cmd)
     if err: print err
-
-    cmd = 'modprobe xt_conntrack'
+    cmd = '/sbin/iptables -A _ipt_init -m conntrack --ctstate "ESTABLISHED,RELATED" -j ACCEPT'
     print cmd
     err = commands.getoutput(cmd)
     if err: print err
-
-    cmd = 'modprobe ip_conntrack'
+    cmd = '/sbin/iptables -A _ipt_init -p tcp --dport 22 -s 172.17.17.17 -j ACCEPT'
     print cmd
     err = commands.getoutput(cmd)
-    if err: print err
-
+    if err: print err    
+    cmd = '/sbin/iptables -A _ipt_init -p icmp --icmp-type destination-unreachable -j ACCEPT'
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err    
+    cmd = '/sbin/iptables -A _ipt_init -p icmp --icmp-type time-exceeded -j ACCEPT'
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err    
+    cmd = '/sbin/iptables -A _ipt_init -p icmp --icmp-type echo-request -j ACCEPT'
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err    
+    cmd = '/sbin/iptables -A _ipt_init -p icmp --icmp-type echo-reply -j ACCEPT'
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err    
+    cmd = '/sbin/iptables -A _ipt_init -j REJECT'
+    print cmd
+    err = commands.getoutput(cmd)
+    if err: print err    
