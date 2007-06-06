@@ -86,8 +86,15 @@ for n in range(14):
     </td>
     <td>
        <select name="proto<%=n%>">
-         <option value="tcp">tcp</option>
-         <option value="udp">udp</option>
+<%
+    if proto == 'udp':
+        tcp, udp = '', 'selected'
+    else:
+        tcp, udp = 'selected', ''
+    # end
+%>
+         <option value="tcp" <%=tcp%>>tcp</option>
+         <option value="udp" <%=udp%>>udp</option>
        </select>
     </td>
     <td>
