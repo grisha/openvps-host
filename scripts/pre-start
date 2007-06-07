@@ -16,11 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: pre-start,v 1.4 2007/06/07 18:32:34 grisha Exp $
-
-# create the tap interface
-
-tunctl -t tap_$2
+# $Id: pre-start,v 1.5 2007/06/07 20:52:21 grisha Exp $
 
 python <<EOF
 

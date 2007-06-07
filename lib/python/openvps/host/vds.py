@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.23 2007/06/04 18:46:09 grisha Exp $
+# $Id: vds.py,v 1.24 2007/06/07 20:52:21 grisha Exp $
 
 """ VDS related functions """
 
@@ -172,7 +172,8 @@ def vserver_vroot_perms():
     os.chmod(cfg.VSERVERS_ROOT, 0)
 
 
-def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
+def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP,
+              vpn_ip=None, vpn_mask='255.255.255.0'):
 
     vpsroot = os.path.join(cfg.VSERVERS_ROOT, name)
 
@@ -186,7 +187,9 @@ def customize(name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
 
     print "Detected %s" % vps.get_desc()
 
-    vps.customize(name, xid, ip, userid, passwd, disklim, dns)
+    vps.customize(name, xid, ip, userid, passwd, disklim, dns,
+                  vpn_ip, vpn_mask)
+
     vps.fixxids(xid)
 
     vserver_vroot_perms()

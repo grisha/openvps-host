@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.15 2007/05/26 01:57:00 grisha Exp $
+# $Id: openvps,v 1.16 2007/06/07 20:52:21 grisha Exp $
 
 
 """
@@ -80,18 +80,33 @@ def cmd_buildref():
 
 def cmd_customize():
 
-    parser = OptionParser(usage="%prog customize <name> <xid> <ip> <userid> <passwd> <disklim>\n"
-                          "  Customize name <name> with <xid> <ip> <userid> <passwd> <disklim>")
+    parser = OptionParser(usage="%prog customize <name> <xid> <ip> <userid> <passwd> <disklim> [<vpn_ip[/mask]>]\n"
+                          "  Customize name <name> with <xid> <ip> <userid> <passwd> <disklim> [<vpn_ip[/mask]>]")
 
     (options, args) = parser.parse_args(sys.argv[2:])
-    if len(args) != 6:
-        parser.error("Must specify all 6 arguments")
+    if len(args) not in (6, 7):
+        parser.error("Must specify 6 or 7 arguments")
 
-    name, xid, ip, userid, passwd, disklim = args
+    name, xid, ip, userid, passwd, disklim = args[:6]
+
+    vpn_ip = None
+    if len(args) == 7:
+        vpn_ip = args[6]
 
     # XXX some checking needs to go here?
 
-    vds.customize(name, xid, ip, userid, passwd, disklim)
+    if vpn_ip and '/' in vpn_ip:
+        vpn_ip, m = vpn_ip.split('/')
+        vpn_mask = (0xffffffffL << (32-int(m))) & 0xffffffffL
+        vpn_mask = socket.inet_ntoa(struct.pack('!L', vpn_mask))
+    else:
+        vpn_mask = '255.255.255.0'
+
+    if vpn_ip:
+        vds.customize(name, xid, ip, userid, passwd, disklim, cfg.PRIMARY_IP,
+                      vpn_ip, vpn_mask)
+    else:
+        vds.customize(name, xid, ip, userid, passwd, disklim)
 
 def cmd_custcopy():
 

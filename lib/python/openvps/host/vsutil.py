@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.25 2007/06/07 18:32:34 grisha Exp $
+# $Id: vsutil.py,v 1.26 2007/06/07 20:52:21 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -90,7 +90,8 @@ def get_vserver_config(name):
 
     return config
 
-def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
+def save_vserver_config(name, ip, xid, hostname=None, dev=cfg.DFT_DEVICE,
+                        vpn_ip=None, vpn_mask='255.255.255.0'):
 
     if not hostname:
         hostname = name
@@ -156,6 +157,10 @@ def save_vserver_config(name, ip, xid, hostname=None, dev='eth0'):
 
     # add the ip (mask must be /32, or they will end up grouped)
     add_vserver_ip(name, ip, cfg.DFT_DEVICE, '255.255.255.255')
+
+    if vpn_ip:
+        # add the VPN ip 
+        add_vserver_ip(name, vpn_ip, 'tap_'+name, vpn_mask)
 
     # fstab
     # here we process an optional substitution - %(vps), this is so that the vps
@@ -460,7 +465,7 @@ def iptables_rules(vserver):
     _ipt_init()
 
     # get vserver IPs
-    ips = [x['ip'] for x in get_vserver_config(vserver)['interfaces']]
+    ips = [(x['ip'], x['dev']) for x in get_vserver_config(vserver)['interfaces']]
 
     chain_name = 'ov_' + vserver
     block_chain_name = 'ov_' + vserver + '_block'
@@ -483,46 +488,48 @@ def iptables_rules(vserver):
         
     # now for every IP check rules
     
-    for ip in ips:
+    for ip, dev in ips:
 
-        # does a legacy rule exist?
-        cmd = '/sbin/iptables -L INPUT -n | grep %s | grep -v %s' % (ip, chain_name)
-        if commands.getoutput(cmd):
+        if not dev.startswith('tap'):
 
-            # kill it
-            cmd = '/sbin/iptables -D INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
-            print ' ', cmd
-            commands.getoutput(cmd)
+            # does a legacy rule exist?
+            cmd = '/sbin/iptables -L INPUT -n | grep %s | grep -v %s' % (ip, chain_name)
+            if commands.getoutput(cmd):
 
-        # do our rules exist?
-        cmd = '/sbin/iptables -L INPUT -n | grep %s | grep %s' % (ip, chain_name)
-        if not commands.getoutput(cmd):
+                # kill it
+                cmd = '/sbin/iptables -D INPUT -i %s -d %s' % (cfg.DFT_DEVICE, ip)
+                print ' ', cmd
+                commands.getoutput(cmd)
 
-            # create a rule to jump to block chain
-            cmd = '/sbin/iptables -A INPUT -i %s -d %s -j %s' % (cfg.DFT_DEVICE, ip,
-                                                           block_chain_name)
-            print ' ', cmd
-            commands.getoutput(cmd)
+            # do our rules exist?
+            cmd = '/sbin/iptables -L INPUT -n | grep %s | grep %s' % (ip, chain_name)
+            if not commands.getoutput(cmd):
 
-            # create a rule to jump to fw chain
-            cmd = '/sbin/iptables -A INPUT -i %s -d %s -j %s' % (cfg.DFT_DEVICE, ip,
-                                                           chain_name)
-            print ' ', cmd
-            commands.getoutput(cmd)
+                # create a rule to jump to block chain
+                cmd = '/sbin/iptables -A INPUT -i %s -d %s -j %s' % (cfg.DFT_DEVICE, ip,
+                                                               block_chain_name)
+                print ' ', cmd
+                commands.getoutput(cmd)
 
-        else:
-            print 'INPUT rules already exists for %s, skipping' % ip
-            
-        # does OUTPUT rule exist?
-        cmd = '/sbin/iptables -L OUTPUT -n | grep %s' % ip
-        if not commands.getoutput(cmd):
-            
-            cmd = '/sbin/iptables -A OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
-            print ' ', cmd
-            commands.getoutput(cmd)    
+                # create a rule to jump to fw chain
+                cmd = '/sbin/iptables -A INPUT -i %s -d %s -j %s' % (cfg.DFT_DEVICE, ip,
+                                                               chain_name)
+                print ' ', cmd
+                commands.getoutput(cmd)
 
-        else:
-            print 'OUTPUT rule already exists for %s, skipping' % ip
+            else:
+                print 'INPUT rules already exists for %s, skipping' % ip
+
+            # does OUTPUT rule exist?
+            cmd = '/sbin/iptables -L OUTPUT -n | grep %s' % ip
+            if not commands.getoutput(cmd):
+
+                cmd = '/sbin/iptables -A OUTPUT -o %s -s %s' % (cfg.DFT_DEVICE, ip)
+                print ' ', cmd
+                commands.getoutput(cmd)    
+
+            else:
+                print 'OUTPUT rule already exists for %s, skipping' % ip
 
 
 def is_tc_base_up():

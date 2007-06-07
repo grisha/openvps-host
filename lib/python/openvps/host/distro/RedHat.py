@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.14 2007/04/14 18:54:23 grisha Exp $
+# $Id: RedHat.py,v 1.15 2007/06/07 20:52:21 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -783,10 +783,12 @@ class RedHat(Distro):
             path = os.path.join(self.vpsroot, 'usr/libexec/openvps/', file)
             vsutil.set_file_immutable_unlink(path)
 
-    def customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
+    def customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP,
+                  vpn_ip=None, vpn_mask='255.255.255.0'):
 
         # call super
-        Distro.customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP)
+        Distro.customize(self, name, xid, ip, userid, passwd, disklim, dns,
+                         vpn_ip, vpn_mask)
 
         self.fixup_rc()
         self.webmin_passwd()

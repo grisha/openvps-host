@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Fedora.py,v 1.19 2007/04/14 18:54:23 grisha Exp $
+# $Id: Fedora.py,v 1.20 2007/06/07 20:52:21 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -318,10 +318,12 @@ class Fedora_Core_3(Fedora_Core):
 
         open(file, 'a').write('VNCSERVERS="1:%s"\n' % name)
 
-    def customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
+    def customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP,
+                  vpn_ip=None, vpn_mask='255.255.255.0'):
 
         # call super
-        RedHat.customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP)
+        RedHat.customize(self, name, xid, ip, userid, passwd, disklim, dns,
+                         vpn_ip, vpn_mask)
 
         self.enable_imaps()
         self.disable_pam_limits()

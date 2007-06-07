@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.16 2007/06/07 18:32:34 grisha Exp $
+# $Id: Distro.py,v 1.17 2007/06/07 20:52:21 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -285,6 +285,38 @@ class Distro(object):
         f.write(cfg.MOTD)
         f.close()
 
+    def make_openvpn_conf(self, tap_name, vpn_ip, vpn_mask):
+
+        print 'Creating openvpn/openvps.conf...'
+
+        openvpn_dir = os.path.join(self.vpsroot, 'etc', 'openvpn')
+
+        if not os.path.exists(openvpn_dir):
+            os.mkdir(openvpn_dir)
+            os.chmod(openvpn_dir, 0500)
+
+        fname = os.path.join(openvpn_dir, 'openvps.conf')
+        print 'Writing %s' % fname
+
+        s = "dev %s\n" % tap_name
+        s += "ifconfig %s %s\n" % (vpn_ip, vpn_mask)
+        s += "ifconfig-noexec\n"
+        s += "secret static.key\n"
+        s += "verb 4\n"
+        
+        open(fname, 'w').write(s)
+
+        # generate key
+        fname = os.path.join(openvpn_dir, 'static.key')
+        print "Generating OpenVPN static key...."
+        
+        cmd = "openvpn --genkey --secret %s" % fname
+        print commands.getoutput(cmd)
+
+        os.chmod(fname, 0600)
+        
+        return
+    
     def fix_services(self):
         raise "NOT IMPLEMENTED"
 
@@ -420,12 +452,14 @@ class Distro(object):
 
         print 'Done.\n%d xids of a total of %d has been set to %d' % (x, t, xid)
 
-    def customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP):
+    def customize(self, name, xid, ip, userid, passwd, disklim, dns=cfg.PRIMARY_IP,
+                  vpn_ip=None, vpn_mask='255.255.255.0'):
 
         hostname = name + '.' + cfg.DEFAULT_DOMAIN
 
         # first make a configuration
-        vsutil.save_vserver_config(name, ip, xid, hostname=hostname)
+        vsutil.save_vserver_config(name, ip, xid, hostname,
+                                   vpn_ip=vpn_ip, vpn_mask=vpn_mask)
 
         root = self.vpsroot
 
@@ -451,6 +485,8 @@ class Distro(object):
         self.ohd_key(name)
         self.immutable_modules()
         self.make_snapshot_dir()
+        if vpn_ip:
+            self.make_openvpn_conf('tap_'+name, vpn_ip, vpn_mask)
 
     def get_user_passwd(self, userid):
 
