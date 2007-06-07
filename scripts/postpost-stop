@@ -16,9 +16,9 @@
 # limitations under the License.
 #
 
-# $Id: postpost-stop,v 1.1 2007/06/07 18:32:34 grisha Exp $
+# $Id: postpost-stop,v 1.2 2007/06/07 23:58:52 grisha Exp $
 
 # remove the tap interface
 
-tunctl -d tap_$2
+/usr/sbin/tunctl -d tap_$2
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.10 2007/06/07 20:52:21 grisha Exp $
+# $Id: CentOS.py,v 1.11 2007/06/07 23:58:52 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -137,35 +137,11 @@ class CentOS_5_0(CentOS):
         
         def install(self):
 
-##             # make some base directories that are required before anything
-##             # works
-        
-##             os.mkdir(os.path.join(self.vpsroot, 'var'))
-##             os.mkdir(os.path.join(self.vpsroot, 'var', 'lib'))
-##             os.mkdir(os.path.join(self.vpsroot, 'var', 'lib', 'rpm'))
-##             os.mkdir(os.path.join(self.vpsroot, 'usr'))
-##             os.mkdir(os.path.join(self.vpsroot, 'usr', 'src'))
-##             os.mkdir(os.path.join(self.vpsroot, 'usr', 'src', 'redhat'))
-##             os.mkdir(os.path.join(self.vpsroot, 'proc'))
-
             # call our super
             RedHat_Bundle_base.install(self)
 
-##             self.import_rpm_key()
             self.enable_shadow()
             self.tracepath()
-
-##         def import_rpm_key(self):
-
-##             path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY')
-##             print 'Importing RPM GPG key: %s' % path
-##             cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
-##             commands.getoutput(cmd)
-
-##             path = os.path.join(self.vpsroot, 'usr/share/doc/fedora-release-3/RPM-GPG-KEY-fedora')
-##             print 'Importing RPM GPG key: %s' % path
-##             cmd = 'rpm -r %s --import %s' % (self.vpsroot, path)
-##             commands.getoutput(cmd)
 
         def enable_shadow(self):
 
@@ -222,9 +198,11 @@ class CentOS_5_0(CentOS):
             'libpng-devel', 'libselinux-devel', 'libselinux-python',
             'libsemanage', 'libsepol-devel', 'libstdc++-devel',
             'libtiff', 'libtool', 'libutempter', 'libxslt', 'lynx',
+            'ftp://rpmfind.net/linux/fedora/extras/development/i386/lzo-2.02-2.fc6.i386.rpm',
             'mesa-libGL', 'mesa-libGL-devel', 'mod_perl',
             'mod_perl-devel', 'mod_python', 'mod_ssl', 'mx', 'mysql',
             'mysql-devel', 'mysql-server', 'neon-devel',
+            'ftp://rpmfind.net/linux/fedora/extras/6/i386/openvpn-2.1-0.17.rc2.fc6.i386.rpm',
             'openldap-devel', 'openssl-devel', 'openssl097a', 'pango',
             'pango-devel', 'patch', 'perl-Archive-Tar',
             'perl-BSD-Resource', 'perl-Compress-Zlib',
