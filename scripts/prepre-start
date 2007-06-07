@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-# Copyright 2005 OpenHosting, Inc.
+# Copyright 2007 OpenHosting, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,20 +16,9 @@
 # limitations under the License.
 #
 
-# $Id: pre-start,v 1.4 2007/06/07 18:32:34 grisha Exp $
+# $Id: prepre-start,v 1.1 2007/06/07 18:32:34 grisha Exp $
 
 # create the tap interface
 
 tunctl -t tap_$2
-
-python <<EOF
-
-from openvps.host import vsutil
-
-vsutil.set_tc_class("$2")
-
-# this will setup iptables as well
-vsutil.fw_setup("$2")
-
-EOF
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.24 2007/06/04 22:06:19 grisha Exp $
+# $Id: vsutil.py,v 1.25 2007/06/07 18:32:34 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -202,9 +202,11 @@ def add_vserver_ip(name, ip, dev, mask):
     open(os.path.join(dirname, 'interfaces', next, 'mask'), 'w').write(mask+'\n')
     
     # interface  name
-    # we append next because some people want multiple IP's and name has to be unique
-    # per interface
-    open(os.path.join(dirname, 'interfaces', next, 'name'), 'w').write(name+next+'\n')
+    # for tap interface we do not want a name (this is a bit of a hack)
+    if not dev.startswith('tap'):
+        # we append next because some people want multiple IP's and name has to be unique
+        # per interface
+        open(os.path.join(dirname, 'interfaces', next, 'name'), 'w').write(name+next+'\n')
 
     # interface  dev
     open(os.path.join(dirname, 'interfaces', next, 'dev'), 'w').write(dev+'\n')

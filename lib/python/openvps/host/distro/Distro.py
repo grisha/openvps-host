@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.15 2005/12/03 19:31:29 grisha Exp $
+# $Id: Distro.py,v 1.16 2007/06/07 18:32:34 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -586,13 +586,18 @@ class Bundle(object):
         os.mkdir(pts)
         os.chmod(pts, 0755)
 
+        net = os.path.join(dev, 'net')
+        os.mkdir(net)
+        os.chmod(net, 0755)
+
         for spec in [('null', stat.S_IFCHR, 0666, 1, 3),
                      ('zero', stat.S_IFCHR, 0666, 1, 5),
                      ('full', stat.S_IFCHR, 0666, 1, 7),
                      ('random', stat.S_IFCHR, 0644, 1, 8),
                      ('urandom', stat.S_IFCHR, 0644, 1, 9),
                      ('tty', stat.S_IFCHR, 0666, 5, 0),
-                     ('ptmx', stat.S_IFCHR, 0666, 5, 2)]:
+                     ('ptmx', stat.S_IFCHR, 0666, 5, 2),
+                     ('net/tun', stat.S_IFCHR, 0600, 10, 200)]:
             name, mode, perm, maj, min = spec
             os.mknod(os.path.join(dev, name), mode, os.makedev(maj, min))
             os.chmod(os.path.join(dev, name), perm)
