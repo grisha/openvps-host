@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.17 2007/06/07 20:52:21 grisha Exp $
+# $Id: Distro.py,v 1.18 2007/06/08 15:53:02 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -298,11 +298,24 @@ class Distro(object):
         fname = os.path.join(openvpn_dir, 'openvps.conf')
         print 'Writing %s' % fname
 
-        s = "dev %s\n" % tap_name
+        s =  "\n## The following is VPS-specific, DO NOT CHANGE\n"
+        s += "dev %s\n" % tap_name
         s += "ifconfig %s %s\n" % (vpn_ip, vpn_mask)
         s += "ifconfig-noexec\n"
-        s += "secret static.key\n"
-        s += "verb 4\n"
+        s += "## END VPS-specific stuff\n\n"
+        s += "# use TCP\n"
+        s += "proto tcp-server\n\n"
+        s += "# Use a static key\n"
+        s += "secret static.key\n\n"
+        s += "# Allow client IP change\n"
+        s += "float\n\n"
+        s += "# Drop privileges\n"
+        s += "user nobody\n"
+        s += "persist-key\n"
+        s += "persist-tun\n\n"
+        s += "keepalive 10 60\n\n"
+        s += "# Be verbose\n"
+        s += "#verb 4\n\n"
         
         open(fname, 'w').write(s)
 
