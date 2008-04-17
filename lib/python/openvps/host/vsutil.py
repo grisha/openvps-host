@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.26 2007/06/07 20:52:21 grisha Exp $
+# $Id: vsutil.py,v 1.27 2008/04/17 16:30:31 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -576,7 +576,9 @@ def set_tc_class(vserver):
         # is there a filter by this id?
 
         cmd = '/sbin/tc filter ls dev %s parent 10: | grep "flowid 10:%s"' % (cfg.DFT_DEVICE, n)
+        print '   ', cmd; sys.stdout.flush; time.sleep(.1) #X+
         s = commands.getoutput(cmd)
+        print '   [done]', cmd; sys.stdout.flush; time.sleep(.1) #X+
         
         if 'flowid' in s:
 
@@ -592,33 +594,41 @@ def set_tc_class(vserver):
 
                 cmd = '/sbin/tc filter del dev %s parent 10: prio %s handle %s %s' % \
                       (cfg.DFT_DEVICE, prio, handle, kind)
-                print '   ', cmd
+                print '   ', cmd; sys.stdout.flush; time.sleep(.1) #X+
+                #print '   ', cmd
                 s = commands.getoutput(cmd)
                 if s:
                     print s
+                print '   [done]', cmd; sys.stdout.flush; time.sleep(.1) #X+
 
         # is there a classes ?
 
         cmd = '/sbin/tc class ls dev %s parent 10:2 | grep "htb 10:%s"' % (cfg.DFT_DEVICE, n)
+        print '   ', cmd; sys.stdout.flush; time.sleep(.1) #X+
         s = commands.getoutput(cmd)
+        print '   [done]', cmd; sys.stdout.flush; time.sleep(.1) #X+
 
         if 'class' in s:
 
             # kill it too
             cmd = '/sbin/tc class del dev %s parent 10:2 classid 10:%s' % (cfg.DFT_DEVICE, n)
-            print '   ', cmd
+            print '   ', cmd; sys.stdout.flush; time.sleep(.1) #X+
+            #print '   ', cmd
             s = commands.getoutput(cmd)
             if s:
                 print s
+            print '   [done]', cmd; sys.stdout.flush; time.sleep(.1) #X+
 
         # now we can do our thing
 
         cmd = '/sbin/tc class add dev %s parent 10:2 classid 10:%s htb rate %s ceil %s burst 15k' % \
               (cfg.DFT_DEVICE, n, cfg.DFT_VS_RATE, ceil)
-        print '   ', cmd
+        print '   ', cmd; sys.stdout.flush; time.sleep(.1) #X+
+        #print '   ', cmd
         s = commands.getoutput(cmd)
         if s:
             print s
+        print '   [done]', cmd; sys.stdout.flush; time.sleep(.1) #X+
 
         U32 = '/sbin/tc filter add dev %s protocol ip parent 10:0 prio 1 u32' % cfg.DFT_DEVICE
         
@@ -629,10 +639,12 @@ def set_tc_class(vserver):
                 # a DSR load-balancing scenario
                 
                 cmd = '%s match ip src %s/32 flowid 10:%s' % (U32, i['ip'], n)
-                print '   ', cmd
+                print '   ', cmd; sys.stdout.flush; time.sleep(.1) #X+
+                #print '   ', cmd
                 s = commands.getoutput(cmd)
                 if s:
                     print s
+                print '   [done]', cmd; sys.stdout.flush; time.sleep(.1) #X+
 
 
 def set_bwlimit(vserver, limit, cap=None):
