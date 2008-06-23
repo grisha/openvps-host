@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: ovraidcheck,v 1.5 2005/11/07 02:30:22 grisha Exp $
+# $Id: ovraidcheck,v 1.6 2008/06/23 19:10:44 grisha Exp $
 
 # currently, this only works on I2O and megaraid
 
@@ -84,4 +84,16 @@ elif [ ! -z "`grep megadev /proc/devices`" ]; then
 	echo "`megarc.bin -ldInfo -a0 -Lall -nolog | grep -v Scannin`" | mail -s "RAID problem on `hostname -s`" $NOTIFY_EMAIL
     fi
 
+elif [ ! -z "`grep megaraid_sas /proc/devices`" ]; then
+
+    # this is the megaraid SAS
+
+    if [ -z "`which MegaCli 2>&1`" ]; then
+	echo "This appears to be a Megaraid-based machine, but MegaCli is not installed."
+	exit
+    fi
+
+    if [ -z "`MegaCli -LdInfo -Lall -a0 -NoLog | egrep '^State: Optimal'`" ]; then
+	echo "`MegaCli -LdInfo -Lall -a0 -NoLog | egrep '^State: Optimal'`" | mail -s "RAID problem on `hostname -s`" $NOTIFY_EMAIL
+    fi
 fi
