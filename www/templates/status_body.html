@@ -50,6 +50,29 @@ elif status == 'stopped':
    </table>
 <%
 # end
+elif status == 'suspended':
+    # begin
+%>
+   <br><br><br><br>
+   <table style="width: 300px; margin-left: 140px">
+   <tr>
+     <th style="border: 0;" colspan=3>
+       <h1>Status: <font color="grey">Suspended</font></h1>
+       Please click <a href="/cp/pay">here</a> to make a payment.
+       <br><br><br>
+     </th>
+   </tr>
+   <tr>
+     <td style="width: 100px; border: 0;"></td>
+     <td style="width: 100px;"><div class="play"></div></td>
+     <td style="width: 100px; border:0;"></td>
+   </tr>
+   <tr>
+     <th style="border: 0;" colspan=3>
+     </th>  
+   </table>
+<%
+# end
 elif status == 'rebuilding':
     # begin
 %>

@@ -1,5 +1,5 @@
 #
-# Copyright 2004 OpenHosting, Inc.
+# Copyright 2008 OpenHosting, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.24 2007/06/07 20:52:21 grisha Exp $
+# $Id: vds.py,v 1.25 2008/06/27 01:09:13 grisha Exp $
 
 """ VDS related functions """
 
@@ -600,7 +600,7 @@ def dump(vserver_name, refserver, outfile, pace=cfg.PACE[0]):
     pipe.write(cfg_files+'\n')
 
     # the rrd
-    rrd_path = os.path.join(cfg.VAR_DB_OH, vserver_name+'.rrd')
+    rrd_path = os.path.join(cfg.VAR_DB_OPENVPS, vserver_name+'.rrd')
     pipe.write(rrd_path+'\n')
     
     #print source, dest
@@ -836,7 +836,7 @@ def delete(vserver):
     print cmd
     commands.getoutput(cmd)
 
-    rrd_path = os.path.join(cfg.VAR_DB_OH, vserver+'.rrd')
+    rrd_path = os.path.join(cfg.VAR_DB_OPENVPS, vserver+'.rrd')
     cmd = 'rm %s' % rrd_path
     print cmd
     commands.getoutput(cmd)
@@ -953,28 +953,6 @@ def is_config(root, file):
 
 def suspend(vserver):
 
-    ## update shadow
-    shadow_path = os.path.join(cfg.VSERVERS_ROOT, vserver, 'etc/shadow')
-
-    result = []
-    
-    lines = open(shadow_path).readlines()
-    for line in lines:
-        
-        # the 'main' account
-        if line.startswith(vserver + ':'):
-            userid, passwd, remainder = line.split(':', 2)
-
-            if passwd[:1] != '*': # (already suspended)
-                passwd = '*' + passwd
-
-            line = '%s:%s:%s' % (userid, passwd, remainder)
-
-        result.append(line)
-
-    # write it back
-    open(shadow_path, 'w').writelines(result)
-
     ## update the vserver config to make sure it does not
     ## start automatically on startup
 
@@ -988,33 +966,20 @@ def suspend(vserver):
     if s == 'default':
         open(mark_path, 'w').write('*default\n')
 
-    ## not stop it if it's running
+    ## mark it as suspended
+    suspend_dir = os.path.join(cfg.VAR_DB_OPENVPS, 'suspend')
+    if not os.path.exists(suspend_dir):
+        os.mkdir(suspend_dir)
+        
+    suspend_path = os.path.join(cfg.VAR_DB_OPENVPS, 'suspend', vserver)
+    if not os.path.exists(suspend_path):
+        open(suspend_path, 'w')
+
+    ## now stop it if it's running
     if vsutil.is_running(vserver):
         vsutil.stop(vserver)
 
 def unsuspend(vserver):
-
-    ## update shadow
-    shadow_path = os.path.join(cfg.VSERVERS_ROOT, vserver, 'etc/shadow')
-
-    result = []
-    
-    lines = open(shadow_path).readlines()
-    for line in lines:
-        
-        # the 'main' account
-        if line.startswith(vserver + ':'):
-            userid, passwd, remainder = line.split(':', 2)
-
-            if passwd[:1] == '*': # (suspended)
-                passwd = passwd[1:]
-
-            line = '%s:%s:%s' % (userid, passwd, remainder)
-
-        result.append(line)
-
-    # write it back
-    open(shadow_path, 'w').writelines(result)
 
     ## update the vserver config to make sure it does not
     ## start automatically on startup
@@ -1029,6 +994,10 @@ def unsuspend(vserver):
     if s == '*default':
         open(mark_path, 'w').write('default\n')
 
+    ## remove suspend mark
+    suspend_path = os.path.join(cfg.VAR_DB_OPENVPS, 'suspend', vserver)
+    if os.path.exists(suspend_path):
+       os.unlink(suspend_path)
 
     ## not start it if it's not running
     if not vsutil.is_running(vserver):

@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.53 2007/05/28 17:28:45 grisha Exp $
+# $Id: panel.py,v 1.54 2008/06/27 01:09:14 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -239,7 +239,7 @@ def _navigation_map(req, vps):
                    ("stats", "Stats", "stats", None, stats),
                    # note that /billing is expected to be on a different
                    # server, so no submenu here
-                   ("account", "Account", "/billing?vps=%s" % vps, None, []),
+                   #("account", "Account", "/billing?vps=%s" % vps, None, []),
                    ]
 
     return global_menu
@@ -395,6 +395,8 @@ def status(req, name, params):
         status = 'running'
     elif os.path.exists(os.path.join(cfg.ETC_VSERVERS, name, '.rebuild')):
         status = 'rebuilding'
+    elif os.path.exists(os.path.join(cfg.VAR_DB_OPENVPS, 'suspend', name)):
+        status = 'suspended'
 
     # avoid caching at all costs
     req.err_headers_out['Pragma'] = 'no-cache'
@@ -435,9 +437,9 @@ def start(req, name, params):
     req.log_error('Starting vserver %s at request of %s' % (name, req.user))
 
     if not vsutil.is_running(name):
-
-        vsutil.start(name)
-        time.sleep(3)
+        if not os.path.exists(os.path.join(cfg.VAR_DB_OPENVPS, 'suspend', name)):
+            vsutil.start(name)
+            time.sleep(3)
 
     # note - this redirect is relative because absolute won't work with
     # our proxypass proxy
