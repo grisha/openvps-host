@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.25 2008/06/27 01:09:13 grisha Exp $
+# $Id: vds.py,v 1.26 2008/07/07 19:50:22 grisha Exp $
 
 """ VDS related functions """
 
@@ -951,57 +951,65 @@ def rpm_file_isconfig(root, file):
 def is_config(root, file):
     return rpm_file_isconfig(root, file)
 
+
 def suspend(vserver):
 
-    ## update the vserver config to make sure it does not
-    ## start automatically on startup
+    if os.getuid() == 0:
 
-    # XXX things that manipulate the config probably belong in
-    #     vsutils
-    
-    mark_path = os.path.join(cfg.ETC_VSERVERS, vserver, 'apps/init/mark')
-    
-    s = open(mark_path).read().strip()
-            
-    if s == 'default':
-        open(mark_path, 'w').write('*default\n')
+        # mark it as suspended
+        suspend_dir = os.path.join(cfg.VAR_DB_OPENVPS, 'suspend')
+        if not os.path.exists(suspend_dir):
+            os.mkdir(suspend_dir)
 
-    ## mark it as suspended
-    suspend_dir = os.path.join(cfg.VAR_DB_OPENVPS, 'suspend')
-    if not os.path.exists(suspend_dir):
-        os.mkdir(suspend_dir)
+        suspend_path = os.path.join(cfg.VAR_DB_OPENVPS, 'suspend', vserver)
+        if not os.path.exists(suspend_path):
+            open(suspend_path, 'w')
+
+        # suspend and stop vps
+        vsutil.suspend(vserver)
+
+    else:
+        # run through wrapper
+        return commands.getoutput('%s openvps-suspend %s' % (cfg.OVWRAPPER, vserver))
         
-    suspend_path = os.path.join(cfg.VAR_DB_OPENVPS, 'suspend', vserver)
-    if not os.path.exists(suspend_path):
-        open(suspend_path, 'w')
-
-    ## now stop it if it's running
-    if vsutil.is_running(vserver):
-        vsutil.stop(vserver)
 
 def unsuspend(vserver):
 
-    ## update the vserver config to make sure it does not
-    ## start automatically on startup
+    if os.getuid() == 0:
 
-    # XXX things that manipulate the config probably belong in
-    #     vsutils
-    
-    mark_path = os.path.join(cfg.ETC_VSERVERS, vserver, 'apps/init/mark')
-    
-    s = open(mark_path).read().strip()
+        # remove suspend mark
+        suspend_path = os.path.join(cfg.VAR_DB_OPENVPS, 'suspend', vserver)
+        if os.path.exists(suspend_path):
+            os.unlink(suspend_path)
+
+        # unsuspend and start
+        vsutil.unsuspend(vserver)
+        
+    else:
+        # close descriptors, run via wrapper, see vsutil.start()
+
+        pid = os.fork()
+        if pid == 0:
             
-    if s == '*default':
-        open(mark_path, 'w').write('default\n')
+            # in child
 
-    ## remove suspend mark
-    suspend_path = os.path.join(cfg.VAR_DB_OPENVPS, 'suspend', vserver)
-    if os.path.exists(suspend_path):
-       os.unlink(suspend_path)
+            # now close all file descriptors
+            for fd in range(os.sysconf("SC_OPEN_MAX")):
+                try:
+                    os.close(fd)
+                except OSError:   # ERROR (ignore)
+                    pass
 
-    ## not start it if it's not running
-    if not vsutil.is_running(vserver):
-        vsutil.start(vserver)
+            # only now is it OK to do our thing
+            os.system('%s openvps-unsuspend %s > /dev/null 2>&1 &' % (cfg.OVWRAPPER, vserver))
+
+            # exit child
+            os._exit(0)
+            
+        else:
+            # wait on the child to avoid a defunct (zombie) process
+            os.wait()
+
 
 def fw_start(vserver, mode):
 

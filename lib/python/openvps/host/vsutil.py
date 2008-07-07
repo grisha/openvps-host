@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.27 2008/04/17 16:30:31 grisha Exp $
+# $Id: vsutil.py,v 1.28 2008/07/07 19:50:22 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -455,6 +455,40 @@ def stop(vserver):
         return commands.getoutput('%s %s stop' % (cfg.VSERVER, vserver))
     else:
         return commands.getoutput('%s vserver-stop %s' % (cfg.OVWRAPPER, vserver))
+
+
+def unsuspend(vserver):
+
+    ## update the vserver config to make sure it does not
+    ## start automatically on startup
+
+    mark_path = os.path.join(cfg.ETC_VSERVERS, vserver, 'apps/init/mark')
+
+    s = open(mark_path).read().strip()
+
+    if s == '*default':
+        open(mark_path, 'w').write('default\n')
+
+    ## not start it if it's not running
+    if not is_running(vserver):
+        start(vserver)
+
+
+def suspend(vserver):
+
+    ## update the vserver config to make sure it does not
+    ## start automatically on startup
+
+    mark_path = os.path.join(cfg.ETC_VSERVERS, vserver, 'apps/init/mark')
+
+    s = open(mark_path).read().strip()
+
+    if s == 'default':
+        open(mark_path, 'w').write('*default\n')
+
+    ## now stop it if it's running
+    if is_running(vserver):
+        stop(vserver)
 
 
 def iptables_rules(vserver):

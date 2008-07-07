@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.54 2008/06/27 01:09:14 grisha Exp $
+# $Id: panel.py,v 1.55 2008/07/07 19:50:22 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -148,6 +148,18 @@ def handler(req):
         name, command = parts[2:]
 
         return getstats(req, name, command)
+
+    elif parts[1] in ['suspend', 'unsuspend']:
+
+        if len(parts) != 3:
+            return error(req, 'request not understood')
+
+        name = parts[2]
+        
+        if parts[1] == 'suspend':
+            return suspend(req, name)
+        else:
+            return unsuspend(req, name)
 
     elif parts[1] == 'graph':
 
@@ -444,6 +456,26 @@ def start(req, name, params):
     # note - this redirect is relative because absolute won't work with
     # our proxypass proxy
     util.redirect(req, 'status')
+
+
+def suspend(req, name):
+
+    req.log_error('Suspending vserver %s' % name)
+
+    vds.suspend(name)
+
+    req.write("Suspended: %s\n" % name)
+    return apache.OK
+
+
+def unsuspend(req, name):
+
+    req.log_error('Unsuspending vserver %s' % name)
+
+    vds.unsuspend(name)
+
+    req.write("Unsuspended: %s\n" % name)
+    return apache.OK
 
 
 def stats(req, name, params):
