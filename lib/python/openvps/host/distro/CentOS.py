@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.11 2007/06/07 23:58:52 grisha Exp $
+# $Id: CentOS.py,v 1.12 2008/07/20 01:21:36 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -384,5 +384,10 @@ class CentOS_5_0(CentOS):
         os.chmod(os.path.join(self.vpsroot, 'etc/cron.weekly/makewhatis.cron'), 0644)
 
 
+class CentOS_5_2(CentOS_5_0):
+
+    CentOS_VER = '5.2'
+
 distro_util.register(CentOS_5_0)
+distro_util.register(CentOS_5_2)
 
