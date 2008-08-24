@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.36 2007/06/08 18:13:40 grisha Exp $
+# $Id: mkspec.in,v 1.37 2008/08/24 18:03:17 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -79,7 +79,9 @@ echo "%config(noreplace) %{_sysconfdir}/cron.d/*"
 echo "%config(noreplace) %{_sysconfdir}/httpd/conf.d/*.conf"
 echo "%config(noreplace) %{_sysconfdir}/*.conf"
 echo "%config(noreplace) %{_sysconfdir}/ssh/sshd_config_ohd"
+# on x86_64 _libdir is /usr/lib64, and we need both
 echo "%{_libdir}/@PYTHON@/site-packages"
+echo "/usr/lib/@PYTHON@/site-packages"
 echo "/etc/init.d/ohd"
 echo "/etc/init.d/ovfixproc"
 echo "/etc/init.d/ovresources"
