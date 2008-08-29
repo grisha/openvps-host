@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.27 2007/04/17 19:54:44 grisha Exp $
+# $Id: dft.py.in,v 1.28 2008/08/29 22:15:52 grisha Exp $
 
 """ Configuration Defaults
 
@@ -83,7 +83,7 @@ VSERVERS_ROOT = NOVAL
 
 # Reference servers. First one is the preferred one
 # XXX need to add this to openvps-configure
-REFROOTS = ['/vservers/REF-CentOS5', '/vservers/REF-FC4',
+REFROOTS = ['/vservers/REF-CentOS5_64', '/vservers/REF-CentOS5', '/vservers/REF-FC4',
             '/vservers/REF-FC3', '/vservers/REF-FC2', '/vservers/REF-FC1']
 
 # Location of the vservers database
@@ -139,11 +139,11 @@ INODES_LIM = 1000000
 #   higher than seems reasonable at first. The defaults here are aimed
 #   at large systems with at least 2GB of RAM or more.
 #
-RLIMITS = {'as': 524288, # virtual memory limit, 2 GB
+RLIMITS = {'as': 2097152, # virtual memory limit, 8 GB
            'memlock': 4096, # locked memory, 16MB
-           'rss': 262144,   # RSS, 1GB
-           'nofile': 2048,  # number of open files
-           'nproc': 256,    # number of processes
+           'rss': 524288,   # RSS, 2GB
+           'nofile': 8192,  # number of open files
+           'nproc': 1024,    # number of processes
            }
 
 # default domain name - the hostname for vservers will be
@@ -212,7 +212,7 @@ INDEX_HTML = """
 DFT_NICE = '9' # not as nice as default (10), but nice
 
 # Vserver flags (^19 is VIRT_LOAD)
-DFT_FLAGS = 'lock\nhide_netif\nvirt_uptime\nsched_prio\nfakeinit\n^19\n'
+DFT_FLAGS = 'lock\nhide_netif\nvirt_uptime\nvirt_load\nvirt_cpu\nvirt_mem\nsched_prio\nfakeinit\n'
 
 # Scheduler parameters. This only has effect when the sched_hard flag
 # is set. Every <interval> (in jiffies ~10ms), a <fill-rate> tokens is

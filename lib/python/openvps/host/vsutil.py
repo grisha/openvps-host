@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.28 2008/07/07 19:50:22 grisha Exp $
+# $Id: vsutil.py,v 1.29 2008/08/29 22:15:52 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -91,7 +91,7 @@ def get_vserver_config(name):
     return config
 
 def save_vserver_config(name, ip, xid, hostname=None, dev=cfg.DFT_DEVICE,
-                        vpn_ip=None, vpn_mask='255.255.255.0'):
+                        vpn_ip=None, vpn_mask='255.255.255.0', vps_arch='i386'):
 
     if not hostname:
         hostname = name
@@ -174,6 +174,13 @@ def save_vserver_config(name, ip, xid, hostname=None, dev=cfg.DFT_DEVICE,
 
     # apps/init/style (we want real init)
     open(os.path.join(dirname, 'apps', 'init', 'style'), 'w').write('plain\n')
+
+    # fix up guest architecture if it is not x86_64
+    host_arch = os.uname()[-1]
+    if host_arch == 'x86_64' and vps_arch != 'x86_64':
+        print 'Fixing guest personality to i386...'
+        open(os.path.join(dirname, 'personality'), 'w').write('linux_32bit\n')
+        open(os.path.join(dirname, 'uts', 'machine'), 'w').write('i686\n')
 
     print 'Done'
 

@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.18 2007/06/08 15:53:02 grisha Exp $
+# $Id: Distro.py,v 1.19 2008/08/29 22:15:52 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -470,9 +470,12 @@ class Distro(object):
 
         hostname = name + '.' + cfg.DEFAULT_DOMAIN
 
+        vps_arch = self.vps_arch()
+
         # first make a configuration
         vsutil.save_vserver_config(name, ip, xid, hostname,
-                                   vpn_ip=vpn_ip, vpn_mask=vpn_mask)
+                                   vpn_ip=vpn_ip, vpn_mask=vpn_mask,
+                                   vps_arch=vps_arch)
 
         root = self.vpsroot
 

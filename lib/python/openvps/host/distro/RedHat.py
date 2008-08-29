@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: RedHat.py,v 1.15 2007/06/07 20:52:21 grisha Exp $
+# $Id: RedHat.py,v 1.16 2008/08/29 22:15:52 grisha Exp $
 
 # This is the base class for RedHat (or RedHat-like?) distros.
 
@@ -392,6 +392,20 @@ class RedHat(Distro):
             return open(os.path.join(self.vpsroot, 'etc/redhat-release')).read()
         except:
             return None
+
+
+    def vps_arch(self):
+
+        cmd = "/usr/bin/file -b --no-dereference %s/sbin/init" % self.vpsroot
+        s = commands.getoutput(cmd)
+
+        if 'x86-64' in s:
+            return 'x86_64'
+        elif '80386' in s:
+            return 'i386' 
+        else:
+            return None
+            
 
     def fixflags(self):
 
