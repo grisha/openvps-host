@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: Distro.py,v 1.19 2008/08/29 22:15:52 grisha Exp $
+# $Id: Distro.py,v 1.20 2008/09/03 22:09:02 grisha Exp $
 
 # this is the base object for all distributions, it should only contain
 # methods specific to _any_ distribution
@@ -26,6 +26,7 @@ import stat
 import shutil
 import sys
 import time
+import re
 
 from openvps.common import util
 from openvps.host import cfg, vsutil
@@ -226,7 +227,13 @@ class Distro(object):
         fqdn = hostname
         host = hostname.split('.')[0]
 
-        open(fname, 'w').write('%s %s %s localhost' % (ip, fqdn, host))
+        kern_ver =  commands.getoutput("uname -r")
+        if re.search(r'vs[12]\.[012]', kern_ver):
+            # old vserver, localhost must point the IP of the VPS
+            open(fname, 'w').write('%s %s %s localhost' % (ip, fqdn, host))
+        else:
+            # assume new vserver (2.3+), normal hosts file
+            open(fname, 'w').write('127.0.0.1 localhost\n%s %s %s\n' % (ip, fqdn, host))
 
         return fqdn
 
