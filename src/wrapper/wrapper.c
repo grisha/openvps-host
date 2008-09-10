@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * $Id: wrapper.c,v 1.5 2008/07/07 19:50:22 grisha Exp $
+ * $Id: wrapper.c,v 1.6 2008/09/10 16:39:00 grisha Exp $
  *
  */
 
@@ -252,6 +252,8 @@ int run_command(const char* command, int argc, char** argv) {
         /* run it with empty environment */
         execve(OPENVPS, newargv, ENV);
     }
+
+    printf("%s\n", errno);
 
     /* we failed if we got this far */
     log_error("Error: %s", strerror(errno));
