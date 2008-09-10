@@ -14,13 +14,13 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.1 2005/01/11 21:42:32 grisha Exp $
+# $Id: Makefile.in,v 1.2 2008/09/10 16:39:52 grisha Exp $
 
 INSTALL=@INSTALL@
 PREFIX=@prefix@
 
 ovwrapper: wrapper.c
-	$(CC) -o ovwrapper wrapper.c
+	$(CC) -g -o ovwrapper wrapper.c
 
 install: ovwrapper
 	$(INSTALL) -m 4755 -o root -g root ovwrapper $(DESTDIR)$(PREFIX)/sbin/ovwrapper
