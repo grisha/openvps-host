@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-# $Id: panel.py,v 1.55 2008/07/07 19:50:22 grisha Exp $
+# $Id: panel.py,v 1.56 2008/09/20 17:09:13 grisha Exp $
 
 """ This is a primitive handler that should
     display usage statistics. This requires mod_python
@@ -323,10 +323,10 @@ def login(req, vserver_name, message=''):
         vservers = vsutil.list_vservers()
         if ((vserver_name == userid and
              vservers.has_key(vserver_name) and
-             vsutil.check_passwd(vserver_name, userid, passwd)) or
+             vds.checkpw(vserver_name, userid, passwd)) or
             # root
             (userid == SUPER and
-             vsutil.check_passwd('/', userid, passwd)) or
+             vds.checkpw('/', userid, passwd)) or
             # superuser
             (userid == cfg.PANEL_SUPERUSER and
              crypto.check_passwd_md5(passwd, cfg.PANEL_SUPERUSER_PW))):

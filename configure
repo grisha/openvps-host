@@ -2687,7 +2687,7 @@ OHD_PORT="1012"
 
 # final output
 
-                                                                                                                                                                                                                                      ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec rhinit/ohd rhinit/openvps-mon crontab/Makefile crontab/openvps src/ovchkpwd/Makefile www/Makefile www/conf/Makefile lib/python/openvps/host/dft.py openvps.conf ohd/Makefile ohd/common.h ohd/sshd_config src/pace/Makefile src/wrapper/wrapper.h src/wrapper/Makefile www/templates/Makefile www/images/Makefile www/conf/openvps.conf"
+                                                                                                                                                                                                                            ac_config_files="$ac_config_files Makefile scripts/Makefile src/Makefile rhinit/Makefile mkspec rhinit/ohd rhinit/openvps-mon crontab/Makefile crontab/openvps www/Makefile www/conf/Makefile lib/python/openvps/host/dft.py openvps.conf ohd/Makefile ohd/common.h ohd/sshd_config src/pace/Makefile src/wrapper/wrapper.h src/wrapper/Makefile www/templates/Makefile www/images/Makefile www/conf/openvps.conf"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -3248,7 +3248,6 @@ do
   "rhinit/openvps-mon" ) CONFIG_FILES="$CONFIG_FILES rhinit/openvps-mon" ;;
   "crontab/Makefile" ) CONFIG_FILES="$CONFIG_FILES crontab/Makefile" ;;
   "crontab/openvps" ) CONFIG_FILES="$CONFIG_FILES crontab/openvps" ;;
-  "src/ovchkpwd/Makefile" ) CONFIG_FILES="$CONFIG_FILES src/ovchkpwd/Makefile" ;;
   "www/Makefile" ) CONFIG_FILES="$CONFIG_FILES www/Makefile" ;;
   "www/conf/Makefile" ) CONFIG_FILES="$CONFIG_FILES www/conf/Makefile" ;;
   "lib/python/openvps/host/dft.py" ) CONFIG_FILES="$CONFIG_FILES lib/python/openvps/host/dft.py" ;;

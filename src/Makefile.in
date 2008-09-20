@@ -14,30 +14,26 @@
 # limitations under the License.
 #
 
-# $Id: Makefile.in,v 1.5 2007/06/06 21:09:13 grisha Exp $
+# $Id: Makefile.in,v 1.6 2008/09/20 17:09:13 grisha Exp $
 
 all:
-	@cd ovchkpwd && $(MAKE)
 	@cd pace && $(MAKE)
 	@cd wrapper && $(MAKE)
 	@cd tunctl && $(MAKE)
 
 install:
-	@cd ovchkpwd && $(MAKE) install
 	@cd pace && $(MAKE) install
 	@cd wrapper && $(MAKE) install
 	@cd tunctl && $(MAKE) install
 
 clean:
 	rm -rf $(OBJS) core *~ .libs *.o *.slo *.lo *.la
-	@cd ovchkpwd && $(MAKE) clean
 	@cd pace && $(MAKE) clean
 	@cd wrapper && $(MAKE) clean
 	@cd tunctl && $(MAKE) clean
 
 distclean: clean
 	rm -f Makefile
-	@cd ovchkpwd && $(MAKE) distclean
 	@cd pace && $(MAKE) distclean
 	@cd wrapper && $(MAKE) distclean
 	@cd tunctl && $(MAKE) distclean

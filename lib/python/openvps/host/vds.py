@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vds.py,v 1.26 2008/07/07 19:50:22 grisha Exp $
+# $Id: vds.py,v 1.27 2008/09/20 17:09:13 grisha Exp $
 
 """ VDS related functions """
 
@@ -1074,4 +1074,50 @@ def fw_block(vserver, ips):
     vsutil.fw_block(vserver, ips)
 
     
+def getpwhash(vserver, userid):
+    # we assume they're using shadow here
+    vpsroot = os.path.join(cfg.VSERVERS_ROOT, vserver)
+    shlines = open(os.path.join(vpsroot, 'etc/shadow')).readlines()
+    for line in shlines:
+        userid_, pwhash, rest = line.split(':', 2)
+        if userid == userid_:
+            return pwhash
+
+    return None
+
+def checkpw(vserver, userid, passwd):
+
+    if os.getuid() == 0:
+
+        pwhash = getpwhash(vserver, userid)
+        return util.check_passwd(passwd, pwhash)
+        
+    else:
+        # close descriptors, run via wrapper, see vsutil.start()
+
+        pid = os.fork()
+        if pid == 0:
+            
+            # in child
+
+            # now close all file descriptors
+            for fd in range(os.sysconf("SC_OPEN_MAX")):
+                try:
+                    os.close(fd)
+                except OSError:   # ERROR (ignore)
+                    pass
+
+            pipe = os.popen('%s openvps-checkpw %s %s' % (cfg.OVWRAPPER, vserver, userid), 'w')
+            pipe.write(passwd)
+            sts = pipe.close()
+
+            if sts is None:
+                os._exit(os.EX_OK)
+            else:
+                os._exit(os.EX_OSERR)
+
+        else:
+            # wait on the child to avoid a defunct (zombie) process
+            pid, sts = os.wait()
+            return sts == 0
 

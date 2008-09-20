@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: mkspec.in,v 1.37 2008/08/24 18:03:17 grisha Exp $
+# $Id: mkspec.in,v 1.38 2008/09/20 17:09:13 grisha Exp $
 
 # Output a spec file for an RPM
 
@@ -93,7 +93,6 @@ echo "/etc/vservers/.defaults/scripts/postpost-stop.d/openvps"
 echo "/etc/openvps-release"
 echo "/usr/openvps"
 echo "/usr/sbin/ovbackup"
-echo "/usr/sbin/ovchkpwd"
 echo "/usr/sbin/ovdisk"
 echo "/usr/sbin/openvps"
 echo "/usr/sbin/openvps-configure"

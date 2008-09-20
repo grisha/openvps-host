@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.29 2008/08/29 22:15:52 grisha Exp $
+# $Id: vsutil.py,v 1.30 2008/09/20 17:09:13 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -256,22 +256,6 @@ def guess_vserver_device():
     device = s.split()[0]
 
     return device
-
-def check_passwd(vserver, userid, passwd):
-    """ Check password for a user on a vserver """
-
-    if vserver == '/':
-        # this is actual host machine
-        vpath = '/'
-    else:
-        vpath = os.path.join(cfg.VSERVERS_ROOT, vserver)
-
-    cmd = '%s %s' % (cfg.OVCHKPWD, vpath)
-    pipe = os.popen(cmd, 'w')
-    pipe.write('%s:%s' % (userid, passwd))
-    sts = pipe.close()
-               
-    return not sts
 
 def set_file_immutable_unlink(path):
     """ Sets the ext2 immutable-unlink flag. This is the special

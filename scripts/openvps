@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# $Id: openvps,v 1.16 2007/06/07 20:52:21 grisha Exp $
+# $Id: openvps,v 1.17 2008/09/20 17:09:13 grisha Exp $
 
 
 """
@@ -387,7 +387,23 @@ def cmd_fw():
 
         vds.fw_block(vserver, ips)
 
-        
+def cmd_checkpw():
+
+    parser = OptionParser(usage="%prog checkps <vserver name> <userid>\n"
+                          "  Check the password against hash in vserver (password read from stdin, result in status code)")
+
+    (options, args) = parser.parse_args(sys.argv[2:])
+    if len(args) != 2:
+        parser.error("Must specify <vserver name> <userid>")
+
+    vserver, userid = args
+
+    passwd = sys.stdin.read() #line()[:-1]
+
+    if not vds.checkpw(vserver, userid, passwd):
+        sys.exit(os.EX_OSERR)
+    else:
+        sys.exit(os.EX_OK)
 
 ########
 
