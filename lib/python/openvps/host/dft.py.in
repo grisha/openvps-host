@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: dft.py.in,v 1.28 2008/08/29 22:15:52 grisha Exp $
+# $Id: dft.py.in,v 1.29 2009/01/21 01:41:50 grisha Exp $
 
 """ Configuration Defaults
 
@@ -140,7 +140,7 @@ INODES_LIM = 1000000
 #   at large systems with at least 2GB of RAM or more.
 #
 RLIMITS = {'as': 2097152, # virtual memory limit, 8 GB
-           'memlock': 4096, # locked memory, 16MB
+           'memlock': 409600, # locked memory, 1600MB # so large to avoid vserver bug
            'rss': 524288,   # RSS, 2GB
            'nofile': 8192,  # number of open files
            'nproc': 1024,    # number of processes
