@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.14 2009/04/22 10:58:39 grisha Exp $
+# $Id: CentOS.py,v 1.15 2009/08/19 16:29:13 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -50,6 +50,8 @@ class CentOS(RedHat):
                 if rh_ver['name'] == 'Final':
                     if '5.2' in rh_ver['RPMS']:
                         rhel_ver = '5.2'
+                    elif '5.3' in rh_ver['RPMS']:
+                        rhel_ver = '5.3'
                     else:
                         rhel_ver = '5'
                     if rhel_ver == self.CentOS_VER:
