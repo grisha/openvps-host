@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: vsutil.py,v 1.30 2008/09/20 17:09:13 grisha Exp $
+# $Id: vsutil.py,v 1.31 2009/09/03 19:53:11 grisha Exp $
 
 """ Vserver-specific functions """
 
@@ -909,20 +909,20 @@ def fw_setup(vserver, config=None):
             proto, port, ips = rule
 
             if ips:
-                # allow from these IPs
+                # reject from these IPs
                 for ip in ips:
-                    cmd = '/sbin/iptables -A %s -p %s --dport %d -s %s -j ACCEPT' % \
+                    cmd = '/sbin/iptables -A %s -p %s --dport %d -s %s -j REJECT' % \
                           (chain_name, proto, port, ip)
                     print cmd
                     err = commands.getoutput(cmd)
                     if err: print err
-            
-            # at the end always block
-            cmd = '/sbin/iptables -A %s -p %s --dport %d -j REJECT' % \
-                  (chain_name, proto, port)
-            print cmd
-            err = commands.getoutput(cmd)
-            if err: print err
+            else:
+            # block outright
+                cmd = '/sbin/iptables -A %s -p %s --dport %d -j REJECT' % \
+                      (chain_name, proto, port)
+                print cmd
+                err = commands.getoutput(cmd)
+                if err: print err
 
 
 def fw_finish(vserver):
