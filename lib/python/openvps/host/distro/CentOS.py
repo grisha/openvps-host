@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.15 2009/08/19 16:29:13 grisha Exp $
+# $Id: CentOS.py,v 1.16 2010/01/18 15:41:11 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -501,10 +501,13 @@ class CentOS_5_2(CentOS_5_0):
             'xorg-x11-xauth', 'xorg-x11-xfs', 'xterm', 'zlib-devel']
 
 class CentOS_5_3(CentOS_5_2):
-
     CentOS_VER = '5.3'
+
+class CentOS_5_4(CentOS_5_3):
+    CentOS_VER = '5.4'
 
 distro_util.register(CentOS_5_0)
 distro_util.register(CentOS_5_2)
 distro_util.register(CentOS_5_3)
+distro_util.register(CentOS_5_4)
 
