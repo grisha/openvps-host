@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-# $Id: CentOS.py,v 1.17 2010/05/27 12:20:52 grisha Exp $
+# $Id: CentOS.py,v 1.18 2010/05/27 12:22:34 grisha Exp $
 
 # This is the base class for Fedora Core distributions.
 
@@ -506,7 +506,7 @@ class CentOS_5_3(CentOS_5_2):
 class CentOS_5_4(CentOS_5_3):
     CentOS_VER = '5.4'
 
-class CentOS_5_4(CentOS_5_4):
+class CentOS_5_5(CentOS_5_4):
     CentOS_VER = '5.5'
 
 distro_util.register(CentOS_5_0)
